@@ -24,6 +24,7 @@ import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppBillingRouteImport } from './routes/app.billing'
 import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppAnnouncementsRouteImport } from './routes/app.announcements'
+import { Route as AppPipelineRouteImport } from './routes/app.pipeline'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -88,6 +89,11 @@ const AppChatRoute = AppChatRouteImport.update({
 const AppBillingRoute = AppBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPipelineRoute = AppPipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAttendanceRoute = AppAttendanceRouteImport.update({
@@ -312,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAttendanceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/pipeline': {
+      id: '/app/pipeline'
+      path: '/pipeline'
+      fullPath: '/app/pipeline'
+      preLoaderRoute: typeof AppPipelineRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/announcements': {
       id: '/app/announcements'
       path: '/announcements'
@@ -324,6 +337,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAnnouncementsRoute: typeof AppAnnouncementsRoute
+  AppPipelineRoute: typeof AppPipelineRoute
   AppAttendanceRoute: typeof AppAttendanceRoute
   AppBillingRoute: typeof AppBillingRoute
   AppChatRoute: typeof AppChatRoute
@@ -338,6 +352,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAnnouncementsRoute: AppAnnouncementsRoute,
+  AppPipelineRoute: AppPipelineRoute,
   AppAttendanceRoute: AppAttendanceRoute,
   AppBillingRoute: AppBillingRoute,
   AppChatRoute: AppChatRoute,
