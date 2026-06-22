@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DemoSeedButton } from "@/components/DemoSeedButton";
 import { EmbedWidgetCard } from "@/components/EmbedWidgetCard";
 import { SensitiveValue } from "@/components/SensitiveValue";
-import { Users, CalendarCheck, DollarSign, TrendingUp } from "lucide-react";
+import { Users, CalendarCheck, DollarSign, TrendingUp, Settings } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid } from "recharts";
 import { format, subDays } from "date-fns";
 
@@ -53,7 +53,16 @@ function Dashboard() {
           <p className="text-sm text-muted-foreground">Welcome back{profile ? `, ${profile.display_name.split(" ")[0]}` : ""}</p>
           <h1 className="font-display text-3xl font-semibold">{isStaff ? `${club?.name} Dashboard` : "Your home"}</h1>
         </div>
-        {isStaff && students.length === 0 && <DemoSeedButton />}
+        <div className="flex items-center gap-2">
+          {isStaff && students.length === 0 && <DemoSeedButton />}
+          <Link
+            to="/app/settings"
+            className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            title="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
+        </div>
       </div>
 
       {isStaff ? (
