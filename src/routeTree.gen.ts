@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as EmbedClubIdRouteImport } from './routes/embed.$clubId'
 import { Route as AppStatsRouteImport } from './routes/app.stats'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppScheduleRouteImport } from './routes/app.schedule'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppPipelineRouteImport } from './routes/app.pipeline'
@@ -61,6 +62,11 @@ const EmbedClubIdRoute = EmbedClubIdRouteImport.update({
 const AppStatsRoute = AppStatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppScheduleRoute = AppScheduleRouteImport.update({
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
   '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
   '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/': typeof AppIndexRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
   '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
   '/embed/$clubId': typeof EmbedClubIdRoute
   '/app': typeof AppIndexRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
   '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
   '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/': typeof AppIndexRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/profile'
     | '/app/schedule'
+    | '/app/settings'
     | '/app/stats'
     | '/embed/$clubId'
     | '/app/'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/profile'
     | '/app/schedule'
+    | '/app/settings'
     | '/app/stats'
     | '/embed/$clubId'
     | '/app'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/app/pipeline'
     | '/app/profile'
     | '/app/schedule'
+    | '/app/settings'
     | '/app/stats'
     | '/embed/$clubId'
     | '/app/'
@@ -298,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/stats'
       fullPath: '/app/stats'
       preLoaderRoute: typeof AppStatsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/schedule': {
@@ -392,6 +411,7 @@ interface AppRouteChildren {
   AppPipelineRoute: typeof AppPipelineRoute
   AppProfileRoute: typeof AppProfileRoute
   AppScheduleRoute: typeof AppScheduleRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppStatsRoute: typeof AppStatsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -408,6 +428,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPipelineRoute: AppPipelineRoute,
   AppProfileRoute: AppProfileRoute,
   AppScheduleRoute: AppScheduleRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppStatsRoute: AppStatsRoute,
   AppIndexRoute: AppIndexRoute,
 }
