@@ -534,6 +534,7 @@ export type Database = {
           created_at: string
           description: string | null
           ends_at: string
+          group_id: string | null
           id: string
           location: string | null
           starts_at: string
@@ -546,6 +547,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at: string
+          group_id?: string | null
           id?: string
           location?: string | null
           starts_at: string
@@ -558,6 +560,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at?: string
+          group_id?: string | null
           id?: string
           location?: string | null
           starts_at?: string
@@ -570,6 +573,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_slots_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "course_groups"
             referencedColumns: ["id"]
           },
         ]
