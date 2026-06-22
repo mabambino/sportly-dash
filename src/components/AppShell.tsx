@@ -38,6 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading, membership, club, isStaff, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
