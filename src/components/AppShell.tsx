@@ -72,16 +72,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
         );
       })}
-      <Link
-        to="/app/notifications"
-        onClick={() => setMobileOpen(false)}
-        className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          pathname === "/app/notifications" ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"
-        )}
-      >
-        <Bell className="h-4 w-4" /> Notifications
-      </Link>
     </nav>
   );
 
@@ -96,7 +86,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="grid h-7 w-7 place-items-center rounded-md bg-gradient-hero text-primary-foreground"><Trophy className="h-3.5 w-3.5" /></div>
           <span className="font-display font-semibold">{club.name}</span>
         </div>
-        <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/app/notifications"
+            className={cn(
+              "grid h-9 w-9 place-items-center rounded-lg transition-colors",
+              pathname === "/app/notifications" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            )}
+            title="Notifications"
+          >
+            <Bell className="h-5 w-5" />
+          </Link>
+          <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
+        </div>
       </header>
 
       <div className="flex">
@@ -145,8 +147,21 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {mobileOpen && <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
-        <main className="min-h-screen flex-1 lg:ml-0">
-          <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">{children}</div>
+        <main className="flex min-h-screen flex-1 flex-col lg:ml-0">
+          {/* Desktop top bar */}
+          <header className="sticky top-0 z-30 hidden h-14 items-center justify-end border-b border-border bg-background/95 px-8 backdrop-blur lg:flex">
+            <Link
+              to="/app/notifications"
+              className={cn(
+                "grid h-9 w-9 place-items-center rounded-lg transition-colors",
+                pathname === "/app/notifications" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              )}
+              title="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+            </Link>
+          </header>
+          <div className="mx-auto w-full max-w-7xl px-4 py-6 lg:px-8 lg:py-10">{children}</div>
         </main>
       </div>
       <EnrollQRDialog
