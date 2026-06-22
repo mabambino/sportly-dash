@@ -142,13 +142,6 @@ function StatCard({ label, value, sub, icon: Icon, sensitive }: { label: string;
     </Card>
   );
 }
-        </>
-      ) : (
-        <MemberHome data={data} growth={growth} />
-      )}
-    </div>
-  );
-}
 
 
 function MemberHome({ data, growth }: { data: any; growth: { day: string; members: number }[] }) {
