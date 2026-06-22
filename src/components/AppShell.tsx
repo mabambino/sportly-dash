@@ -109,14 +109,21 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-hero text-primary-foreground"><Trophy className="h-4 w-4" /></div>
             <span className="font-display font-semibold">ClubHaus</span>
           </Link>
-          <div className="mb-6 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3">
+          <button
+            type="button"
+            onClick={() => setQrOpen(true)}
+            className="group mb-6 w-full rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3 text-left transition-colors hover:bg-sidebar-accent hover:border-primary/40"
+            title="Show enrollment QR codes"
+          >
             <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">{club.sport}</p>
             <p className="mt-0.5 truncate font-semibold">{club.name}</p>
             <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Team code</span>
-              <span className="rounded bg-background px-1.5 py-0.5 font-mono text-xs font-semibold">{club.team_code}</span>
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <QrCode className="h-3 w-3" /> Team code
+              </span>
+              <span className="rounded bg-background px-1.5 py-0.5 font-mono text-xs font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{club.team_code}</span>
             </div>
-          </div>
+          </button>
           <NavList />
           <div className="mt-auto space-y-3 pt-4">
             <div className="flex items-center gap-2 rounded-lg px-2 py-2">
