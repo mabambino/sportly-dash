@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Trophy, LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
-  CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
+  CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers, Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,7 @@ const adminNav = [
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
   { to: "/app/announcements", label: "Announcements", icon: Megaphone },
+  { to: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 const memberNav = [
@@ -32,6 +33,7 @@ const memberNav = [
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
   { to: "/app/announcements", label: "Announcements", icon: Megaphone },
+  { to: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
