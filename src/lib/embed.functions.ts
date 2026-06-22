@@ -26,7 +26,7 @@ export const getEmbedStats = createServerFn({ method: "GET" })
 
     const members = membersRes.data || [];
     const students = members.filter((m) => m.role === "student").length;
-    const trainers = members.filter((m) => m.role === "trainer" || m.role === "owner").length;
+    const trainers = members.filter((m) => m.role === "trainer" || m.role === "club_owner").length;
     const att = attRes.data || [];
     const present = att.filter((a) => a.status === "present").length;
     const attRate = att.length ? Math.round((present / att.length) * 100) : 0;
