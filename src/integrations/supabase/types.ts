@@ -231,10 +231,71 @@ export type Database = {
         }
         Relationships: []
       }
+      course_groups: {
+        Row: {
+          chat_channel_id: string | null
+          club_id: string
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price_cents: number
+          schedule_days: string[]
+          schedule_time: string | null
+          session_duration_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          chat_channel_id?: string | null
+          club_id: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          price_cents?: number
+          schedule_days?: string[]
+          schedule_time?: string | null
+          session_duration_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          chat_channel_id?: string | null
+          club_id?: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price_cents?: number
+          schedule_days?: string[]
+          schedule_time?: string | null
+          session_duration_minutes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_groups_chat_channel_id_fkey"
+            columns: ["chat_channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_groups_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           approved: boolean
           club_id: string
+          group_id: string | null
           id: string
           joined_at: string
           role: Database["public"]["Enums"]["app_role"]
@@ -243,6 +304,7 @@ export type Database = {
         Insert: {
           approved?: boolean
           club_id: string
+          group_id?: string | null
           id?: string
           joined_at?: string
           role: Database["public"]["Enums"]["app_role"]
@@ -251,6 +313,7 @@ export type Database = {
         Update: {
           approved?: boolean
           club_id?: string
+          group_id?: string | null
           id?: string
           joined_at?: string
           role?: Database["public"]["Enums"]["app_role"]
@@ -262,6 +325,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memberships_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "course_groups"
             referencedColumns: ["id"]
           },
         ]
@@ -464,6 +534,7 @@ export type Database = {
           created_at: string
           description: string | null
           ends_at: string
+          group_id: string | null
           id: string
           location: string | null
           starts_at: string
@@ -476,6 +547,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at: string
+          group_id?: string | null
           id?: string
           location?: string | null
           starts_at: string
@@ -488,6 +560,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at?: string
+          group_id?: string | null
           id?: string
           location?: string | null
           starts_at?: string
@@ -500,6 +573,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_slots_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "course_groups"
             referencedColumns: ["id"]
           },
         ]
