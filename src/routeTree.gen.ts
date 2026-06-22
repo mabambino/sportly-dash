@@ -14,18 +14,19 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as EmbedClubIdRouteImport } from './routes/embed.$clubId'
 import { Route as AppStatsRouteImport } from './routes/app.stats'
 import { Route as AppScheduleRouteImport } from './routes/app.schedule'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
+import { Route as AppPipelineRouteImport } from './routes/app.pipeline'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppMembersRouteImport } from './routes/app.members'
+import { Route as AppGroupsRouteImport } from './routes/app.groups'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppBillingRouteImport } from './routes/app.billing'
 import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppAnnouncementsRouteImport } from './routes/app.announcements'
-import { Route as AppPipelineRouteImport } from './routes/app.pipeline'
-import { Route as AppGroupsRouteImport } from './routes/app.groups'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -52,6 +53,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const EmbedClubIdRoute = EmbedClubIdRouteImport.update({
+  id: '/embed/$clubId',
+  path: '/embed/$clubId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppStatsRoute = AppStatsRouteImport.update({
   id: '/stats',
   path: '/stats',
@@ -67,6 +73,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPipelineRoute = AppPipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -75,6 +86,11 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
 const AppMembersRoute = AppMembersRouteImport.update({
   id: '/members',
   path: '/members',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGroupsRoute = AppGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -90,16 +106,6 @@ const AppChatRoute = AppChatRouteImport.update({
 const AppBillingRoute = AppBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGroupsRoute = AppGroupsRouteImport.update({
-  id: '/groups',
-  path: '/groups',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPipelineRoute = AppPipelineRouteImport.update({
-  id: '/pipeline',
-  path: '/pipeline',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAttendanceRoute = AppAttendanceRouteImport.update({
@@ -123,11 +129,14 @@ export interface FileRoutesByFullPath {
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/groups': typeof AppGroupsRoute
   '/app/members': typeof AppMembersRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
   '/app/schedule': typeof AppScheduleRoute
   '/app/stats': typeof AppStatsRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -139,11 +148,14 @@ export interface FileRoutesByTo {
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/groups': typeof AppGroupsRoute
   '/app/members': typeof AppMembersRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
   '/app/schedule': typeof AppScheduleRoute
   '/app/stats': typeof AppStatsRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -157,11 +169,14 @@ export interface FileRoutesById {
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/groups': typeof AppGroupsRoute
   '/app/members': typeof AppMembersRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
   '/app/schedule': typeof AppScheduleRoute
   '/app/stats': typeof AppStatsRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -176,11 +191,14 @@ export interface FileRouteTypes {
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
+    | '/app/groups'
     | '/app/members'
     | '/app/notifications'
+    | '/app/pipeline'
     | '/app/profile'
     | '/app/schedule'
     | '/app/stats'
+    | '/embed/$clubId'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -192,11 +210,14 @@ export interface FileRouteTypes {
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
+    | '/app/groups'
     | '/app/members'
     | '/app/notifications'
+    | '/app/pipeline'
     | '/app/profile'
     | '/app/schedule'
     | '/app/stats'
+    | '/embed/$clubId'
     | '/app'
   id:
     | '__root__'
@@ -209,11 +230,14 @@ export interface FileRouteTypes {
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
+    | '/app/groups'
     | '/app/members'
     | '/app/notifications'
+    | '/app/pipeline'
     | '/app/profile'
     | '/app/schedule'
     | '/app/stats'
+    | '/embed/$clubId'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -222,6 +246,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   OnboardingRoute: typeof OnboardingRoute
+  EmbedClubIdRoute: typeof EmbedClubIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -261,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/embed/$clubId': {
+      id: '/embed/$clubId'
+      path: '/embed/$clubId'
+      fullPath: '/embed/$clubId'
+      preLoaderRoute: typeof EmbedClubIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/stats': {
       id: '/app/stats'
       path: '/stats'
@@ -282,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/pipeline': {
+      id: '/app/pipeline'
+      path: '/pipeline'
+      fullPath: '/app/pipeline'
+      preLoaderRoute: typeof AppPipelineRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notifications': {
       id: '/app/notifications'
       path: '/notifications'
@@ -294,6 +333,13 @@ declare module '@tanstack/react-router' {
       path: '/members'
       fullPath: '/app/members'
       preLoaderRoute: typeof AppMembersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/groups': {
+      id: '/app/groups'
+      path: '/groups'
+      fullPath: '/app/groups'
+      preLoaderRoute: typeof AppGroupsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/dashboard': {
@@ -324,20 +370,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAttendanceRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/groups': {
-      id: '/app/groups'
-      path: '/groups'
-      fullPath: '/app/groups'
-      preLoaderRoute: typeof AppGroupsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/pipeline': {
-      id: '/app/pipeline'
-      path: '/pipeline'
-      fullPath: '/app/pipeline'
-      preLoaderRoute: typeof AppPipelineRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/announcements': {
       id: '/app/announcements'
       path: '/announcements'
@@ -350,14 +382,14 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAnnouncementsRoute: typeof AppAnnouncementsRoute
-  AppGroupsRoute: typeof AppGroupsRoute
-  AppPipelineRoute: typeof AppPipelineRoute
   AppAttendanceRoute: typeof AppAttendanceRoute
   AppBillingRoute: typeof AppBillingRoute
   AppChatRoute: typeof AppChatRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppGroupsRoute: typeof AppGroupsRoute
   AppMembersRoute: typeof AppMembersRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppPipelineRoute: typeof AppPipelineRoute
   AppProfileRoute: typeof AppProfileRoute
   AppScheduleRoute: typeof AppScheduleRoute
   AppStatsRoute: typeof AppStatsRoute
@@ -366,14 +398,14 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAnnouncementsRoute: AppAnnouncementsRoute,
-  AppGroupsRoute: AppGroupsRoute,
-  AppPipelineRoute: AppPipelineRoute,
   AppAttendanceRoute: AppAttendanceRoute,
   AppBillingRoute: AppBillingRoute,
   AppChatRoute: AppChatRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppGroupsRoute: AppGroupsRoute,
   AppMembersRoute: AppMembersRoute,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppPipelineRoute: AppPipelineRoute,
   AppProfileRoute: AppProfileRoute,
   AppScheduleRoute: AppScheduleRoute,
   AppStatsRoute: AppStatsRoute,
@@ -387,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   OnboardingRoute: OnboardingRoute,
+  EmbedClubIdRoute: EmbedClubIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

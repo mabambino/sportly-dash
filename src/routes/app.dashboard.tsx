@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DemoSeedButton } from "@/components/DemoSeedButton";
+import { EmbedWidgetCard } from "@/components/EmbedWidgetCard";
+import { SensitiveValue } from "@/components/SensitiveValue";
 import { Users, CalendarCheck, DollarSign, TrendingUp } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid } from "recharts";
 import { format, subDays } from "date-fns";
@@ -60,7 +62,7 @@ function Dashboard() {
             <StatCard label="Active members" value={members.length} icon={Users} sub={`${students.length} students`} />
             <StatCard label="Attendance rate" value={`${attRate}%`} icon={CalendarCheck} sub={`Across ${att.length} records`} />
             <StatCard label="Upcoming sessions" value={data?.slots.length ?? 0} icon={TrendingUp} sub="Next 7 days" />
-            <StatCard label="Monthly revenue" value={`$${mrr.toFixed(0)}`} icon={DollarSign} sub={`${paidThisMonth.length} paid`} />
+            <StatCard label="Monthly revenue" value={`$${mrr.toFixed(0)}`} icon={DollarSign} sub={`${paidThisMonth.length} paid`} sensitive />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
@@ -98,21 +100,24 @@ function Dashboard() {
             </Card>
           </div>
 
-          <Card className="p-6">
-            <p className="text-sm font-medium">Upcoming sessions</p>
-            <div className="mt-4 divide-y divide-border">
-              {data?.slots.length === 0 && <p className="py-4 text-sm text-muted-foreground">No upcoming sessions.</p>}
-              {data?.slots.map((s) => (
-                <div key={s.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-medium">{s.title}</p>
-                    <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} • {s.location}</p>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card className="p-6 lg:col-span-2">
+              <p className="text-sm font-medium">Upcoming sessions</p>
+              <div className="mt-4 divide-y divide-border">
+                {data?.slots.length === 0 && <p className="py-4 text-sm text-muted-foreground">No upcoming sessions.</p>}
+                {data?.slots.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between py-3">
+                    <div>
+                      <p className="font-medium">{s.title}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} • {s.location}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Cap: {s.capacity}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">Cap: {s.capacity}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
+                ))}
+              </div>
+            </Card>
+            {club && <EmbedWidgetCard clubId={club.id} />}
+          </div>
         </>
       ) : (
         <MemberHome data={data} growth={growth} />
@@ -121,13 +126,15 @@ function Dashboard() {
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon }: { label: string; value: string | number; sub: string; icon: typeof Users }) {
+function StatCard({ label, value, sub, icon: Icon, sensitive }: { label: string; value: string | number; sub: string; icon: typeof Users; sensitive?: boolean }) {
   return (
     <Card className="p-5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-          <p className="mt-2 font-display text-3xl font-semibold">{value}</p>
+          <p className="mt-2 font-display text-3xl font-semibold">
+            {sensitive ? <SensitiveValue mask="$ ••••">{value}</SensitiveValue> : value}
+          </p>
         </div>
         <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary"><Icon className="h-4 w-4" /></div>
       </div>
@@ -135,6 +142,7 @@ function StatCard({ label, value, sub, icon: Icon }: { label: string; value: str
     </Card>
   );
 }
+
 
 function MemberHome({ data, growth }: { data: any; growth: { day: string; members: number }[] }) {
   return (

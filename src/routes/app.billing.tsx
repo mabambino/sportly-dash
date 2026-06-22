@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { CreditCard, CheckCircle2 } from "lucide-react";
+import { SensitiveValue } from "@/components/SensitiveValue";
 
 export const Route = createFileRoute("/app/billing")({
   head: () => ({ meta: [{ title: "Billing — ClubHaus" }] }),
@@ -58,7 +59,7 @@ function BillingPage() {
 
       {isStaff && (
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Collected</p><p className="mt-2 font-display text-3xl font-semibold">${total.toFixed(0)}</p></Card>
+          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Collected</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`$${total.toFixed(0)}`}</SensitiveValue></p></Card>
           <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Overdue</p><p className="mt-2 font-display text-3xl font-semibold text-destructive">{overdue}</p></Card>
           <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Total invoices</p><p className="mt-2 font-display text-3xl font-semibold">{payments?.length ?? 0}</p></Card>
         </div>
