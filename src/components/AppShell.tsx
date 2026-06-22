@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { EnrollQRDialog } from "@/components/EnrollQRDialog";
+import { QrCode } from "lucide-react";
 
 const adminNav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
