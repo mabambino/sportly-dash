@@ -16,12 +16,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as EmbedClubIdRouteImport } from './routes/embed.$clubId'
 import { Route as AppStatsRouteImport } from './routes/app.stats'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppScheduleRouteImport } from './routes/app.schedule'
+import { Route as AppRevenueRouteImport } from './routes/app.revenue'
+import { Route as AppProgressRouteImport } from './routes/app.progress'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppPipelineRouteImport } from './routes/app.pipeline'
+import { Route as AppParentRouteImport } from './routes/app.parent'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppMembersRouteImport } from './routes/app.members'
+import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppGroupsRouteImport } from './routes/app.groups'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppChatRouteImport } from './routes/app.chat'
@@ -64,14 +67,19 @@ const AppStatsRoute = AppStatsRouteImport.update({
   path: '/stats',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppScheduleRoute = AppScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRevenueRoute = AppRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProgressRoute = AppProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
@@ -84,6 +92,11 @@ const AppPipelineRoute = AppPipelineRouteImport.update({
   path: '/pipeline',
   getParentRoute: () => AppRoute,
 } as any)
+const AppParentRoute = AppParentRouteImport.update({
+  id: '/parent',
+  path: '/parent',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -92,6 +105,11 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
 const AppMembersRoute = AppMembersRouteImport.update({
   id: '/members',
   path: '/members',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLeadsRoute = AppLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
   getParentRoute: () => AppRoute,
 } as any)
 const AppGroupsRoute = AppGroupsRouteImport.update({
@@ -130,40 +148,46 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/groups': typeof AppGroupsRoute
+  '/app/leads': typeof AppLeadsRoute
   '/app/members': typeof AppMembersRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/parent': typeof AppParentRoute
   '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/progress': typeof AppProgressRoute
+  '/app/revenue': typeof AppRevenueRoute
   '/app/schedule': typeof AppScheduleRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
-  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/groups': typeof AppGroupsRoute
+  '/app/leads': typeof AppLeadsRoute
   '/app/members': typeof AppMembersRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/parent': typeof AppParentRoute
   '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/progress': typeof AppProgressRoute
+  '/app/revenue': typeof AppRevenueRoute
   '/app/schedule': typeof AppScheduleRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
-  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -172,20 +196,23 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/groups': typeof AppGroupsRoute
+  '/app/leads': typeof AppLeadsRoute
   '/app/members': typeof AppMembersRoute
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/parent': typeof AppParentRoute
   '/app/pipeline': typeof AppPipelineRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/progress': typeof AppProgressRoute
+  '/app/revenue': typeof AppRevenueRoute
   '/app/schedule': typeof AppScheduleRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
-  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -195,40 +222,46 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/onboarding'
+    | '/embed/$clubId'
     | '/app/announcements'
     | '/app/attendance'
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
     | '/app/groups'
+    | '/app/leads'
     | '/app/members'
     | '/app/notifications'
+    | '/app/parent'
     | '/app/pipeline'
     | '/app/profile'
+    | '/app/progress'
+    | '/app/revenue'
     | '/app/schedule'
-    | '/app/settings'
     | '/app/stats'
-    | '/embed/$clubId'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/onboarding'
+    | '/embed/$clubId'
     | '/app/announcements'
     | '/app/attendance'
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
     | '/app/groups'
+    | '/app/leads'
     | '/app/members'
     | '/app/notifications'
+    | '/app/parent'
     | '/app/pipeline'
     | '/app/profile'
+    | '/app/progress'
+    | '/app/revenue'
     | '/app/schedule'
-    | '/app/settings'
     | '/app/stats'
-    | '/embed/$clubId'
     | '/app'
   id:
     | '__root__'
@@ -236,20 +269,23 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/onboarding'
+    | '/embed/$clubId'
     | '/app/announcements'
     | '/app/attendance'
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
     | '/app/groups'
+    | '/app/leads'
     | '/app/members'
     | '/app/notifications'
+    | '/app/parent'
     | '/app/pipeline'
     | '/app/profile'
+    | '/app/progress'
+    | '/app/revenue'
     | '/app/schedule'
-    | '/app/settings'
     | '/app/stats'
-    | '/embed/$clubId'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -312,18 +348,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStatsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/schedule': {
       id: '/app/schedule'
       path: '/schedule'
       fullPath: '/app/schedule'
       preLoaderRoute: typeof AppScheduleRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/revenue': {
+      id: '/app/revenue'
+      path: '/revenue'
+      fullPath: '/app/revenue'
+      preLoaderRoute: typeof AppRevenueRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/progress': {
+      id: '/app/progress'
+      path: '/progress'
+      fullPath: '/app/progress'
+      preLoaderRoute: typeof AppProgressRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/profile': {
@@ -340,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPipelineRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/parent': {
+      id: '/app/parent'
+      path: '/parent'
+      fullPath: '/app/parent'
+      preLoaderRoute: typeof AppParentRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notifications': {
       id: '/app/notifications'
       path: '/notifications'
@@ -352,6 +402,13 @@ declare module '@tanstack/react-router' {
       path: '/members'
       fullPath: '/app/members'
       preLoaderRoute: typeof AppMembersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/leads': {
+      id: '/app/leads'
+      path: '/leads'
+      fullPath: '/app/leads'
+      preLoaderRoute: typeof AppLeadsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/groups': {
@@ -406,12 +463,15 @@ interface AppRouteChildren {
   AppChatRoute: typeof AppChatRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppGroupsRoute: typeof AppGroupsRoute
+  AppLeadsRoute: typeof AppLeadsRoute
   AppMembersRoute: typeof AppMembersRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppParentRoute: typeof AppParentRoute
   AppPipelineRoute: typeof AppPipelineRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppProgressRoute: typeof AppProgressRoute
+  AppRevenueRoute: typeof AppRevenueRoute
   AppScheduleRoute: typeof AppScheduleRoute
-  AppSettingsRoute: typeof AppSettingsRoute
   AppStatsRoute: typeof AppStatsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -423,12 +483,15 @@ const AppRouteChildren: AppRouteChildren = {
   AppChatRoute: AppChatRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppGroupsRoute: AppGroupsRoute,
+  AppLeadsRoute: AppLeadsRoute,
   AppMembersRoute: AppMembersRoute,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppParentRoute: AppParentRoute,
   AppPipelineRoute: AppPipelineRoute,
   AppProfileRoute: AppProfileRoute,
+  AppProgressRoute: AppProgressRoute,
+  AppRevenueRoute: AppRevenueRoute,
   AppScheduleRoute: AppScheduleRoute,
-  AppSettingsRoute: AppSettingsRoute,
   AppStatsRoute: AppStatsRoute,
   AppIndexRoute: AppIndexRoute,
 }
