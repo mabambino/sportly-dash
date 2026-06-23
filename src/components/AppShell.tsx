@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Trophy, LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
-  CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers, Settings,
+  CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu,
+  Kanban, Layers, DollarSign, TrendingUp, UserPlus, Home,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { EnrollQRDialog } from "@/components/EnrollQRDialog";
-import { QrCode } from "lucide-react";
 
 const adminNav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -20,10 +19,12 @@ const adminNav = [
   { to: "/app/stats", label: "Stats", icon: BarChart3 },
   { to: "/app/pipeline", label: "Pipeline", icon: Kanban },
   { to: "/app/groups", label: "Groups", icon: Layers },
+  { to: "/app/leads", label: "Leads", icon: UserPlus },
+  { to: "/app/revenue", label: "Revenue", icon: DollarSign },
+  { to: "/app/progress", label: "Progress", icon: TrendingUp },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
   { to: "/app/announcements", label: "Announcements", icon: Megaphone },
-  { to: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 const memberNav = [
@@ -33,14 +34,21 @@ const memberNav = [
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
   { to: "/app/announcements", label: "Announcements", icon: Megaphone },
-  { to: "/app/settings", label: "Settings", icon: Settings },
+];
+
+const parentNav = [
+  { to: "/app/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/app/parent", label: "My child", icon: Home },
+  { to: "/app/schedule", label: "Schedule", icon: Calendar },
+  { to: "/app/chat", label: "Chat", icon: MessagesSquare },
+  { to: "/app/billing", label: "Billing", icon: CreditCard },
+  { to: "/app/announcements", label: "Announcements", icon: Megaphone },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading, membership, club, isStaff, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [qrOpen, setQrOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
@@ -52,7 +60,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <div className="grid min-h-screen place-items-center text-muted-foreground">Loading…</div>;
   }
 
-  const nav = isStaff ? adminNav : memberNav;
+  const nav = isStaff
+    ? adminNav
+    : membership.role === "parent"
+      ? parentNav
+      : memberNav;
 
   const NavList = () => (
     <nav className="space-y-1">
@@ -72,6 +84,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
         );
       })}
+      <Link
+        to="/app/notifications"
+        onClick={() => setMobileOpen(false)}
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+          pathname === "/app/notifications" ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"
+        )}
+      >
+        <Bell className="h-4 w-4" /> Notifications
+      </Link>
     </nav>
   );
 
@@ -86,19 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="grid h-7 w-7 place-items-center rounded-md bg-gradient-hero text-primary-foreground"><Trophy className="h-3.5 w-3.5" /></div>
           <span className="font-display font-semibold">{club.name}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/app/notifications"
-            className={cn(
-              "grid h-9 w-9 place-items-center rounded-lg transition-colors",
-              pathname === "/app/notifications" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
-            )}
-            title="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-          </Link>
-          <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
-        </div>
+        <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
       </header>
 
       <div className="flex">
@@ -113,21 +123,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-hero text-primary-foreground"><Trophy className="h-4 w-4" /></div>
             <span className="font-display font-semibold">ClubHaus</span>
           </Link>
-          <button
-            type="button"
-            onClick={() => setQrOpen(true)}
-            className="group mb-6 w-full rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3 text-left transition-colors hover:bg-sidebar-accent hover:border-primary/40"
-            title="Show enrollment QR codes"
-          >
+          <div className="mb-6 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3">
             <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">{club.sport}</p>
             <p className="mt-0.5 truncate font-semibold">{club.name}</p>
             <div className="mt-2 flex items-center justify-between">
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <QrCode className="h-3 w-3" /> Team code
-              </span>
-              <span className="rounded bg-background px-1.5 py-0.5 font-mono text-xs font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{club.team_code}</span>
+              <span className="text-xs text-muted-foreground">Team code</span>
+              <span className="rounded bg-background px-1.5 py-0.5 font-mono text-xs font-semibold">{club.team_code}</span>
             </div>
-          </button>
+          </div>
           <NavList />
           <div className="mt-auto space-y-3 pt-4">
             <div className="flex items-center gap-2 rounded-lg px-2 py-2">
@@ -147,30 +150,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {mobileOpen && <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
-        <main className="flex min-h-screen flex-1 flex-col lg:ml-0">
-          {/* Desktop top bar */}
-          <header className="sticky top-0 z-30 hidden h-14 items-center justify-end border-b border-border bg-background/95 px-8 backdrop-blur lg:flex">
-            <Link
-              to="/app/notifications"
-              className={cn(
-                "grid h-9 w-9 place-items-center rounded-lg transition-colors",
-                pathname === "/app/notifications" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
-              )}
-              title="Notifications"
-            >
-              <Bell className="h-5 w-5" />
-            </Link>
-          </header>
-          <div className="mx-auto w-full max-w-7xl px-4 py-6 lg:px-8 lg:py-10">{children}</div>
+        <main className="min-h-screen flex-1 lg:ml-0">
+          <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">{children}</div>
         </main>
       </div>
-      <EnrollQRDialog
-        open={qrOpen}
-        onOpenChange={setQrOpen}
-        clubId={club.id}
-        clubName={club.name}
-        teamCode={club.team_code}
-      />
     </div>
   );
 }
