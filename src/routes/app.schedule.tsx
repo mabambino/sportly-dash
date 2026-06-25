@@ -9,9 +9,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, MapPin, Clock, Users as UsersIcon, Check } from "lucide-react";
-import { useState } from "react";
-import { format } from "date-fns";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, MapPin, Clock, Users as UsersIcon, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  addWeeks,
+  subWeeks,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  isSameDay,
+  isSameMonth,
+} from "date-fns";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/schedule")({
@@ -19,11 +33,15 @@ export const Route = createFileRoute("/app/schedule")({
   component: SchedulePage,
 });
 
+type ViewMode = "list" | "week7" | "week5" | "month";
+
 function SchedulePage() {
   const { club, isStaff, user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [filterGroup, setFilterGroup] = useState<string>("all");
+  const [view, setView] = useState<ViewMode>("week7");
+  const [cursor, setCursor] = useState<Date>(new Date());
 
   const { data: slots } = useQuery({
     enabled: !!club,
@@ -65,11 +83,36 @@ function SchedulePage() {
     qc.invalidateQueries({ queryKey: ["rsvps"] });
   };
 
-  const visibleSlots = filterGroup === "all"
-    ? slots
-    : filterGroup === "none"
-      ? slots?.filter((s) => !s.group_id)
-      : slots?.filter((s) => s.group_id === filterGroup);
+  const visibleSlots = useMemo(() => {
+    if (!slots) return [];
+    if (filterGroup === "all") return slots;
+    if (filterGroup === "none") return slots.filter((s) => !s.group_id);
+    return slots.filter((s) => s.group_id === filterGroup);
+  }, [slots, filterGroup]);
+
+  // Range for current view
+  const range = useMemo(() => {
+    if (view === "week7") {
+      const start = startOfWeek(cursor, { weekStartsOn: 1 });
+      return { start, days: 7, label: `${format(start, "MMM d")} – ${format(addDays(start, 6), "MMM d, yyyy")}` };
+    }
+    if (view === "week5") {
+      const start = startOfWeek(cursor, { weekStartsOn: 1 });
+      return { start, days: 5, label: `${format(start, "MMM d")} – ${format(addDays(start, 4), "MMM d, yyyy")}` };
+    }
+    if (view === "month") {
+      const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 });
+      const end = endOfWeek(endOfMonth(cursor), { weekStartsOn: 1 });
+      const days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+      return { start, days, label: format(cursor, "MMMM yyyy") };
+    }
+    return { start: new Date(), days: 0, label: "All upcoming" };
+  }, [view, cursor]);
+
+  const navigate = (dir: -1 | 1) => {
+    if (view === "month") setCursor(dir > 0 ? addMonths(cursor, 1) : subMonths(cursor, 1));
+    else setCursor(dir > 0 ? addWeeks(cursor, 1) : subWeeks(cursor, 1));
+  };
 
   return (
     <div className="space-y-6">
@@ -78,7 +121,7 @@ function SchedulePage() {
           <h1 className="font-display text-3xl font-semibold">Schedule</h1>
           <p className="text-sm text-muted-foreground">{visibleSlots?.length ?? 0} sessions</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {groups && groups.length > 0 && (
             <Select value={filterGroup} onValueChange={setFilterGroup}>
               <SelectTrigger className="w-44">
@@ -107,55 +150,206 @@ function SchedulePage() {
         </div>
       </div>
 
-      <div className="grid gap-4">
-        {visibleSlots?.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground">No sessions scheduled yet.</Card>}
-        {visibleSlots?.map((s) => {
-          const count = rsvps?.filter((r) => r.slot_id === s.id).length ?? 0;
-          const mine = rsvps?.find((r) => r.slot_id === s.id && r.user_id === user?.id);
-          const past = new Date(s.starts_at) < new Date();
-          const group = groups?.find((g: any) => g.id === s.group_id);
-          const durationMin = s.ends_at
-            ? Math.round((new Date(s.ends_at).getTime() - new Date(s.starts_at).getTime()) / 60000)
-            : null;
-          return (
-            <Card key={s.id} className="overflow-hidden">
-              {group && <div className="h-1 w-full" style={{ backgroundColor: group.color }} />}
-              <div className="flex flex-wrap items-start justify-between gap-4 p-5">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold">{s.title}</h3>
-                    {past && <Badge variant="secondary">Past</Badge>}
-                    {group && (
-                      <span
-                        className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                        style={{ backgroundColor: group.color }}
-                      >
-                        {group.name}
-                      </span>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
+          <TabsList>
+            <TabsTrigger value="week7">Week (Mon–Sun)</TabsTrigger>
+            <TabsTrigger value="week5">Workweek (Mon–Fri)</TabsTrigger>
+            <TabsTrigger value="month">Month</TabsTrigger>
+            <TabsTrigger value="list">List</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        {view !== "list" && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={() => navigate(-1)}><ChevronLeft className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => setCursor(new Date())}>Today</Button>
+            <Button variant="outline" size="icon" onClick={() => navigate(1)}><ChevronRight className="h-4 w-4" /></Button>
+            <span className="ml-2 text-sm font-medium">{range.label}</span>
+          </div>
+        )}
+      </div>
+
+      {view === "list" && (
+        <ListView slots={visibleSlots} rsvps={rsvps} groups={groups} user={user} onToggle={toggleRsvp} />
+      )}
+      {(view === "week7" || view === "week5") && (
+        <WeekView
+          start={range.start}
+          days={range.days}
+          slots={visibleSlots}
+          rsvps={rsvps}
+          groups={groups}
+          user={user}
+          onToggle={toggleRsvp}
+        />
+      )}
+      {view === "month" && (
+        <MonthView
+          start={range.start}
+          days={range.days}
+          cursor={cursor}
+          slots={visibleSlots}
+          groups={groups}
+          onPickDay={(d) => { setCursor(d); setView("week7"); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function SlotCard({ s, rsvps, groups, user, onToggle }: any) {
+  const count = rsvps?.filter((r: any) => r.slot_id === s.id).length ?? 0;
+  const mine = rsvps?.find((r: any) => r.slot_id === s.id && r.user_id === user?.id);
+  const past = new Date(s.starts_at) < new Date();
+  const group = groups?.find((g: any) => g.id === s.group_id);
+  const durationMin = s.ends_at ? Math.round((new Date(s.ends_at).getTime() - new Date(s.starts_at).getTime()) / 60000) : null;
+  return (
+    <Card className="overflow-hidden">
+      {group && <div className="h-1 w-full" style={{ backgroundColor: group.color }} />}
+      <div className="flex flex-wrap items-start justify-between gap-4 p-5">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold">{s.title}</h3>
+            {past && <Badge variant="secondary">Past</Badge>}
+            {group && (
+              <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ backgroundColor: group.color }}>
+                {group.name}
+              </span>
+            )}
+          </div>
+          {s.description && <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>}
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              {format(new Date(s.starts_at), "EEE MMM d, h:mm a")}
+              {durationMin && <span className="text-xs">· {durationMin} min</span>}
+            </span>
+            {s.location && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {s.location}</span>}
+            <span className="flex items-center gap-1.5"><UsersIcon className="h-4 w-4" /> {count}/{s.capacity}</span>
+          </div>
+        </div>
+        {!past && (
+          <Button onClick={() => onToggle(s.id)} variant={mine ? "default" : "outline"}>
+            {mine ? <><Check className="mr-2 h-4 w-4" /> Going</> : "RSVP"}
+          </Button>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function ListView({ slots, rsvps, groups, user, onToggle }: any) {
+  return (
+    <div className="grid gap-4">
+      {slots?.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground">No sessions scheduled yet.</Card>}
+      {slots?.map((s: any) => <SlotCard key={s.id} s={s} rsvps={rsvps} groups={groups} user={user} onToggle={onToggle} />)}
+    </div>
+  );
+}
+
+function WeekView({ start, days, slots, rsvps, groups, user, onToggle }: any) {
+  const dayList = Array.from({ length: days }, (_, i) => addDays(start, i));
+  const slotsByDay = (d: Date) =>
+    (slots || [])
+      .filter((s: any) => isSameDay(new Date(s.starts_at), d))
+      .sort((a: any, b: any) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+
+  return (
+    <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${days}, minmax(0, 1fr))` }}>
+      {dayList.map((d) => {
+        const todays = slotsByDay(d);
+        const isToday = isSameDay(d, new Date());
+        return (
+          <div key={d.toISOString()} className="min-w-0">
+            <div className={`mb-2 rounded-md px-2 py-1.5 text-center ${isToday ? "bg-primary text-primary-foreground" : "bg-muted/40"}`}>
+              <div className="text-[10px] uppercase tracking-wide">{format(d, "EEE")}</div>
+              <div className="text-base font-semibold">{format(d, "d")}</div>
+            </div>
+            <div className="space-y-2">
+              {todays.length === 0 && <div className="text-xs text-muted-foreground text-center py-2">—</div>}
+              {todays.map((s: any) => {
+                const group = groups?.find((g: any) => g.id === s.group_id);
+                const mine = rsvps?.find((r: any) => r.slot_id === s.id && r.user_id === user?.id);
+                const past = new Date(s.starts_at) < new Date();
+                const count = rsvps?.filter((r: any) => r.slot_id === s.id).length ?? 0;
+                return (
+                  <Card key={s.id} className="p-2.5 text-xs space-y-1 overflow-hidden">
+                    {group && <div className="h-0.5 -mt-2.5 -mx-2.5 mb-1" style={{ backgroundColor: group.color }} />}
+                    <div className="font-semibold truncate">{s.title}</div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="h-3 w-3" /> {format(new Date(s.starts_at), "h:mm a")}
+                    </div>
+                    {s.location && (
+                      <div className="flex items-center gap-1 text-muted-foreground truncate">
+                        <MapPin className="h-3 w-3 shrink-0" /> <span className="truncate">{s.location}</span>
+                      </div>
                     )}
-                  </div>
-                  {s.description && <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>}
-                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="h-4 w-4" />
-                      {format(new Date(s.starts_at), "EEE MMM d, h:mm a")}
-                      {durationMin && <span className="text-xs">· {durationMin} min</span>}
-                    </span>
-                    {s.location && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {s.location}</span>}
-                    <span className="flex items-center gap-1.5"><UsersIcon className="h-4 w-4" /> {count}/{s.capacity}</span>
-                  </div>
-                </div>
-                {!past && (
-                  <Button onClick={() => toggleRsvp(s.id)} variant={mine ? "default" : "outline"}>
-                    {mine ? <><Check className="mr-2 h-4 w-4" /> Going</> : "RSVP"}
-                  </Button>
-                )}
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <UsersIcon className="h-3 w-3" /> {count}/{s.capacity}
+                      </span>
+                      {!past && (
+                        <Button size="sm" variant={mine ? "default" : "outline"} className="h-6 px-2 text-[10px]" onClick={() => onToggle(s.id)}>
+                          {mine ? "Going" : "RSVP"}
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MonthView({ start, days, cursor, slots, groups, onPickDay }: any) {
+  const dayList = Array.from({ length: days }, (_, i) => addDays(start, i));
+  const weeks: Date[][] = [];
+  for (let i = 0; i < dayList.length; i += 7) weeks.push(dayList.slice(i, i + 7));
+  const dayHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const slotsByDay = (d: Date) =>
+    (slots || []).filter((s: any) => isSameDay(new Date(s.starts_at), d));
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="grid grid-cols-7 border-b bg-muted/40 text-xs font-medium">
+        {dayHeaders.map((h) => <div key={h} className="px-2 py-2 text-center">{h}</div>)}
+      </div>
+      <div className="grid grid-cols-7">
+        {weeks.flat().map((d) => {
+          const todays = slotsByDay(d);
+          const inMonth = isSameMonth(d, cursor);
+          const isToday = isSameDay(d, new Date());
+          return (
+            <button
+              key={d.toISOString()}
+              onClick={() => onPickDay(d)}
+              className={`min-h-[88px] border-b border-r p-1.5 text-left hover:bg-muted/30 transition ${!inMonth ? "bg-muted/10 text-muted-foreground" : ""}`}
+            >
+              <div className={`text-xs font-semibold mb-1 ${isToday ? "text-primary" : ""}`}>{format(d, "d")}</div>
+              <div className="space-y-0.5">
+                {todays.slice(0, 3).map((s: any) => {
+                  const group = groups?.find((g: any) => g.id === s.group_id);
+                  return (
+                    <div
+                      key={s.id}
+                      className="truncate rounded px-1 py-0.5 text-[10px] text-white"
+                      style={{ backgroundColor: group?.color || "hsl(var(--primary))" }}
+                    >
+                      {format(new Date(s.starts_at), "HH:mm")} {s.title}
+                    </div>
+                  );
+                })}
+                {todays.length > 3 && <div className="text-[10px] text-muted-foreground">+{todays.length - 3} more</div>}
               </div>
-            </Card>
+            </button>
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -170,7 +364,6 @@ function NewSlotDialog({ groups, onDone }: { groups: any[]; onDone: () => void }
   const [groupId, setGroupId] = useState<string>("none");
   const [busy, setBusy] = useState(false);
 
-  // Auto-fill duration from selected group
   const onGroupChange = (val: string) => {
     setGroupId(val);
     if (val !== "none") {
