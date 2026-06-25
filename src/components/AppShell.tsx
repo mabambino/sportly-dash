@@ -119,7 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <Link to="/" className="mb-6 flex items-center gap-2 px-2">
+          <Link to="/" className="mb-6 flex items-center justify-center gap-2 px-2">
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-hero text-primary-foreground"><Trophy className="h-4 w-4" /></div>
             <span className="font-display font-semibold">ClubHaus</span>
           </Link>
