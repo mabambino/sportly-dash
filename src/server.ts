@@ -42,7 +42,16 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      // Allow the public embed widget to be framed on any external website.
+      const { pathname } = new URL(request.url);
+      if (pathname.startsWith("/embed/")) {
+        const headers = new Headers(normalized.headers);
+        headers.delete("X-Frame-Options");
+        headers.set("Content-Security-Policy", "frame-ancestors *");
+        return new Response(normalized.body, { status: normalized.status, statusText: normalized.statusText, headers });
+      }
+      return normalized;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
