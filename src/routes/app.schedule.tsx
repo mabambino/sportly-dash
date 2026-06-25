@@ -190,7 +190,7 @@ function SchedulePage() {
           cursor={cursor}
           slots={visibleSlots}
           groups={groups}
-          onPickDay={(d) => { setCursor(d); setView("week7"); }}
+          onPickDay={(d: Date) => { setCursor(d); setView("week7"); }}
         />
       )}
     </div>
