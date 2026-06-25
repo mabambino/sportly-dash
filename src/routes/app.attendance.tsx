@@ -43,7 +43,7 @@ function AttendancePage() {
   };
   const markAllFromRsvp = async () => {
     if (!rsvps?.length) return;
-    const inserts = rsvps.filter((r: any) => !records?.find((rec) => rec.student_id === r.user_id)).map((r: any) => ({ slot_id: selectedSlot, student_id: r.user_id, status: "present" }));
+    const inserts = rsvps.filter((r: any) => !records?.find((rec) => rec.student_id === r.user_id)).map((r: any) => ({ slot_id: selectedSlot, student_id: r.user_id, status: "present" as const }));
     if (inserts.length) { await supabase.from("attendance_records").insert(inserts); qc.invalidateQueries({ queryKey: ["att", selectedSlot] }); toast.success(`Auto-marked ${inserts.length} students present`); }
     else toast.info("All RSVP'd students already marked");
   };
