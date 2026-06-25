@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, CheckCircle2, XCircle, Users } from "lucide-react";
@@ -26,8 +27,8 @@ function ParentPage() {
         .eq("parent_id", user!.id);
       if (!mems?.length) return [];
       const ids = mems.map((m) => m.user_id);
-      const { data: profs } = await supabase.from("profiles").select("*").in("id", ids);
-      const { data: groups } = await supabase.from("course_groups").select("*").eq("club_id", club!.id);
+      const { data: profs } = await sb.from("profiles").select("*").in("id", ids);
+      const { data: groups } = await sb.from("course_groups").select("*").eq("club_id", club!.id);
       return mems.map((m) => ({
         ...m,
         profile: profs?.find((p) => p.id === m.user_id),
@@ -53,7 +54,7 @@ function ParentPage() {
     enabled: childIds.length > 0,
     queryKey: ["parent-rsvps", childIds],
     queryFn: async () => {
-      const { data } = await supabase.from("rsvps").select("*").in("user_id", childIds);
+      const { data } = await sb.from("rsvps").select("*").in("user_id", childIds);
       return data || [];
     },
   });
