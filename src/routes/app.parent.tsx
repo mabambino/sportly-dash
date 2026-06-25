@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { sb } from "@/integrations/sb/client";
-const sb: any = sb;
+import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, CheckCircle2, XCircle, Users } from "lucide-react";
