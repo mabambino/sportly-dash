@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "syncletics",
+  "compatibility_date": "2026-06-24",
+  "compatibility_flags": ["nodejs_compat"],
+  // Lovable builds this app with Nitro targeting Cloudflare, which outputs to .output/
+  // (NOT the @cloudflare/vite-plugin layout). If `bun run build` produces a different
+  // path, update these two lines to match.
+  "main": ".output/server/index.mjs",
+  "assets": { "directory": ".output/public" },
+  "observability": { "enabled": true }
+}
