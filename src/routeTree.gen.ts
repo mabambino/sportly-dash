@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as EmbedClubIdRouteImport } from './routes/embed.$clubId'
 import { Route as AppStatsRouteImport } from './routes/app.stats'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppScheduleRouteImport } from './routes/app.schedule'
 import { Route as AppRevenueRouteImport } from './routes/app.revenue'
 import { Route as AppProgressRouteImport } from './routes/app.progress'
@@ -65,6 +66,11 @@ const EmbedClubIdRoute = EmbedClubIdRouteImport.update({
 const AppStatsRoute = AppStatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppScheduleRoute = AppScheduleRouteImport.update({
@@ -148,7 +154,6 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
-  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/billing': typeof AppBillingRoute
@@ -164,14 +169,15 @@ export interface FileRoutesByFullPath {
   '/app/progress': typeof AppProgressRoute
   '/app/revenue': typeof AppRevenueRoute
   '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
-  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/billing': typeof AppBillingRoute
@@ -187,7 +193,9 @@ export interface FileRoutesByTo {
   '/app/progress': typeof AppProgressRoute
   '/app/revenue': typeof AppRevenueRoute
   '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -196,7 +204,6 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/onboarding': typeof OnboardingRoute
-  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/billing': typeof AppBillingRoute
@@ -212,7 +219,9 @@ export interface FileRoutesById {
   '/app/progress': typeof AppProgressRoute
   '/app/revenue': typeof AppRevenueRoute
   '/app/schedule': typeof AppScheduleRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stats': typeof AppStatsRoute
+  '/embed/$clubId': typeof EmbedClubIdRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -222,7 +231,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/onboarding'
-    | '/embed/$clubId'
     | '/app/announcements'
     | '/app/attendance'
     | '/app/billing'
@@ -238,14 +246,15 @@ export interface FileRouteTypes {
     | '/app/progress'
     | '/app/revenue'
     | '/app/schedule'
+    | '/app/settings'
     | '/app/stats'
+    | '/embed/$clubId'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/onboarding'
-    | '/embed/$clubId'
     | '/app/announcements'
     | '/app/attendance'
     | '/app/billing'
@@ -261,7 +270,9 @@ export interface FileRouteTypes {
     | '/app/progress'
     | '/app/revenue'
     | '/app/schedule'
+    | '/app/settings'
     | '/app/stats'
+    | '/embed/$clubId'
     | '/app'
   id:
     | '__root__'
@@ -269,7 +280,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/onboarding'
-    | '/embed/$clubId'
     | '/app/announcements'
     | '/app/attendance'
     | '/app/billing'
@@ -285,7 +295,9 @@ export interface FileRouteTypes {
     | '/app/progress'
     | '/app/revenue'
     | '/app/schedule'
+    | '/app/settings'
     | '/app/stats'
+    | '/embed/$clubId'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -346,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: '/stats'
       fullPath: '/app/stats'
       preLoaderRoute: typeof AppStatsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/schedule': {
@@ -472,6 +491,7 @@ interface AppRouteChildren {
   AppProgressRoute: typeof AppProgressRoute
   AppRevenueRoute: typeof AppRevenueRoute
   AppScheduleRoute: typeof AppScheduleRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppStatsRoute: typeof AppStatsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -492,6 +512,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProgressRoute: AppProgressRoute,
   AppRevenueRoute: AppRevenueRoute,
   AppScheduleRoute: AppScheduleRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppStatsRoute: AppStatsRoute,
   AppIndexRoute: AppIndexRoute,
 }
