@@ -21,6 +21,7 @@ function MembersPage() {
   const { club, isStaff } = useAuth();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
+  const [tab, setTab] = useState<"all" | "staff" | "students" | "parents">("all");
 
   const { data } = useQuery({
     enabled: !!club,
