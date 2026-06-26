@@ -37,3 +37,28 @@ export const getEmbedStats = createServerFn({ method: "GET" })
       upcoming: slotsRes.data || [],
     };
   });
+
+export const submitEmbedLead = createServerFn({ method: "POST" })
+  .inputValidator((data) =>
+    z.object({
+      clubId: z.string().uuid(),
+      name: z.string().min(1),
+      email: z.string().email().optional().or(z.literal("")),
+      phone: z.string().optional().or(z.literal("")),
+      notes: z.string().optional().or(z.literal("")),
+    }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any).from("leads").insert({
+      club_id: data.clubId,
+      name: data.name,
+      email: data.email || null,
+      phone: data.phone || null,
+      notes: data.notes || null,
+      status: "new",
+      source: "embed",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
