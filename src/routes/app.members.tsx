@@ -67,9 +67,22 @@ function MembersPage() {
     qc.invalidateQueries({ queryKey: ["group-memberships"] });
   };
 
-  const members = (data || []).filter((m) =>
+  const all = (data || []).filter((m) =>
     !q || m.profile?.display_name?.toLowerCase().includes(q.toLowerCase()) || m.profile?.email?.toLowerCase().includes(q.toLowerCase())
   );
+  const isStaffRole = (r: string) => r === "club_owner" || r === "trainer";
+  const members = all.filter((m) => {
+    if (tab === "staff") return isStaffRole(m.role);
+    if (tab === "students") return m.role === "student";
+    if (tab === "parents") return m.role === "parent";
+    return true;
+  });
+  const counts = {
+    all: all.length,
+    staff: all.filter((m) => isStaffRole(m.role)).length,
+    students: all.filter((m) => m.role === "student").length,
+    parents: all.filter((m) => m.role === "parent").length,
+  };
 
   const exportCsv = () => {
     const rows = [["Name", "Email", "Role", "Group", "Joined"], ...members.map((m) => {
