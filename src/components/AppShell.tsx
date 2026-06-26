@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 const adminNav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/app/members", label: "Members", icon: Users },
+  { to: "/app/members", label: "People", icon: Users },
   { to: "/app/schedule", label: "Schedule", icon: Calendar },
   { to: "/app/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/app/stats", label: "Stats", icon: BarChart3 },
