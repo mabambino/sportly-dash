@@ -98,16 +98,25 @@ function MembersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold">Members</h1>
-          <p className="text-sm text-muted-foreground">{members.length} {members.length === 1 ? "member" : "members"} in {club?.name}</p>
+          <h1 className="font-display text-3xl font-semibold">People</h1>
+          <p className="text-sm text-muted-foreground">{members.length} shown in {club?.name}</p>
         </div>
         {isStaff && <Button variant="outline" onClick={exportCsv}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>}
       </div>
 
+      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
+        <TabsList>
+          <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
+          <TabsTrigger value="staff">Staff ({counts.staff})</TabsTrigger>
+          <TabsTrigger value="students">Students ({counts.students})</TabsTrigger>
+          <TabsTrigger value="parents">Parents ({counts.parents})</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <Card className="p-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search members…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <Input className="pl-9" placeholder="Search people…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
       </Card>
 
