@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DemoSeedButton } from "@/components/DemoSeedButton";
 import { EmbedWidgetCard } from "@/components/EmbedWidgetCard";
 import { SensitiveValue } from "@/components/SensitiveValue";
-import { Users, CalendarCheck, DollarSign, TrendingUp, Settings, Trophy } from "lucide-react";
+import { Users, CalendarCheck, DollarSign, TrendingUp, Settings } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid } from "recharts";
 import { format, subDays } from "date-fns";
 
