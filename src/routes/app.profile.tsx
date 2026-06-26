@@ -8,7 +8,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/app/profile")({
-  head: () => ({ meta: [{ title: "My profile — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "My profile — Syncletics" }] }),
   component: ProfilePage,
 });
 

@@ -10,7 +10,7 @@ import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/revenue")({
-  head: () => ({ meta: [{ title: "Revenue — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Revenue — Syncletics" }] }),
   component: RevenuePage,
 });
 

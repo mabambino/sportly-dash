@@ -11,7 +11,7 @@ import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart,
 import { format, subDays } from "date-fns";
 
 export const Route = createFileRoute("/app/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — Syncletics" }] }),
   component: Dashboard,
 });
 
@@ -50,7 +50,7 @@ function Dashboard() {
     <div className="space-y-8">
       <div className="flex flex-col items-center gap-2 py-2">
         <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-hero text-primary-foreground"><Trophy className="h-6 w-6" /></div>
-        <span className="font-display text-xl font-semibold">ClubHaus</span>
+        <span className="font-display text-xl font-semibold">Syncletics</span>
       </div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>

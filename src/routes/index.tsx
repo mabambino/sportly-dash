@@ -6,7 +6,7 @@ import { Check, CalendarCheck, MessagesSquare, BarChart3, CreditCard, Users, Shi
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ClubHaus — Run your sports club from one place" },
+      { title: "Syncletics — Run your sports club from one place" },
       { name: "description", content: "Members, schedule, attendance, real-time chat and payments. Built for clubs, trainers, students and parents." },
     ],
   }),
@@ -23,7 +23,7 @@ function Landing() {
             <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-hero text-primary-foreground">
               <Trophy className="h-4 w-4" />
             </div>
-            <span className="font-display text-lg font-semibold tracking-tight">ClubHaus</span>
+            <span className="font-display text-lg font-semibold tracking-tight">Syncletics</span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a href="#features" className="hover:text-foreground">Features</a>
@@ -201,7 +201,7 @@ function Landing() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-sm text-muted-foreground sm:flex-row">
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
-            <span>© 2026 ClubHaus. All rights reserved.</span>
+            <span>© 2026 Syncletics. All rights reserved.</span>
           </div>
           <p>Built for clubs that mean business.</p>
         </div>

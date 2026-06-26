@@ -17,7 +17,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/leads")({
-  head: () => ({ meta: [{ title: "Leads — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Leads — Syncletics" }] }),
   component: LeadsPage,
 });
 

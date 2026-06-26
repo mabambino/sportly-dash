@@ -15,7 +15,7 @@ const searchSchema = z.object({ mode: z.enum(["login", "signup"]).optional() });
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
-  head: () => ({ meta: [{ title: "Sign in — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Syncletics" }] }),
   component: AuthPage,
 });
 
@@ -69,7 +69,7 @@ function AuthPage() {
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-hero text-primary-foreground">
             <Trophy className="h-4 w-4" />
           </div>
-          <span className="font-display text-lg font-semibold">ClubHaus</span>
+          <span className="font-display text-lg font-semibold">Syncletics</span>
         </div>
         <Card className="p-6 shadow-elegant">
           <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "signup")}>

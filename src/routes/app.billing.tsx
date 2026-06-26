@@ -11,7 +11,7 @@ import { CreditCard, CheckCircle2 } from "lucide-react";
 import { SensitiveValue } from "@/components/SensitiveValue";
 
 export const Route = createFileRoute("/app/billing")({
-  head: () => ({ meta: [{ title: "Billing — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Billing — Syncletics" }] }),
   component: BillingPage,
 });
 

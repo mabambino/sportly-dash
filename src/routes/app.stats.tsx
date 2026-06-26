@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/app/stats")({
-  head: () => ({ meta: [{ title: "Stats — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Stats — Syncletics" }] }),
   component: StatsPage,
 });
 

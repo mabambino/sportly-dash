@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Trophy, Building2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/onboarding")({
-  head: () => ({ meta: [{ title: "Get started — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Get started — Syncletics" }] }),
   component: Onboarding,
 });
 
@@ -72,7 +72,7 @@ function Onboarding() {
         <div className="mb-8 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-hero text-primary-foreground"><Trophy className="h-4 w-4" /></div>
-            <span className="font-display text-lg font-semibold">ClubHaus</span>
+            <span className="font-display text-lg font-semibold">Syncletics</span>
           </Link>
           <Button variant="ghost" size="sm" onClick={signOut}>Sign out</Button>
         </div>

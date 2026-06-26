@@ -8,7 +8,7 @@ import { Users, Clock, ShieldCheck, MapPin } from "lucide-react";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/app/pipeline")({
-  head: () => ({ meta: [{ title: "Pipeline — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Pipeline — Syncletics" }] }),
   component: PipelinePage,
 });
 

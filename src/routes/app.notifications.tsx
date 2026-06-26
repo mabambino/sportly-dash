@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { Bell } from "lucide-react";
 
 export const Route = createFileRoute("/app/notifications")({
-  head: () => ({ meta: [{ title: "Notifications — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Notifications — Syncletics" }] }),
   component: NotificationsPage,
 });
 
