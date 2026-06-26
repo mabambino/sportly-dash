@@ -7,6 +7,7 @@ import {
   Trophy, LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu,
   Kanban, Layers, DollarSign, TrendingUp, Home, Settings as SettingsIcon,
+  Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ const adminNav = [
   { to: "/app/progress", label: "Progress", icon: TrendingUp },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
+  { to: "/app/upcoming", label: "Upcoming", icon: Sparkles },
 ];
 
 const memberNav = [
@@ -31,6 +33,7 @@ const memberNav = [
   { to: "/app/schedule", label: "Schedule", icon: Calendar },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
+  { to: "/app/upcoming", label: "Upcoming", icon: Sparkles },
 ];
 
 const parentNav = [
@@ -39,6 +42,7 @@ const parentNav = [
   { to: "/app/schedule", label: "Schedule", icon: Calendar },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
+  { to: "/app/upcoming", label: "Upcoming", icon: Sparkles },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
