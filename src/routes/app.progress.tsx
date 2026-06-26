@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 export const Route = createFileRoute("/app/progress")({
-  head: () => ({ meta: [{ title: "Progress — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Progress — Syncletics" }] }),
   component: ProgressPage,
 });
 

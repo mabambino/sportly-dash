@@ -10,7 +10,7 @@ import { Calendar, Clock, CheckCircle2, XCircle, Users } from "lucide-react";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/app/parent")({
-  head: () => ({ meta: [{ title: "Family — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Family — Syncletics" }] }),
   component: ParentPage,
 });
 

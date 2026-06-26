@@ -14,7 +14,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/announcements")({
-  head: () => ({ meta: [{ title: "Announcements — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Announcements — Syncletics" }] }),
   component: AnnouncementsPage,
 });
 

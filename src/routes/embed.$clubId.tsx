@@ -5,7 +5,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/embed/$clubId")({
-  head: () => ({ meta: [{ title: "Register — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Register — Syncletics" }] }),
   component: EmbedWidget,
 });
 
@@ -78,7 +78,7 @@ function EmbedWidget() {
           </form>
         )}
 
-        <p className="text-center text-[10px] uppercase tracking-wider text-muted-foreground">Powered by ClubHaus</p>
+        <p className="text-center text-[10px] uppercase tracking-wider text-muted-foreground">Powered by Syncletics</p>
       </div>
     </div>
   );

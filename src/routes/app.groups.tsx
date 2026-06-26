@@ -14,7 +14,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/groups")({
-  head: () => ({ meta: [{ title: "Groups — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Groups — Syncletics" }] }),
   component: GroupsPage,
 });
 

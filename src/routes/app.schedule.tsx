@@ -29,7 +29,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/schedule")({
-  head: () => ({ meta: [{ title: "Schedule — ClubHaus" }] }),
+  head: () => ({ meta: [{ title: "Schedule — Syncletics" }] }),
   component: SchedulePage,
 });
 

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Trophy, LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu,
-  Kanban, Layers, DollarSign, TrendingUp, UserPlus, Home,
+  Kanban, Layers, DollarSign, TrendingUp, Home, Settings as SettingsIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -19,12 +19,10 @@ const adminNav = [
   { to: "/app/stats", label: "Stats", icon: BarChart3 },
   { to: "/app/pipeline", label: "Pipeline", icon: Kanban },
   { to: "/app/groups", label: "Groups", icon: Layers },
-  { to: "/app/leads", label: "Leads", icon: UserPlus },
   { to: "/app/revenue", label: "Revenue", icon: DollarSign },
   { to: "/app/progress", label: "Progress", icon: TrendingUp },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
-  { to: "/app/announcements", label: "Announcements", icon: Megaphone },
 ];
 
 const memberNav = [
@@ -33,7 +31,6 @@ const memberNav = [
   { to: "/app/schedule", label: "Schedule", icon: Calendar },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
-  { to: "/app/announcements", label: "Announcements", icon: Megaphone },
 ];
 
 const parentNav = [
@@ -42,7 +39,6 @@ const parentNav = [
   { to: "/app/schedule", label: "Schedule", icon: Calendar },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
-  { to: "/app/announcements", label: "Announcements", icon: Megaphone },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -84,17 +80,30 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
         );
       })}
-      <Link
-        to="/app/notifications"
-        onClick={() => setMobileOpen(false)}
-        className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          pathname === "/app/notifications" ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"
-        )}
-      >
-        <Bell className="h-4 w-4" /> Notifications
-      </Link>
     </nav>
+  );
+
+  const TopBarActions = () => (
+    <div className="flex items-center gap-1">
+      <Link to="/app/announcements" title="Announcements">
+        <Button variant="ghost" size="icon" className={cn(pathname === "/app/announcements" && "bg-accent")}>
+          <Megaphone className="h-4 w-4" />
+        </Button>
+      </Link>
+      <Link to="/app/notifications" title="Notifications">
+        <Button variant="ghost" size="icon" className={cn(pathname === "/app/notifications" && "bg-accent")}>
+          <Bell className="h-4 w-4" />
+        </Button>
+      </Link>
+      <Link to="/app/settings" title="Settings">
+        <Button variant="ghost" size="icon" className={cn(pathname === "/app/settings" && "bg-accent")}>
+          <SettingsIcon className="h-4 w-4" />
+        </Button>
+      </Link>
+      <Button variant="ghost" size="icon" title="Sign out" onClick={signOut}>
+        <LogOut className="h-4 w-4" />
+      </Button>
+    </div>
   );
 
   return (
@@ -106,9 +115,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="grid h-7 w-7 place-items-center rounded-md bg-gradient-hero text-primary-foreground"><Trophy className="h-3.5 w-3.5" /></div>
-          <span className="font-display font-semibold">{club.name}</span>
+          <span className="font-display font-semibold">Syncletics</span>
         </div>
-        <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
+        <TopBarActions />
       </header>
 
       <div className="flex">
@@ -119,7 +128,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <div className="mb-6 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded-md bg-gradient-hero text-primary-foreground">
+              <Trophy className="h-4 w-4" />
+            </div>
+            <span className="font-display text-lg font-semibold tracking-tight">Syncletics</span>
+          </div>
+          <div className="mb-4 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3">
             <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">{club.sport}</p>
             <p className="mt-0.5 truncate font-semibold">{club.name}</p>
             <div className="mt-2 flex items-center justify-between">
@@ -128,26 +143,26 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <NavList />
-          <div className="mt-auto space-y-3 pt-4">
-            <div className="flex items-center gap-2 rounded-lg px-2 py-2">
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                {profile?.display_name?.[0]?.toUpperCase() ?? "?"}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{profile?.display_name}</p>
-                <p className="truncate text-xs capitalize text-muted-foreground">{membership.role.replace("_", " ")}</p>
-              </div>
+          <div className="mt-auto flex items-center gap-2 rounded-lg px-2 py-2">
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+              {profile?.display_name?.[0]?.toUpperCase() ?? "?"}
             </div>
-            <Button variant="outline" size="sm" className="w-full" onClick={signOut}>
-              <LogOut className="mr-2 h-3.5 w-3.5" /> Sign out
-            </Button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{profile?.display_name}</p>
+              <p className="truncate text-xs capitalize text-muted-foreground">{membership.role.replace("_", " ")}</p>
+            </div>
           </div>
         </aside>
 
         {mobileOpen && <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
         <main className="min-h-screen flex-1 lg:ml-0">
-          <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">{children}</div>
+          {/* Desktop top bar */}
+          <header className="sticky top-0 z-30 hidden h-14 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur lg:flex">
+            <Badge variant="outline" className="font-mono text-xs">Code: {club.team_code}</Badge>
+            <TopBarActions />
+          </header>
+          <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">{children}</div>
         </main>
       </div>
     </div>
