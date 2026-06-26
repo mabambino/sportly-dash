@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DemoSeedButton } from "@/components/DemoSeedButton";
 import { EmbedWidgetCard } from "@/components/EmbedWidgetCard";
 import { SensitiveValue } from "@/components/SensitiveValue";
-import { Users, CalendarCheck, DollarSign, TrendingUp, Settings, Trophy } from "lucide-react";
+import { Users, CalendarCheck, DollarSign, TrendingUp, Settings } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid } from "recharts";
 import { format, subDays } from "date-fns";
 
@@ -48,10 +48,6 @@ function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col items-center gap-2 py-2">
-        <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-hero text-primary-foreground"><Trophy className="h-6 w-6" /></div>
-        <span className="font-display text-xl font-semibold">Syncletics</span>
-      </div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Welcome back{profile ? `, ${profile.display_name.split(" ")[0]}` : ""}</p>
