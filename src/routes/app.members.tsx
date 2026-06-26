@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Search } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/members")({
-  head: () => ({ meta: [{ title: "Members — Syncletics" }] }),
+  head: () => ({ meta: [{ title: "People — Syncletics" }] }),
   component: MembersPage,
 });
 
@@ -20,6 +21,7 @@ function MembersPage() {
   const { club, isStaff } = useAuth();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
+  const [tab, setTab] = useState<"all" | "staff" | "students" | "parents">("all");
 
   const { data } = useQuery({
     enabled: !!club,
@@ -65,9 +67,22 @@ function MembersPage() {
     qc.invalidateQueries({ queryKey: ["group-memberships"] });
   };
 
-  const members = (data || []).filter((m) =>
+  const all = (data || []).filter((m) =>
     !q || m.profile?.display_name?.toLowerCase().includes(q.toLowerCase()) || m.profile?.email?.toLowerCase().includes(q.toLowerCase())
   );
+  const isStaffRole = (r: string) => r === "club_owner" || r === "trainer";
+  const members = all.filter((m) => {
+    if (tab === "staff") return isStaffRole(m.role);
+    if (tab === "students") return m.role === "student";
+    if (tab === "parents") return m.role === "parent";
+    return true;
+  });
+  const counts = {
+    all: all.length,
+    staff: all.filter((m) => isStaffRole(m.role)).length,
+    students: all.filter((m) => m.role === "student").length,
+    parents: all.filter((m) => m.role === "parent").length,
+  };
 
   const exportCsv = () => {
     const rows = [["Name", "Email", "Role", "Group", "Joined"], ...members.map((m) => {
@@ -83,16 +98,25 @@ function MembersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold">Members</h1>
-          <p className="text-sm text-muted-foreground">{members.length} {members.length === 1 ? "member" : "members"} in {club?.name}</p>
+          <h1 className="font-display text-3xl font-semibold">People</h1>
+          <p className="text-sm text-muted-foreground">{members.length} shown in {club?.name}</p>
         </div>
         {isStaff && <Button variant="outline" onClick={exportCsv}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>}
       </div>
 
+      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
+        <TabsList>
+          <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
+          <TabsTrigger value="staff">Staff ({counts.staff})</TabsTrigger>
+          <TabsTrigger value="students">Students ({counts.students})</TabsTrigger>
+          <TabsTrigger value="parents">Parents ({counts.parents})</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <Card className="p-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search members…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <Input className="pl-9" placeholder="Search people…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
       </Card>
 
