@@ -7,12 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { DemoSeedButton } from "@/components/DemoSeedButton";
 import { EmbedWidgetCard } from "@/components/EmbedWidgetCard";
 import { SensitiveValue } from "@/components/SensitiveValue";
-import { Users, CalendarCheck, DollarSign, TrendingUp, Settings, ArrowUpRight, Plus, Bell, Play, Pause, Square } from "lucide-react";
+import { Users, CalendarCheck, DollarSign, TrendingUp, Settings, ArrowUpRight, Plus, Bell, Play, Pause, Square, Upload } from "lucide-react";
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid } from "recharts";
 import { format, subDays } from "date-fns";
 
 export const Route = createFileRoute("/app/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Syncletics" }] }),
+  head: () => ({ meta: [{ title: "Dashboard â Syncletics" }] }),
   component: Dashboard,
 });
 
@@ -63,6 +63,12 @@ function Dashboard() {
             className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
           >
             <Plus className="h-4 w-4" /> Add Member
+          </Link>
+          <Link
+            to="/app/members"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            <Upload className="h-4 w-4" /> Import Data
           </Link>
           <Link
             to="/app/settings"
@@ -162,7 +168,7 @@ function Dashboard() {
                   <div key={s.id} className="flex items-center justify-between py-3">
                     <div>
                       <p className="font-medium">{s.title}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} • {s.location}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} â¢ {s.location}</p>
                     </div>
                     <span className="text-xs text-muted-foreground">Cap: {s.capacity}</span>
                   </div>
@@ -200,7 +206,7 @@ function StatCard({ label, value, sub, icon: Icon, sensitive }: { label: string;
         <div className="grid h-8 w-8 place-items-center rounded-full border text-muted-foreground"><ArrowUpRight className="h-4 w-4" /></div>
       </div>
       <p className="mt-3 font-display text-4xl font-semibold">
-        {sensitive ? <SensitiveValue mask="$ ••••">{value}</SensitiveValue> : value}
+        {sensitive ? <SensitiveValue mask="$ â¢â¢â¢â¢">{value}</SensitiveValue> : value}
       </p>
       <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Icon className="h-3.5 w-3.5" />{sub}</p>
     </Card>
@@ -301,7 +307,7 @@ function MemberHome({ data, growth }: { data: any; growth: { day: string; member
             <div key={s.id} className="flex items-center justify-between py-3">
               <div>
                 <p className="font-medium">{s.title}</p>
-                <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} • {s.location}</p>
+                <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} â¢ {s.location}</p>
               </div>
             </div>
           ))}
