@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import logoUrl from "@/assets/logo-syncletics.svg";
 
 const adminNav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
