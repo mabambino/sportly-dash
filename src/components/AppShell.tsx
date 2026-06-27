@@ -114,8 +114,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="grid h-7 w-7 place-items-center rounded-md bg-gradient-hero text-primary-foreground"><Trophy className="h-3.5 w-3.5" /></div>
-          <span className="font-display font-semibold">Syncletics</span>
+          <img src={logoUrl} alt="Syncletics" className="h-6 w-auto" />
         </div>
         <TopBarActions />
       </header>
