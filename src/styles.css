@@ -60,12 +60,12 @@
   --popover-foreground: oklch(0.2 0.02 195);
   --primary: oklch(0.6 0.04 195);
   --primary-foreground: oklch(0.99 0 0);
-  --primary-glow: oklch(0.83 0.07 195);
+  --primary-glow: #A0D9D9;
   --secondary: oklch(0.97 0.005 195);
   --secondary-foreground: oklch(0.22 0.03 195);
   --muted: oklch(0.965 0 0);
   --muted-foreground: oklch(0.5 0.015 195);
-  --accent: oklch(0.83 0.07 195);
+  --accent: #A0D9D9;
   --accent-foreground: oklch(0.2 0.03 195);
   --destructive: oklch(0.62 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
@@ -77,7 +77,7 @@
   --input: oklch(0.92 0.005 195);
   --ring: oklch(0.6 0.04 195);
   --chart-1: oklch(0.6 0.04 195);
-  --chart-2: oklch(0.83 0.07 195);
+  --chart-2: #A0D9D9;
   --chart-3: oklch(0.3 0.03 195);
   --chart-4: oklch(0.65 0.16 155);
   --chart-5: oklch(0.78 0.16 75);
@@ -89,7 +89,7 @@
   --sidebar-accent-foreground: oklch(0.2 0.03 195);
   --sidebar-border: oklch(0.92 0.005 195);
   --sidebar-ring: oklch(0.6 0.04 195);
-  --gradient-hero: linear-gradient(135deg, oklch(0.3 0.03 195) 0%, oklch(0.6 0.04 195) 60%, oklch(0.83 0.07 195) 100%);
+  --gradient-hero: linear-gradient(135deg, oklch(0.3 0.03 195) 0%, oklch(0.6 0.04 195) 60%, #A0D9D9 100%);
   --gradient-subtle: linear-gradient(180deg, oklch(0.985 0.002 195) 0%, oklch(1 0 0) 100%);
   --shadow-elegant: 0 10px 40px -12px color-mix(in oklab, var(--primary) 25%, transparent);
   --shadow-card: 0 1px 3px 0 oklch(0.13 0.02 195 / 0.06), 0 1px 2px -1px oklch(0.13 0.02 195 / 0.04);
