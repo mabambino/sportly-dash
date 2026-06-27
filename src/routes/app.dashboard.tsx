@@ -12,7 +12,7 @@ import { ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianG
 import { format, subDays } from "date-fns";
 
 export const Route = createFileRoute("/app/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard â Syncletics" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — Syncletics" }] }),
   component: Dashboard,
 });
 
@@ -168,7 +168,7 @@ function Dashboard() {
                   <div key={s.id} className="flex items-center justify-between py-3">
                     <div>
                       <p className="font-medium">{s.title}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} â¢ {s.location}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} • {s.location}</p>
                     </div>
                     <span className="text-xs text-muted-foreground">Cap: {s.capacity}</span>
                   </div>
@@ -206,7 +206,7 @@ function StatCard({ label, value, sub, icon: Icon, sensitive }: { label: string;
         <div className="grid h-8 w-8 place-items-center rounded-full border text-muted-foreground"><ArrowUpRight className="h-4 w-4" /></div>
       </div>
       <p className="mt-3 font-display text-4xl font-semibold">
-        {sensitive ? <SensitiveValue mask="$ â¢â¢â¢â¢">{value}</SensitiveValue> : value}
+        {sensitive ? <SensitiveValue mask="$ ••••">{value}</SensitiveValue> : value}
       </p>
       <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Icon className="h-3.5 w-3.5" />{sub}</p>
     </Card>
@@ -307,7 +307,7 @@ function MemberHome({ data, growth }: { data: any; growth: { day: string; member
             <div key={s.id} className="flex items-center justify-between py-3">
               <div>
                 <p className="font-medium">{s.title}</p>
-                <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} â¢ {s.location}</p>
+                <p className="text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")} • {s.location}</p>
               </div>
             </div>
           ))}
