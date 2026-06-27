@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import logoUrl from "@/assets/logo-syncletics.svg";
 
 const adminNav = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -114,8 +115,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="grid h-7 w-7 place-items-center rounded-md bg-gradient-hero text-primary-foreground"><Trophy className="h-3.5 w-3.5" /></div>
-          <span className="font-display font-semibold">Syncletics</span>
+          <img src={logoUrl} alt="Syncletics" className="h-6 w-auto" />
         </div>
         <TopBarActions />
       </header>
@@ -128,11 +128,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <div className="mb-4 flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-md bg-gradient-hero text-primary-foreground">
-              <Trophy className="h-4 w-4" />
-            </div>
-            <span className="font-display text-lg font-semibold tracking-tight">Syncletics</span>
+          <div className="mb-4 flex items-center justify-center">
+            <img src={logoUrl} alt="Syncletics" className="h-8 w-auto" />
           </div>
           <div className="mb-4 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3">
             <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">{club.sport}</p>
