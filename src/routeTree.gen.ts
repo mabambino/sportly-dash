@@ -31,6 +31,8 @@ import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppBillingRouteImport } from './routes/app.billing'
 import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
+import { Route as AppCoursesRouteImport } from './routes/app.courses'
+import { Route as AppImportRouteImport } from './routes/app.import'
 import { Route as AppAnnouncementsRouteImport } from './routes/app.announcements'
 
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -143,6 +145,16 @@ const AppAttendanceRoute = AppAttendanceRouteImport.update({
   path: '/attendance',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCoursesRoute = AppCoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppImportRoute = AppImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAnnouncementsRoute = AppAnnouncementsRouteImport.update({
   id: '/announcements',
   path: '/announcements',
@@ -156,6 +168,8 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
+  '/app/courses': typeof AppCoursesRoute
+  '/app/import': typeof AppImportRoute
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
@@ -180,6 +194,8 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
+  '/app/courses': typeof AppCoursesRoute
+  '/app/import': typeof AppImportRoute
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
@@ -206,6 +222,8 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/app/announcements': typeof AppAnnouncementsRoute
   '/app/attendance': typeof AppAttendanceRoute
+  '/app/courses': typeof AppCoursesRoute
+  '/app/import': typeof AppImportRoute
   '/app/billing': typeof AppBillingRoute
   '/app/chat': typeof AppChatRoute
   '/app/dashboard': typeof AppDashboardRoute
@@ -233,6 +251,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/announcements'
     | '/app/attendance'
+    | '/app/courses'
+    | '/app/import'
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
@@ -257,6 +277,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/announcements'
     | '/app/attendance'
+    | '/app/courses'
+    | '/app/import'
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
@@ -282,6 +304,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/announcements'
     | '/app/attendance'
+    | '/app/courses'
+    | '/app/import'
     | '/app/billing'
     | '/app/chat'
     | '/app/dashboard'
@@ -465,6 +489,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAttendanceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/courses': {
+      id: '/app/courses'
+      path: '/courses'
+      fullPath: '/app/courses'
+      preLoaderRoute: typeof AppCoursesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/import': {
+      id: '/app/import'
+      path: '/import'
+      fullPath: '/app/import'
+      preLoaderRoute: typeof AppImportRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/announcements': {
       id: '/app/announcements'
       path: '/announcements'
@@ -478,6 +516,8 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAnnouncementsRoute: typeof AppAnnouncementsRoute
   AppAttendanceRoute: typeof AppAttendanceRoute
+  AppCoursesRoute: typeof AppCoursesRoute
+  AppImportRoute: typeof AppImportRoute
   AppBillingRoute: typeof AppBillingRoute
   AppChatRoute: typeof AppChatRoute
   AppDashboardRoute: typeof AppDashboardRoute
@@ -499,6 +539,8 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAnnouncementsRoute: AppAnnouncementsRoute,
   AppAttendanceRoute: AppAttendanceRoute,
+  AppCoursesRoute: AppCoursesRoute,
+  AppImportRoute: AppImportRoute,
   AppBillingRoute: AppBillingRoute,
   AppChatRoute: AppChatRoute,
   AppDashboardRoute: AppDashboardRoute,
