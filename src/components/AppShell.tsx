@@ -6,9 +6,9 @@ import {
   Trophy, LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu,
   Kanban, Layers, DollarSign, TrendingUp, Home, Settings as SettingsIcon,
-  Search, Mail, GraduationCap,
+  Search, Mail, GraduationCap, Upload, GripVertical,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import logoUrl from "@/assets/logo-syncletics.svg";
 
@@ -25,6 +25,7 @@ const adminNav = [
   { to: "/app/progress", label: "Progress", icon: TrendingUp },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
   { to: "/app/billing", label: "Billing", icon: CreditCard },
+  { to: "/app/import", label: "Import", icon: Upload },
 ];
 
 const memberNav = [
@@ -64,10 +65,101 @@ export function AppShell({ children }: { children: ReactNode }) {
       ? parentNav
       : memberNav;
 
+  // --- Reorderable navigation ---
+  const navKey = isStaff
+    ? "admin"
+    : membership.role === "parent"
+      ? "parent"
+      : "member";
+  const storageKey = "nav-order-" + navKey;
+  const [reordering, setReordering] = useState(false);
+  const [order, setOrder] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+      if (Array.isArray(saved)) return saved as string[];
+    } catch {}
+    return nav.map((i) => i.to);
+  });
+  const dragItem = useRef<string | null>(null);
+
+  // Keep order in sync with the available items (new tabs appended, stale removed).
+  const orderedNav = (() => {
+    const known = new Set(nav.map((i) => i.to));
+    const ordered = order.filter((to) => known.has(to));
+    for (const item of nav) if (!ordered.includes(item.to)) ordered.push(item.to);
+    return ordered
+      .map((to) => nav.find((i) => i.to === to))
+      .filter(Boolean) as typeof nav;
+  })();
+
+  const persistOrder = (next: string[]) => {
+    setOrder(next);
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(next));
+    } catch {}
+  };
+
+  const onDropItem = (targetTo: string) => {
+    const from = dragItem.current;
+    dragItem.current = null;
+    if (!from || from === targetTo) return;
+    const current = orderedNav.map((i) => i.to);
+    const next = current.filter((to) => to !== from);
+    const targetIdx = next.indexOf(targetTo);
+    next.splice(targetIdx, 0, from);
+    persistOrder(next);
+  };
+
+  const resetOrder = () => {
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {}
+    setOrder(nav.map((i) => i.to));
+  };
+
   const NavList = () => (
     <nav className="space-y-1">
-      {nav.map((item) => {
+      <div className="mb-1 flex items-center justify-between px-3">
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Menu
+        </span>
+        <button
+          type="button"
+          onClick={() => setReordering((r) => !r)}
+          className="text-xs font-medium text-muted-foreground hover:text-foreground"
+        >
+          {reordering ? "Done" : "Edit"}
+        </button>
+      </div>
+      {reordering && (
+        <button
+          type="button"
+          onClick={resetOrder}
+          className="mb-1 px-3 text-xs text-muted-foreground hover:text-foreground"
+        >
+          Reset order
+        </button>
+      )}
+      {orderedNav.map((item) => {
         const active = pathname === item.to;
+        if (reordering) {
+          return (
+            <div
+              key={item.to}
+              draggable
+              onDragStart={() => (dragItem.current = item.to)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => onDropItem(item.to)}
+              className={cn(
+                "flex cursor-grab items-center gap-3 rounded-lg border border-dashed border-sidebar-border px-3 py-2 text-sm font-medium active:cursor-grabbing",
+                active ? "bg-primary/10 text-primary" : "text-sidebar-foreground"
+              )}
+            >
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+              <item.icon className="h-4 w-4" /> {item.label}
+            </div>
+          );
+        }
         return (
           <Link
             key={item.to}
@@ -121,7 +213,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setMobileOpen(!mobileOpen)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <img src={logoUrl} alt="Syncletics" className="h-6 w-auto shrink-0" />
+          <Link to="/app/dashboard" onClick={() => setMobileOpen(false)} aria-label="Go to dashboard">
+            <img src={logoUrl} alt="Syncletics" className="h-6 w-auto shrink-0" />
+          </Link>
         </div>
         <TopBarActions compact />
       </header>
@@ -135,7 +229,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
         >
           <div className="mb-4 flex items-center justify-center">
-            <img src={logoUrl} alt="Syncletics" className="h-8 w-auto" />
+            <Link to="/app/dashboard" aria-label="Go to dashboard">
+              <img src={logoUrl} alt="Syncletics" className="h-8 w-auto" />
+            </Link>
           </div>
           <div className="mb-4 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3">
             <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">{club.sport}</p>
