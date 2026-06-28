@@ -6,7 +6,7 @@ import {
   Trophy, LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu,
   Kanban, Layers, DollarSign, TrendingUp, Home, Settings as SettingsIcon,
-  Search, Mail,
+  Search, Mail, GraduationCap,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ const adminNav = [
   { to: "/app/stats", label: "Stats", icon: BarChart3 },
   { to: "/app/pipeline", label: "Pipeline", icon: Kanban },
   { to: "/app/groups", label: "Groups", icon: Layers },
+  { to: "/app/courses", label: "Courses", icon: GraduationCap },
   { to: "/app/revenue", label: "Revenue", icon: DollarSign },
   { to: "/app/progress", label: "Progress", icon: TrendingUp },
   { to: "/app/chat", label: "Chat", icon: MessagesSquare },
