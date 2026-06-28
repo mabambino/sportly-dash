@@ -21,6 +21,25 @@ export const Route = createFileRoute("/app/import")({
   component: ImportPage,
 });
 
+// Lazily loads SheetJS from its CDN, only in the browser, and caches the promise.
+const XLSX_CDN = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+let xlsxPromise: Promise<any> | null = null;
+function loadXLSX(): Promise<any> {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("XLSX is only available in the browser"));
+  }
+  if ((window as any).XLSX) return Promise.resolve((window as any).XLSX);
+  if (xlsxPromise) return xlsxPromise;
+  xlsxPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = XLSX_CDN;
+    script.onload = () => resolve((window as any).XLSX);
+    script.onerror = () => reject(new Error("Failed to load the spreadsheet parser"));
+    document.head.appendChild(script);
+  });
+  return xlsxPromise;
+}
+
 // Fields in the new schema that a spreadsheet column can map onto.
 const TARGET_FIELDS = [
   { key: "ignore", label: "— Don't import —" },
@@ -59,10 +78,9 @@ function ImportPage() {
   // --- Step 1: fetch + parse the uploaded spreadsheet ---
   const onFile = async (file: File) => {
     try {
-      // Load SheetJS lazily in the browser only — keeps it out of the
-      // SSR/production build graph (xlsx is a heavy CJS bundle).
-      const xlsxMod = await import("xlsx");
-      const XLSX: any = (xlsxMod as any).default ?? xlsxMod;
+      // Load SheetJS in the browser from the official CDN. This avoids bundling
+      // the heavy xlsx CJS package, which breaks the production (SSR) build.
+      const XLSX: any = await loadXLSX();
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: "array" });
       const sheet = wb.Sheets[wb.SheetNames[0]];
