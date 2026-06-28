@@ -84,29 +84,29 @@ export function AppShell({ children }: { children: ReactNode }) {
     </nav>
   );
 
-  const TopBarActions = () => (
-    <div className="flex items-center gap-1">
-      <Link to="/app/chat" title="Messages">
-        <Button variant="ghost" size="icon" className={cn("rounded-full", pathname === "/app/chat" && "bg-accent")}>
+  const TopBarActions = ({ compact = false }: { compact?: boolean }) => (
+    <div className="flex items-center gap-0.5 sm:gap-1">
+      <Link to="/app/chat" title="Messages" className={cn(compact && "hidden sm:inline-flex")}>
+        <Button variant="ghost" size="icon" className={cn("rounded-full h-9 w-9", pathname === "/app/chat" && "bg-accent")}>
           <Mail className="h-4 w-4" />
         </Button>
       </Link>
-      <Link to="/app/announcements" title="Announcements">
-        <Button variant="ghost" size="icon" className={cn(pathname === "/app/announcements" && "bg-accent")}>
+      <Link to="/app/announcements" title="Announcements" className={cn(compact && "hidden sm:inline-flex")}>
+        <Button variant="ghost" size="icon" className={cn("h-9 w-9", pathname === "/app/announcements" && "bg-accent")}>
           <Megaphone className="h-4 w-4" />
         </Button>
       </Link>
       <Link to="/app/notifications" title="Notifications">
-        <Button variant="ghost" size="icon" className={cn(pathname === "/app/notifications" && "bg-accent")}>
+        <Button variant="ghost" size="icon" className={cn("h-9 w-9", pathname === "/app/notifications" && "bg-accent")}>
           <Bell className="h-4 w-4" />
         </Button>
       </Link>
       <Link to="/app/settings" title="Settings">
-        <Button variant="ghost" size="icon" className={cn(pathname === "/app/settings" && "bg-accent")}>
+        <Button variant="ghost" size="icon" className={cn("h-9 w-9", pathname === "/app/settings" && "bg-accent")}>
           <SettingsIcon className="h-4 w-4" />
         </Button>
       </Link>
-      <Button variant="ghost" size="icon" title="Sign out" onClick={signOut}>
+      <Button variant="ghost" size="icon" className="h-9 w-9" title="Sign out" onClick={signOut}>
         <LogOut className="h-4 w-4" />
       </Button>
     </div>
