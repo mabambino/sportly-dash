@@ -51,24 +51,24 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm text-muted-foreground">Welcome back{profile ? `, ${profile.display_name.split(" ")[0]}` : ""}</p>
-          <h1 className="font-display text-3xl font-semibold">{isStaff ? `${club?.name} Dashboard` : "Your home"}</h1>
+          <h1 className="font-display text-2xl font-semibold sm:text-3xl">{isStaff ? `${club?.name} Dashboard` : "Your home"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">Manage your club, members, and sessions with ease.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isStaff && students.length === 0 && <DemoSeedButton />}
           <Link
             to="/app/members"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90 sm:px-4"
           >
-            <Plus className="h-4 w-4" /> Add Member
+            <Plus className="h-4 w-4" /> <span className="hidden xs:inline sm:inline">Add Member</span><span className="xs:hidden sm:hidden">Add</span>
           </Link>
           <Link
             to="/app/members"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent sm:px-4"
           >
-            <Upload className="h-4 w-4" /> Import Data
+            <Upload className="h-4 w-4" /> <span className="hidden sm:inline">Import Data</span><span className="sm:hidden">Import</span>
           </Link>
           <Link
             to="/app/settings"
@@ -82,7 +82,7 @@ function Dashboard() {
 
       {isStaff ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <HeroStatCard label="Total Members" value={members.length} sub={`${students.length} students enrolled`} />
             <StatCard label="Attendance Rate" value={`${attRate}%`} icon={CalendarCheck} sub={`Across ${att.length} records`} />
             <StatCard label="Upcoming Sessions" value={data?.slots.length ?? 0} icon={TrendingUp} sub="Next 7 days" />
