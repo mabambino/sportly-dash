@@ -28,7 +28,6 @@ function Onboarding() {
   // Create club
   const [clubName, setClubName] = useState("");
   const [sport, setSport] = useState("Soccer");
-  const [fee, setFee] = useState("50");
 
   // Join club
   const [code, setCode] = useState("");
@@ -40,7 +39,7 @@ function Onboarding() {
     setBusy(true);
     const { data: club, error } = await supabase
       .from("clubs")
-      .insert({ name: clubName, sport, owner_id: user.id, monthly_fee_cents: Math.round(parseFloat(fee) * 100), team_code: "" })
+      .insert({ name: clubName, sport, owner_id: user.id, team_code: "" })
       .select().single();
     if (error || !club) { toast.error(error?.message || "Failed"); setBusy(false); return; }
     const { error: mErr } = await supabase.from("memberships").insert({ club_id: club.id, user_id: user.id, role: "club_owner" });
@@ -89,10 +88,7 @@ function Onboarding() {
             <TabsContent value="create" className="mt-6">
               <form onSubmit={onCreate} className="space-y-4">
                 <div><Label>Club name</Label><Input value={clubName} onChange={(e) => setClubName(e.target.value)} placeholder="Eastside FC" required /></div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Sport</Label><Input value={sport} onChange={(e) => setSport(e.target.value)} /></div>
-                  <div><Label>Monthly fee ($)</Label><Input type="number" min="0" step="1" value={fee} onChange={(e) => setFee(e.target.value)} /></div>
-                </div>
+                <div><Label>Sport</Label><Input value={sport} onChange={(e) => setSport(e.target.value)} /></div>
                 <Button type="submit" disabled={busy} className="w-full bg-gradient-hero">{busy ? "Creating…" : "Create club"}</Button>
               </form>
             </TabsContent>
