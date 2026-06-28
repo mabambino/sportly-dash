@@ -1,226 +1,253 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { User, Mail, KeyRound, Check } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, MoreVertical, CreditCard } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/settings")({
   head: () => ({ meta: [{ title: "Settings — Syncletics" }] }),
   component: SettingsPage,
 });
 
+const TABS = [
+  "My details",
+  "Profile",
+  "Password",
+  "Team",
+  "Billings",
+  "Plan",
+  "Email",
+  "Notifications",
+];
+
+const HISTORY = [
+  {
+    invoice: "Account Sale",
+    date: "Apr 14, 2004",
+    amount: "$3,050",
+    status: "Pending",
+    tracking: "LM580405575CN",
+    address: "313 Main Road, Sunderland",
+  },
+  {
+    invoice: "Account Sale",
+    date: "Jun 24, 2008",
+    amount: "$1,050",
+    status: "Cancelled",
+    tracking: "AZ938540353US",
+    address: "96 Grange Road, Peterborough",
+  },
+  {
+    invoice: "Netflix Subscription",
+    date: "Feb 28, 2004",
+    amount: "$800",
+    status: "Refund",
+    tracking: "3S331605504US",
+    address: "2 New Street, Harrogate",
+  },
+];
+
+const STATUS_STYLES: Record<string, string> = {
+  Pending: "border-emerald-500/40 text-emerald-500",
+  Cancelled: "border-red-500/40 text-red-500",
+  Refund: "border-emerald-500/40 text-emerald-500",
+};
+
 function SettingsPage() {
-  const { profile, user, refresh } = useAuth();
+  const { profile, user } = useAuth();
+  const [emailChoice, setEmailChoice] = useState("existing");
+
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your account details</p>
+        <p className="text-sm text-muted-foreground">
+          Manage your account settings and preferences.
+        </p>
       </div>
-      <ChangeNameCard displayName={profile?.display_name ?? ""} onSaved={refresh} />
-      <ChangeEmailCard currentEmail={user?.email ?? ""} onSaved={refresh} />
-      <ForgotPasswordCard email={user?.email ?? ""} />
+
+      <Tabs defaultValue="Billings" className="w-full">
+        <TabsList className="flex w-full flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">
+          {TABS.map((t) => (
+            <TabsTrigger
+              key={t}
+              value={t}
+              className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            >
+              {t}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value="Billings" className="mt-6 space-y-8">
+          {/* Payment Method */}
+          <section>
+            <h2 className="font-semibold">Payment Method</h2>
+            <p className="text-sm text-muted-foreground">
+              Update your billing details and address.
+            </p>
+          </section>
+
+          <Separator />
+
+          {/* Card Details */}
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Card Details</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Update your billing details and address.
+              </p>
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" /> Add another card
+              </Button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label>Name on your Card</Label>
+                <Input placeholder="Full name on card" />
+              </div>
+              <div>
+                <Label>Expiry</Label>
+                <Input placeholder="MM / YY" />
+              </div>
+              <div>
+                <Label>Card Number</Label>
+                <div className="relative">
+                  <CreditCard className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="pl-9"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    placeholder="Card number"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>CVV</Label>
+                <Input
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="•••"
+                />
+              </div>
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* Contact email */}
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Contact email</h3>
+              <p className="text-sm text-muted-foreground">
+                Where should invoices be sent?
+              </p>
+            </div>
+            <RadioGroup value={emailChoice} onValueChange={setEmailChoice} className="space-y-3">
+              <div className="flex items-start gap-3">
+                <RadioGroupItem value="existing" id="email-existing" className="mt-1" />
+                <Label htmlFor="email-existing" className="font-normal">
+                  <span className="block font-medium">Send to the existing email</span>
+                  <span className="text-sm text-muted-foreground">
+                    {profile?.email || user?.email || "your@email.com"}
+                  </span>
+                </Label>
+              </div>
+              <div className="flex items-center gap-3">
+                <RadioGroupItem value="another" id="email-another" />
+                <Label htmlFor="email-another" className="font-normal">
+                  Add another email address
+                </Label>
+              </div>
+              {emailChoice === "another" && (
+                <Input placeholder="new@email.com" className="max-w-sm" />
+              )}
+            </RadioGroup>
+          </section>
+
+          <Separator />
+
+          {/* Billing History */}
+          <section>
+            <h3 className="font-semibold">Billing History</h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              See the transaction you made
+            </p>
+            <Card className="overflow-hidden p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox />
+                    </TableHead>
+                    <TableHead>Invoice</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Tracking &amp; Address</TableHead>
+                    <TableHead className="w-10" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {HISTORY.map((h, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Checkbox />
+                      </TableCell>
+                      <TableCell className="font-medium">{h.invoice}</TableCell>
+                      <TableCell className="text-muted-foreground">{h.date}</TableCell>
+                      <TableCell>{h.amount}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={STATUS_STYLES[h.status]}>
+                          {h.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <p className="font-medium text-primary">{h.tracking}</p>
+                        <p className="text-xs text-muted-foreground">{h.address}</p>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </section>
+        </TabsContent>
+
+        {TABS.filter((t) => t !== "Billings").map((t) => (
+          <TabsContent key={t} value={t} className="mt-6">
+            <Card className="p-8 text-center text-sm text-muted-foreground">
+              {t} settings coming soon.
+            </Card>
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
-  );
-}
-
-function ChangeNameCard({
-  displayName,
-  onSaved,
-}: {
-  displayName: string;
-  onSaved: () => Promise<void>;
-}) {
-  const { user } = useAuth();
-  const [name, setName] = useState(displayName);
-  const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !name.trim()) return;
-    setBusy(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ display_name: name.trim() })
-      .eq("id", user.id);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      await onSaved();
-      setSaved(true);
-      toast.success("Name updated");
-      setTimeout(() => setSaved(false), 2500);
-    }
-    setBusy(false);
-  };
-
-  return (
-    <Card className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="h-9 w-9 rounded-full bg-primary/10 grid place-items-center">
-          <User className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold">Name &amp; Surname</p>
-          <p className="text-xs text-muted-foreground">Update your display name</p>
-        </div>
-      </div>
-      <Separator className="mb-4" />
-      <form onSubmit={submit} className="space-y-4">
-        <div>
-          <Label htmlFor="display-name">Full name</Label>
-          <Input
-            id="display-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Jane Doe"
-            required
-          />
-        </div>
-        <Button
-          type="submit"
-          disabled={busy || name.trim() === displayName}
-          className="bg-gradient-hero"
-        >
-          {saved ? <><Check className="mr-2 h-4 w-4" /> Saved</> : busy ? "Saving…" : "Save name"}
-        </Button>
-      </form>
-    </Card>
-  );
-}
-
-function ChangeEmailCard({
-  currentEmail,
-  onSaved,
-}: {
-  currentEmail: string;
-  onSaved: () => Promise<void>;
-}) {
-  const { user } = useAuth();
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !email.trim()) return;
-    setBusy(true);
-    const { error: authErr } = await supabase.auth.updateUser({ email: email.trim() });
-    if (authErr) { toast.error(authErr.message); setBusy(false); return; }
-    await supabase.from("profiles").update({ email: email.trim() }).eq("id", user.id);
-    await onSaved();
-    setSent(true);
-    toast.success("Confirmation email sent — check your inbox");
-    setBusy(false);
-  };
-
-  if (sent) {
-    return (
-      <Card className="p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-9 w-9 rounded-full bg-primary/10 grid place-items-center">
-            <Mail className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold">Email address</p>
-            <p className="text-xs text-muted-foreground">Confirm your new email to complete the change</p>
-          </div>
-        </div>
-        <Separator className="mb-4" />
-        <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-          A confirmation link was sent to <strong>{email}</strong>. Open it to apply the change.
-        </div>
-        <Button variant="ghost" size="sm" className="mt-3" onClick={() => setSent(false)}>
-          Change again
-        </Button>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="h-9 w-9 rounded-full bg-primary/10 grid place-items-center">
-          <Mail className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold">Email address</p>
-          <p className="text-xs text-muted-foreground">
-            Current: <span className="font-medium text-foreground">{currentEmail}</span>
-          </p>
-        </div>
-      </div>
-      <Separator className="mb-4" />
-      <form onSubmit={submit} className="space-y-4">
-        <div>
-          <Label htmlFor="new-email">New email address</Label>
-          <Input
-            id="new-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="new@email.com"
-            required
-          />
-        </div>
-        <Button
-          type="submit"
-          disabled={busy || !email.trim() || email.trim() === currentEmail}
-          className="bg-gradient-hero"
-        >
-          {busy ? "Sending…" : "Change email"}
-        </Button>
-      </form>
-    </Card>
-  );
-}
-
-function ForgotPasswordCard({ email }: { email: string }) {
-  const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const send = async () => {
-    if (!email) return;
-    setBusy(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + "/auth?mode=reset",
-    });
-    if (error) { toast.error(error.message); }
-    else { setSent(true); toast.success("Password reset email sent"); }
-    setBusy(false);
-  };
-
-  return (
-    <Card className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="h-9 w-9 rounded-full bg-primary/10 grid place-items-center">
-          <KeyRound className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold">Password</p>
-          <p className="text-xs text-muted-foreground">
-            Send a reset link to <span className="font-medium text-foreground">{email}</span>
-          </p>
-        </div>
-      </div>
-      <Separator className="mb-4" />
-      {sent ? (
-        <div className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-          Check your inbox — a reset link was sent to <strong>{email}</strong>.
-        </div>
-      ) : (
-        <Button variant="outline" onClick={send} disabled={busy}>
-          <KeyRound className="mr-2 h-4 w-4" />
-          {busy ? "Sending…" : "Send password reset email"}
-        </Button>
-      )}
-    </Card>
   );
 }
