@@ -15,7 +15,6 @@ import {
 import { Upload, FileSpreadsheet, ArrowRight, Check } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/app/import")({
   head: () => ({ meta: [{ title: "Import data — Syncletics" }] }),
@@ -60,6 +59,10 @@ function ImportPage() {
   // --- Step 1: fetch + parse the uploaded spreadsheet ---
   const onFile = async (file: File) => {
     try {
+      // Load SheetJS lazily in the browser only — keeps it out of the
+      // SSR/production build graph (xlsx is a heavy CJS bundle).
+      const xlsxMod = await import("xlsx");
+      const XLSX: any = (xlsxMod as any).default ?? xlsxMod;
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: "array" });
       const sheet = wb.Sheets[wb.SheetNames[0]];
