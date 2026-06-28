@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { CreditCard, CheckCircle2 } from "lucide-react";
 import { SensitiveValue } from "@/components/SensitiveValue";
+import { describeFee, computeFeeCents } from "@/lib/fees";
 
 export const Route = createFileRoute("/app/billing")({
   head: () => ({ meta: [{ title: "Billing — Syncletics" }] }),
@@ -48,18 +49,20 @@ function BillingPage() {
   };
 
   const total = (payments || []).filter((p) => p.status === "paid").reduce((s, p) => s + p.amount_cents, 0) / 100;
+  const feesTotal = (payments || []).filter((p) => p.status === "paid").reduce((s, p) => s + computeFeeCents(p.amount_cents, { feePercentBps: club?.fee_percent_bps ?? 0, feeFixedCents: club?.fee_fixed_cents ?? 0 }), 0) / 100;
   const overdue = (payments || []).filter((p) => p.status === "overdue").length;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Billing</h1>
-        <p className="text-sm text-muted-foreground">Monthly fee: ${((club?.monthly_fee_cents ?? 0) / 100).toFixed(2)}</p>
+        <p className="text-sm text-muted-foreground">Transaction fee: {describeFee({ feePercentBps: club?.fee_percent_bps ?? 0, feeFixedCents: club?.fee_fixed_cents ?? 0 })} per payment</p>
       </div>
 
       {isStaff && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Collected</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`$${total.toFixed(0)}`}</SensitiveValue></p></Card>
+        <div className="grid gap-4 sm:grid-cols-4">
+          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Collected</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`${total.toFixed(0)}`}</SensitiveValue></p></Card>
+          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Fees</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`${feesTotal.toFixed(0)}`}</SensitiveValue></p></Card>
           <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Overdue</p><p className="mt-2 font-display text-3xl font-semibold text-destructive">{overdue}</p></Card>
           <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Total invoices</p><p className="mt-2 font-display text-3xl font-semibold">{payments?.length ?? 0}</p></Card>
         </div>
