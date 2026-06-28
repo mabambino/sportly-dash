@@ -305,6 +305,7 @@ function WeekView({ start, days, slots, rsvps, groups, user, onToggle }: any) {
         );
       })}
     </div>
+    </div>
   );
 }
 
