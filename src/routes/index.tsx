@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, CalendarCheck, MessagesSquare, BarChart3, CreditCard, Users, Shield, ArrowRight, Trophy } from "lucide-react";
+import { Check, CalendarCheck, MessagesSquare, BarChart3, CreditCard, Users, Shield, ArrowRight } from "lucide-react";
+import logoUrl from "@/assets/logo-syncletics.svg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
