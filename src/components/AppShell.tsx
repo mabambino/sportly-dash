@@ -115,17 +115,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile header */}
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:hidden">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-2 border-b border-border bg-background px-3 lg:hidden">
+        <div className="flex min-w-0 items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setMobileOpen(!mobileOpen)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <img src={logoUrl} alt="Syncletics" className="h-6 w-auto" />
+          <img src={logoUrl} alt="Syncletics" className="h-6 w-auto shrink-0" />
         </div>
-        <TopBarActions />
+        <TopBarActions compact />
       </header>
 
-      <div className="flex">
+      <div className="flex min-w-0">
         {/* Sidebar */}
         <aside
           className={cn(
@@ -139,14 +139,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mb-4 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3">
             <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">{club.sport}</p>
             <p className="mt-0.5 truncate font-semibold">{club.name}</p>
-            <div className="mt-2 flex items-center justify-between">
+            <div className="mt-2 flex items-center justify-between gap-2">
               <span className="text-xs text-muted-foreground">Team code</span>
               <span className="rounded bg-background px-1.5 py-0.5 font-mono text-xs font-semibold">{club.team_code}</span>
             </div>
           </div>
           <NavList />
           <div className="mt-auto flex items-center gap-2 rounded-lg px-2 py-2">
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
               {profile?.display_name?.[0]?.toUpperCase() ?? "?"}
             </div>
             <div className="min-w-0 flex-1">
@@ -158,7 +158,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {mobileOpen && <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
-        <main className="min-h-screen flex-1 lg:ml-0">
+        <main className="min-h-screen w-full min-w-0 flex-1 overflow-x-hidden lg:ml-0">
           {/* Desktop top bar */}
           <header className="sticky top-0 z-30 hidden h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-6 backdrop-blur lg:flex">
             <div className="relative w-full max-w-md">
@@ -183,7 +183,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </div>
           </header>
-          <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8">{children}</div>
+          <div className="mx-auto w-full min-w-0 max-w-7xl px-3 py-5 sm:px-4 sm:py-6 lg:px-8 lg:py-8">{children}</div>
         </main>
       </div>
     </div>
