@@ -90,7 +90,7 @@ function Dashboard() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="p-6 lg:col-span-2">
+            <Card className="min-w-0 p-6 lg:col-span-2">
               <div className="flex items-center justify-between">
                 <p className="font-display text-lg font-semibold">Club Analytics</p>
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">Last 7 days</span>
