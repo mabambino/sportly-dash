@@ -160,7 +160,7 @@ function Dashboard() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="p-6 lg:col-span-2">
+            <Card className="min-w-0 p-6 lg:col-span-2">
               <p className="font-display text-lg font-semibold">Upcoming Sessions</p>
               <div className="mt-4 divide-y divide-border">
                 {data?.slots.length === 0 && <p className="py-4 text-sm text-muted-foreground">No upcoming sessions.</p>}
