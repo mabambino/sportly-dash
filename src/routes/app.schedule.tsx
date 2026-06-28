@@ -257,7 +257,8 @@ function WeekView({ start, days, slots, rsvps, groups, user, onToggle }: any) {
       .sort((a: any, b: any) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
 
   return (
-    <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${days}, minmax(0, 1fr))` }}>
+    <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
+    <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${days}, minmax(110px, 1fr))` }}>
       {dayList.map((d) => {
         const todays = slotsByDay(d);
         const isToday = isSameDay(d, new Date());
