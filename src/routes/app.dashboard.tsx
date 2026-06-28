@@ -192,7 +192,7 @@ function HeroStatCard({ label, value, sub }: { label: string; value: string | nu
         <p className="text-xs font-medium uppercase tracking-wider opacity-90">{label}</p>
         <div className="grid h-8 w-8 place-items-center rounded-full bg-white/20"><ArrowUpRight className="h-4 w-4" /></div>
       </div>
-      <p className="mt-3 font-display text-4xl font-semibold">{value}</p>
+      <p className="mt-3 font-display text-3xl font-semibold sm:text-4xl">{value}</p>
       <p className="mt-2 text-xs opacity-90">{sub}</p>
     </Card>
   );
