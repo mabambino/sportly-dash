@@ -270,7 +270,7 @@ function TimeTrackerCard() {
   return (
     <Card className="relative flex flex-col overflow-hidden border-0 p-6 text-primary-foreground" style={{ background: "var(--gradient-hero)" }}>
       <p className="font-display text-lg font-semibold">Time Tracker</p>
-      <p className="mt-6 text-center font-display text-5xl font-semibold tabular-nums tracking-tight">{fmt(elapsed)}</p>
+      <p className="mt-6 text-center font-display text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl">{fmt(elapsed)}</p>
       <div className="mt-auto flex items-center justify-center gap-3 pt-6">
         <button
           onClick={() => setRunning((rn) => !rn)}
