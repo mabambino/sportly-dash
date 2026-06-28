@@ -205,7 +205,7 @@ function StatCard({ label, value, sub, icon: Icon, sensitive }: { label: string;
         <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
         <div className="grid h-8 w-8 place-items-center rounded-full border text-muted-foreground"><ArrowUpRight className="h-4 w-4" /></div>
       </div>
-      <p className="mt-3 font-display text-4xl font-semibold">
+      <p className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
         {sensitive ? <SensitiveValue mask="$ ••••">{value}</SensitiveValue> : value}
       </p>
       <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Icon className="h-3.5 w-3.5" />{sub}</p>
