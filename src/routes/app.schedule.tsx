@@ -117,14 +117,14 @@ function SchedulePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-semibold">Schedule</h1>
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-semibold sm:text-3xl">Schedule</h1>
           <p className="text-sm text-muted-foreground">{visibleSlots?.length ?? 0} sessions</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {groups && groups.length > 0 && (
             <Select value={filterGroup} onValueChange={setFilterGroup}>
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-36 sm:w-44">
                 <SelectValue placeholder="All groups" />
               </SelectTrigger>
               <SelectContent>
@@ -143,7 +143,7 @@ function SchedulePage() {
           )}
           {isStaff && (
             <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild><Button className="bg-gradient-hero"><Plus className="mr-2 h-4 w-4" /> New session</Button></DialogTrigger>
+              <DialogTrigger asChild><Button size="sm" className="bg-gradient-hero"><Plus className="mr-1.5 h-4 w-4" /> <span className="hidden xs:inline">New session</span><span className="xs:hidden">New</span></Button></DialogTrigger>
               <NewSlotDialog groups={groups || []} onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["slots"] }); }} />
             </Dialog>
           )}
@@ -151,20 +151,22 @@ function SchedulePage() {
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
-          <TabsList>
-            <TabsTrigger value="week7">Week (Mon–Sun)</TabsTrigger>
-            <TabsTrigger value="week5">Workweek (Mon–Fri)</TabsTrigger>
-            <TabsTrigger value="month">Month</TabsTrigger>
-            <TabsTrigger value="list">List</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="-mx-1 max-w-full overflow-x-auto px-1">
+          <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
+            <TabsList>
+              <TabsTrigger value="week7" className="text-xs sm:text-sm">Week</TabsTrigger>
+              <TabsTrigger value="week5" className="text-xs sm:text-sm">Workweek</TabsTrigger>
+              <TabsTrigger value="month" className="text-xs sm:text-sm">Month</TabsTrigger>
+              <TabsTrigger value="list" className="text-xs sm:text-sm">List</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
         {view !== "list" && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" size="icon" onClick={() => navigate(-1)}><ChevronLeft className="h-4 w-4" /></Button>
             <Button variant="outline" size="sm" onClick={() => setCursor(new Date())}>Today</Button>
             <Button variant="outline" size="icon" onClick={() => navigate(1)}><ChevronRight className="h-4 w-4" /></Button>
-            <span className="ml-2 text-sm font-medium">{range.label}</span>
+            <span className="ml-1 text-xs font-medium sm:ml-2 sm:text-sm">{range.label}</span>
           </div>
         )}
       </div>
