@@ -198,7 +198,7 @@ function Landing() {
       <footer className="border-t border-border py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-sm text-muted-foreground sm:flex-row">
           <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-primary" />
+            <img src={logoUrl} alt="Syncletics" className="h-4 w-auto" />
             <span>© 2026 Syncletics. All rights reserved.</span>
           </div>
           <p>Built for clubs that mean business.</p>
