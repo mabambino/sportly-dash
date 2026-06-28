@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, CalendarCheck, MessagesSquare, BarChart3, CreditCard, Users, Shield, ArrowRight, Trophy } from "lucide-react";
+import { Check, CalendarCheck, MessagesSquare, BarChart3, CreditCard, Users, Shield, ArrowRight } from "lucide-react";
+import logoUrl from "@/assets/logo-syncletics.svg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,10 +21,7 @@ function Landing() {
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-hero text-primary-foreground">
-              <Trophy className="h-4 w-4" />
-            </div>
-            <span className="font-display text-lg font-semibold tracking-tight">Syncletics</span>
+            <img src={logoUrl} alt="Syncletics" className="h-8 w-auto" />
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a href="#features" className="hover:text-foreground">Features</a>
@@ -200,7 +198,7 @@ function Landing() {
       <footer className="border-t border-border py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-sm text-muted-foreground sm:flex-row">
           <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-primary" />
+            <img src={logoUrl} alt="Syncletics" className="h-4 w-auto" />
             <span>© 2026 Syncletics. All rights reserved.</span>
           </div>
           <p>Built for clubs that mean business.</p>
