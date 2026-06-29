@@ -242,7 +242,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <NavList />
-          <div className="mt-auto flex items-center gap-2 rounded-lg px-2 py-2">
+          <div className="mt-auto flex items-center gap-2 rounded-lg px-2 py-2 lg:hidden">
             <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
               {profile?.display_name?.[0]?.toUpperCase() ?? "?"}
             </div>
