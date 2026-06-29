@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, MoreVertical, CreditCard, GripVertical } from "lucide-react";
-import { useState, type DragEvent } from "react";
+import { useState, useEffect, type DragEvent } from "react";
 
 export const Route = createFileRoute("/app/settings")({
   head: () => ({ meta: [{ title: "Settings — Syncletics" }] }),
@@ -56,25 +58,14 @@ const DASHBOARD_LAYOUTS = [
   { value: "grid-4", label: "4 across (row)" },
 ];
 
-function loadDashboardPrefs() {
-  if (typeof window === "undefined") {
-    return { order: DEFAULT_DASHBOARD_CARDS, layout: "grid-2" };
-  }
-  try {
-    const raw = window.localStorage.getItem("dashboardPrefs");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const order =
-        Array.isArray(parsed.order) && parsed.order.length
-          ? parsed.order
-          : DEFAULT_DASHBOARD_CARDS;
-      const layout = parsed.layout || "grid-2";
-      return { order, layout };
-    }
-  } catch {
-    // ignore malformed saved prefs
-  }
-  return { order: DEFAULT_DASHBOARD_CARDS, layout: "grid-2" };
+function readDashboardPrefs(prefs: unknown) {
+  const value = (prefs ?? {}) as { order?: unknown; layout?: unknown };
+  const order =
+    Array.isArray(value.order) && value.order.length
+      ? (value.order as string[])
+      : DEFAULT_DASHBOARD_CARDS;
+  const layout = typeof value.layout === "string" ? value.layout : "grid-2";
+  return { order, layout };
 }
 
 const HISTORY = [
@@ -111,14 +102,23 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 function SettingsPage() {
-  const { profile, user } = useAuth();
+  const { profile, user, refresh } = useAuth();
   const [emailChoice, setEmailChoice] = useState("existing");
-  const initialDashPrefs = loadDashboardPrefs();
-  const [dashOrder, setDashOrder] = useState(initialDashPrefs.order);
+  const initialDashPrefs = readDashboardPrefs(profile?.dashboard_prefs);
+  const [dashOrder, setDashOrder] = useState<string[]>(initialDashPrefs.order);
   const [dashLayout, setDashLayout] = useState(initialDashPrefs.layout);
   const [dashSaved, setDashSaved] = useState(false);
+  const [dashSaving, setDashSaving] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Keep local editing state in sync once the profile (and its saved prefs) loads.
+  useEffect(() => {
+    const prefs = readDashboardPrefs(profile?.dashboard_prefs);
+    setDashOrder(prefs.order);
+    setDashLayout(prefs.layout);
+    setDashSaved(false);
+  }, [profile?.dashboard_prefs]);
 
   const handleDragStart = (index: number) => {
     setDragIndex(index);
@@ -148,16 +148,21 @@ function SettingsPage() {
     setDragOverIndex(null);
   };
 
-  const saveDashboardLayout = () => {
-    try {
-      window.localStorage.setItem(
-        "dashboardPrefs",
-        JSON.stringify({ order: dashOrder, layout: dashLayout }),
-      );
-      setDashSaved(true);
-    } catch {
-      // ignore storage errors
+  const saveDashboardLayout = async () => {
+    if (!user?.id) return;
+    setDashSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ dashboard_prefs: { order: dashOrder, layout: dashLayout } })
+      .eq("id", user.id);
+    setDashSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
     }
+    setDashSaved(true);
+    await refresh();
+    toast.success("Dashboard layout saved");
   };
 
   const resetDashboardLayout = () => {
@@ -394,8 +399,10 @@ function SettingsPage() {
               </div>
 
               <div className="mt-6 flex items-center gap-3">
-                <Button onClick={saveDashboardLayout}>Save layout</Button>
-                <Button variant="outline" onClick={resetDashboardLayout}>
+                <Button onClick={saveDashboardLayout} disabled={dashSaving}>
+                  {dashSaving ? "Saving…" : "Save layout"}
+                </Button>
+                <Button variant="outline" onClick={resetDashboardLayout} disabled={dashSaving}>
                   Reset to default
                 </Button>
                 {dashSaved ? (
