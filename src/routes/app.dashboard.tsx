@@ -16,8 +16,32 @@ export const Route = createFileRoute("/app/dashboard")({
   component: Dashboard,
 });
 
+const DEFAULT_DASHBOARD_CARDS = [
+  "Total Members",
+  "Attendance Rate",
+  "Upcoming Sessions",
+  "Monthly Revenue",
+];
+
+const DASHBOARD_LAYOUT_COLS: Record<string, string> = {
+  "grid-2": "grid-cols-1 sm:grid-cols-2",
+  "grid-3": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+  "grid-4": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+};
+
+function readDashboardPrefs(prefs: unknown) {
+  const value = (prefs ?? {}) as { order?: unknown; layout?: unknown };
+  const order =
+    Array.isArray(value.order) && value.order.length
+      ? (value.order as string[])
+      : DEFAULT_DASHBOARD_CARDS;
+  const layout = typeof value.layout === "string" ? value.layout : "grid-4";
+  return { order, layout };
+}
+
 function Dashboard() {
   const { club, isStaff, profile } = useAuth();
+  const dashboardPrefs = readDashboardPrefs(profile?.dashboard_prefs);
 
   const { data } = useQuery({
     enabled: !!club,
@@ -82,11 +106,25 @@ function Dashboard() {
 
       {isStaff ? (
         <>
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <HeroStatCard label="Total Members" value={members.length} sub={`${students.length} students enrolled`} />
-            <StatCard label="Attendance Rate" value={`${attRate}%`} icon={CalendarCheck} sub={`Across ${att.length} records`} />
-            <StatCard label="Upcoming Sessions" value={data?.slots.length ?? 0} icon={TrendingUp} sub="Next 7 days" />
-            <StatCard label="Monthly Revenue" value={`$${mrr.toFixed(0)}`} icon={DollarSign} sub={`${paidThisMonth.length} paid`} sensitive />
+          <div className={`grid gap-4 ${DASHBOARD_LAYOUT_COLS[dashboardPrefs.layout] ?? DASHBOARD_LAYOUT_COLS["grid-4"]}`}>
+            {dashboardPrefs.order.map((cardName) => {
+              const cards: Record<string, JSX.Element> = {
+                "Total Members": (
+                  <HeroStatCard label="Total Members" value={members.length} sub={`${students.length} students enrolled`} />
+                ),
+                "Attendance Rate": (
+                  <StatCard label="Attendance Rate" value={`${attRate}%`} icon={CalendarCheck} sub={`Across ${att.length} records`} />
+                ),
+                "Upcoming Sessions": (
+                  <StatCard label="Upcoming Sessions" value={data?.slots.length ?? 0} icon={TrendingUp} sub="Next 7 days" />
+                ),
+                "Monthly Revenue": (
+                  <StatCard label="Monthly Revenue" value={`${mrr.toFixed(0)}`} icon={DollarSign} sub={`${paidThisMonth.length} paid`} sensitive />
+                ),
+              };
+              const el = cards[cardName];
+              return el ? <div key={cardName}>{el}</div> : null;
+            })}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">

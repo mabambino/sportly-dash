@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, MoreVertical, CreditCard } from "lucide-react";
-import { useState } from "react";
+import { Plus, MoreVertical, CreditCard, GripVertical } from "lucide-react";
+import { useState, useEffect, type DragEvent } from "react";
 
 export const Route = createFileRoute("/app/settings")({
   head: () => ({ meta: [{ title: "Settings — Syncletics" }] }),
@@ -39,7 +41,32 @@ const TABS = [
   "Plan",
   "Email",
   "Notifications",
+  "Dashboard",
 ];
+
+// Dashboard cards the user can rearrange into a square-tile layout.
+const DEFAULT_DASHBOARD_CARDS = [
+  "Total Members",
+  "Attendance Rate",
+  "Upcoming Sessions",
+  "Monthly Revenue",
+];
+
+const DASHBOARD_LAYOUTS = [
+  { value: "grid-2", label: "2 across (square tiles)" },
+  { value: "grid-3", label: "3 across" },
+  { value: "grid-4", label: "4 across (row)" },
+];
+
+function readDashboardPrefs(prefs: unknown) {
+  const value = (prefs ?? {}) as { order?: unknown; layout?: unknown };
+  const order =
+    Array.isArray(value.order) && value.order.length
+      ? (value.order as string[])
+      : DEFAULT_DASHBOARD_CARDS;
+  const layout = typeof value.layout === "string" ? value.layout : "grid-2";
+  return { order, layout };
+}
 
 const HISTORY = [
   {
@@ -75,8 +102,74 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 function SettingsPage() {
-  const { profile, user } = useAuth();
+  const { profile, user, refresh } = useAuth();
   const [emailChoice, setEmailChoice] = useState("existing");
+  const initialDashPrefs = readDashboardPrefs(profile?.dashboard_prefs);
+  const [dashOrder, setDashOrder] = useState<string[]>(initialDashPrefs.order);
+  const [dashLayout, setDashLayout] = useState(initialDashPrefs.layout);
+  const [dashSaved, setDashSaved] = useState(false);
+  const [dashSaving, setDashSaving] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Keep local editing state in sync once the profile (and its saved prefs) loads.
+  useEffect(() => {
+    const prefs = readDashboardPrefs(profile?.dashboard_prefs);
+    setDashOrder(prefs.order);
+    setDashLayout(prefs.layout);
+    setDashSaved(false);
+  }, [profile?.dashboard_prefs]);
+
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+    setDashSaved(false);
+  };
+
+  const handleDragOver = (e: DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragOverIndex !== index) setDragOverIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    setDashOrder((prev) => {
+      if (dragIndex === null || dragIndex === index) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(dragIndex, 1);
+      next.splice(index, 0, moved);
+      return next;
+    });
+    setDragIndex(null);
+    setDragOverIndex(null);
+    setDashSaved(false);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const saveDashboardLayout = async () => {
+    if (!user?.id) return;
+    setDashSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ dashboard_prefs: { order: dashOrder, layout: dashLayout } })
+      .eq("id", user.id);
+    setDashSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setDashSaved(true);
+    await refresh();
+    toast.success("Dashboard layout saved");
+  };
+
+  const resetDashboardLayout = () => {
+    setDashOrder(DEFAULT_DASHBOARD_CARDS);
+    setDashLayout("grid-2");
+    setDashSaved(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -240,7 +333,89 @@ function SettingsPage() {
           </section>
         </TabsContent>
 
-        {TABS.filter((t) => t !== "Billings").map((t) => (
+        <TabsContent value="Dashboard" className="mt-6 space-y-8">
+          <section>
+            <h2 className="font-semibold">Dashboard Layout</h2>
+            <p className="text-sm text-muted-foreground">
+              Drag the cards to rearrange your dashboard tiles, then choose the
+              layout that works best for you.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Layout</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Choose how many cards appear per row.
+              </p>
+              <RadioGroup
+                value={dashLayout}
+                onValueChange={(value) => {
+                  setDashLayout(value);
+                  setDashSaved(false);
+                }}
+                className="space-y-2"
+              >
+                {DASHBOARD_LAYOUTS.map((opt) => (
+                  <div key={opt.value} className="flex items-center gap-2">
+                    <RadioGroupItem value={opt.value} id={`layout-${opt.value}`} />
+                    <Label htmlFor={`layout-${opt.value}`}>{opt.label}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div>
+              <h3 className="font-semibold">Card Order</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Drag and drop to rearrange your dashboard tiles.
+              </p>
+              <div className="space-y-2">
+                {dashOrder.map((card, index) => (
+                  <div
+                    key={card}
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDrop={() => handleDrop(index)}
+                    onDragEnd={handleDragEnd}
+                    className={`flex cursor-grab items-center justify-between rounded-lg border bg-background px-4 py-3 transition-colors active:cursor-grabbing ${
+                      dragOverIndex === index && dragIndex !== index
+                        ? "border-primary bg-accent"
+                        : "border-border"
+                    } ${dragIndex === index ? "opacity-50" : ""}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{card}</span>
+                    </div>
+                    <Badge variant="outline" className="text-muted-foreground">
+                      {index + 1}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex items-center gap-3">
+                <Button onClick={saveDashboardLayout} disabled={dashSaving}>
+                  {dashSaving ? "Saving…" : "Save layout"}
+                </Button>
+                <Button variant="outline" onClick={resetDashboardLayout} disabled={dashSaving}>
+                  Reset to default
+                </Button>
+                {dashSaved ? (
+                  <Badge className="border-emerald-500/40 text-emerald-500">
+                    Saved
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        </TabsContent>
+
+        {TABS.filter((t) => t !== "Billings" && t !== "Dashboard").map((t) => (
           <TabsContent key={t} value={t} className="mt-6">
             <Card className="p-8 text-center text-sm text-muted-foreground">
               {t} settings coming soon.

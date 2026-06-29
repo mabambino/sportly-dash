@@ -8,6 +8,7 @@ interface Profile {
   display_name: string;
   avatar_url: string | null;
   is_parent: boolean;
+  dashboard_prefs?: { order?: string[]; layout?: string } | null;
 }
 
 interface Membership {
