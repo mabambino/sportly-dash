@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -68,7 +69,7 @@ function ImportPage() {
     enabled: !!club,
     queryKey: ["courses", club?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await sb
         .from("course_groups")
         .select("id, name")
         .eq("club_id", club!.id);
@@ -146,14 +147,14 @@ function ImportPage() {
 
       // Upsert the profile, then the membership. We match on email so re-imports
       // update rather than duplicate.
-      const { data: profile, error: pErr } = await supabase
+      const { data: profile, error: pErr } = await sb
         .from("profiles")
         .upsert({ email, display_name: display_name || email }, { onConflict: "email" })
         .select("id")
         .single();
       if (pErr || !profile) continue;
 
-      const { error: mErr } = await supabase
+      const { error: mErr } = await sb
         .from("memberships")
         .upsert(
           {
