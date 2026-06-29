@@ -171,7 +171,7 @@ function ImportPage() {
     setStep("done");
     qc.invalidateQueries({ queryKey: ["members"] });
     qc.invalidateQueries({ queryKey: ["course-memberships"] });
-    toast.success(\`Imported \${ok} member\${ok === 1 ? "" : "s"}\`);
+    toast.success(`Imported ${ok} member${ok === 1 ? "" : "s"}`);
   };
 
   const reset = () => {
