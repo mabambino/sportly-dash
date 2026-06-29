@@ -280,7 +280,7 @@ function ImportPage() {
 
           <div className="flex justify-end">
             <Button onClick={runImport} disabled={busy} className="bg-gradient-hero">
-              {busy ? "Importing…" : \`Import \${rows.length} rows\`}
+              {busy ? "Importing…" : `Import ${rows.length} rows`}
             </Button>
           </div>
         </div>
