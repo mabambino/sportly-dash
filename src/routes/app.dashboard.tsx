@@ -141,7 +141,7 @@ function Dashboard() {
 
           <div className="grid gap-6 lg:grid-cols-3">
             <ProgressCard rate={attRate} present={presentCount} total={att.length} />
-            <TimeTrackerCard />
+            <StopwatchCard />
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <p className="font-display text-lg font-semibold">Announcements</p>
