@@ -290,49 +290,6 @@ function StopwatchCard() {
     </Card>
   );
 }
-  const [elapsed, setElapsed] = useState(0);
-  const [running, setRunning] = useState(false);
-  const ref = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (running) {
-      ref.current = setInterval(() => setElapsed((e) => e + 1), 1000);
-    }
-    return () => {
-      if (ref.current) clearInterval(ref.current);
-    };
-  }, [running]);
-
-  const fmt = (s: number) => {
-    const h = String(Math.floor(s / 3600)).padStart(2, "0");
-    const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-    const sec = String(s % 60).padStart(2, "0");
-    return `${h}:${m}:${sec}`;
-  };
-
-  return (
-    <Card className="relative flex flex-col overflow-hidden border-0 p-6 text-primary-foreground" style={{ background: "var(--gradient-hero)" }}>
-      <p className="font-display text-lg font-semibold">Time Tracker</p>
-      <p className="mt-6 text-center font-display text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl">{fmt(elapsed)}</p>
-      <div className="mt-auto flex items-center justify-center gap-3 pt-6">
-        <button
-          onClick={() => setRunning((rn) => !rn)}
-          className="grid h-11 w-11 place-items-center rounded-full bg-white/20 transition-colors hover:bg-white/30"
-          title={running ? "Pause" : "Start"}
-        >
-          {running ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-        </button>
-        <button
-          onClick={() => { setRunning(false); setElapsed(0); }}
-          className="grid h-11 w-11 place-items-center rounded-full bg-destructive text-destructive-foreground transition-opacity hover:opacity-90"
-          title="Reset"
-        >
-          <Square className="h-4 w-4" />
-        </button>
-      </div>
-    </Card>
-  );
-}
 
 function MemberHome({ data, growth }: { data: any; growth: { day: string; members: number }[] }) {
   return (
