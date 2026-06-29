@@ -195,8 +195,6 @@ export type Database = {
           description: string | null
           id: string
           logo_url: string | null
-          fee_fixed_cents: number
-          fee_percent_bps: number
           monthly_fee_cents: number
           name: string
           owner_id: string
@@ -210,8 +208,6 @@ export type Database = {
           description?: string | null
           id?: string
           logo_url?: string | null
-          fee_fixed_cents?: number
-          fee_percent_bps?: number
           monthly_fee_cents?: number
           name: string
           owner_id: string
@@ -225,8 +221,6 @@ export type Database = {
           description?: string | null
           id?: string
           logo_url?: string | null
-          fee_fixed_cents?: number
-          fee_percent_bps?: number
           monthly_fee_cents?: number
           name?: string
           owner_id?: string
@@ -378,8 +372,6 @@ export type Database = {
       payments: {
         Row: {
           amount_cents: number
-          fee_cents: number
-          net_cents: number
           club_id: string
           created_at: string
           id: string
@@ -390,8 +382,6 @@ export type Database = {
         }
         Insert: {
           amount_cents: number
-          fee_cents: number
-          net_cents: number
           club_id: string
           created_at?: string
           id?: string
@@ -402,8 +392,6 @@ export type Database = {
         }
         Update: {
           amount_cents?: number
-          fee_cents?: number
-          net_cents?: number
           club_id?: string
           created_at?: string
           id?: string

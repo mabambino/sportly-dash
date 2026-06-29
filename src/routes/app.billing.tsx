@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { CreditCard, CheckCircle2 } from "lucide-react";
 import { SensitiveValue } from "@/components/SensitiveValue";
-import { describeFee, computeFeeCents } from "@/lib/fees";
+import { describeFee, computeFeeCents, DEFAULT_FEE } from "@/lib/fees";
 
 export const Route = createFileRoute("/app/billing")({
   head: () => ({ meta: [{ title: "Billing — Syncletics" }] }),
@@ -49,14 +49,18 @@ function BillingPage() {
   };
 
   const total = (payments || []).filter((p) => p.status === "paid").reduce((s, p) => s + p.amount_cents, 0) / 100;
-  const feesTotal = (payments || []).filter((p) => p.status === "paid").reduce((s, p) => s + computeFeeCents(p.amount_cents, { feePercentBps: club?.fee_percent_bps ?? 0, feeFixedCents: club?.fee_fixed_cents ?? 0 }), 0) / 100;
+  const feeConfig = {
+    feePercentBps: (club as any)?.fee_percent_bps ?? DEFAULT_FEE.feePercentBps,
+    feeFixedCents: (club as any)?.fee_fixed_cents ?? DEFAULT_FEE.feeFixedCents,
+  };
+  const feesTotal = (payments || []).filter((p) => p.status === "paid").reduce((s, p) => s + computeFeeCents(p.amount_cents, feeConfig), 0) / 100;
   const overdue = (payments || []).filter((p) => p.status === "overdue").length;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Billing</h1>
-        <p className="text-sm text-muted-foreground">Transaction fee: {describeFee({ feePercentBps: club?.fee_percent_bps ?? 0, feeFixedCents: club?.fee_fixed_cents ?? 0 })} per payment</p>
+        <p className="text-sm text-muted-foreground">Transaction fee: {describeFee(feeConfig)} per payment</p>
       </div>
 
       {isStaff && (

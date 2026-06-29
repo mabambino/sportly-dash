@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -45,11 +46,12 @@ const TARGET_FIELDS = [
   { key: "ignore", label: "— Don't import —" },
   { key: "display_name", label: "Member name" },
   { key: "email", label: "Email" },
-  { key: "role", label: "Role (member / parent / coach)" },
+  { key: "role", label: "Role (student / parent / trainer)" },
   { key: "course", label: "Course / group name" },
 ] as const;
 
 type Step = "upload" | "map" | "done";
+type ImportRole = "student" | "parent" | "trainer";
 
 function ImportPage() {
   const { club, isStaff } = useAuth();
@@ -67,7 +69,7 @@ function ImportPage() {
     enabled: !!club,
     queryKey: ["courses", club?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await sb
         .from("course_groups")
         .select("id, name")
         .eq("club_id", club!.id);
@@ -84,9 +86,9 @@ function ImportPage() {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: "array" });
       const sheet = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, {
+      const json = XLSX.utils.sheet_to_json(sheet, {
         defval: "",
-      });
+      }) as Record<string, any>[];
       if (!json.length) {
         toast.error("That sheet looks empty");
         return;
@@ -136,23 +138,23 @@ function ImportPage() {
     for (const row of rows) {
       const email = String(row[emailCol] ?? "").trim().toLowerCase();
       if (!email) continue;
-      const display_name = nameCol ? String(row[nameCol] ?? "").trim() : null;
+      const display_name = nameCol ? String(row[nameCol] ?? "").trim() : "";
       const rawRole = roleCol ? String(row[roleCol] ?? "").trim().toLowerCase() : "";
-      const role = ["member", "parent", "coach"].includes(rawRole) ? rawRole : "member";
+      const role: ImportRole = rawRole === "parent" ? "parent" : rawRole === "coach" || rawRole === "trainer" ? "trainer" : "student";
       const groupId = courseCol
         ? courseByName.get(String(row[courseCol] ?? "").trim().toLowerCase()) ?? null
         : null;
 
       // Upsert the profile, then the membership. We match on email so re-imports
       // update rather than duplicate.
-      const { data: profile, error: pErr } = await supabase
+      const { data: profile, error: pErr } = await sb
         .from("profiles")
-        .upsert({ email, display_name }, { onConflict: "email" })
+        .upsert({ email, display_name: display_name || email }, { onConflict: "email" })
         .select("id")
         .single();
       if (pErr || !profile) continue;
 
-      const { error: mErr } = await supabase
+      const { error: mErr } = await sb
         .from("memberships")
         .upsert(
           {
@@ -171,7 +173,7 @@ function ImportPage() {
     setStep("done");
     qc.invalidateQueries({ queryKey: ["members"] });
     qc.invalidateQueries({ queryKey: ["course-memberships"] });
-    toast.success(\`Imported \${ok} member\${ok === 1 ? "" : "s"}\`);
+    toast.success(`Imported ${ok} member${ok === 1 ? "" : "s"}`);
   };
 
   const reset = () => {
@@ -280,7 +282,7 @@ function ImportPage() {
 
           <div className="flex justify-end">
             <Button onClick={runImport} disabled={busy} className="bg-gradient-hero">
-              {busy ? "Importing…" : \`Import \${rows.length} rows\`}
+              {busy ? "Importing…" : `Import ${rows.length} rows`}
             </Button>
           </div>
         </div>

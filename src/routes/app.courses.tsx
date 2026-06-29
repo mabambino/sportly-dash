@@ -134,7 +134,7 @@ function CoursesPage() {
   };
 
   const remove = async (course: any) => {
-    if (!confirm(\`Delete "\${course.name}"? Enrolled members will be unassigned.\`)) return;
+    if (!confirm(`Delete "${course.name}"? Enrolled members will be unassigned.`)) return;
     const { error } = await supabase.from("course_groups").delete().eq("id", course.id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["courses"] });
@@ -202,7 +202,7 @@ function CoursesPage() {
               <div className="flex flex-wrap gap-2 text-xs">
                 <Badge variant="secondary">
                   <DollarSign className="mr-1 h-3 w-3" />
-                  {\`\${((course.price_cents ?? 0) / 100).toFixed(2)}\`}
+                  {`$${((course.price_cents ?? 0) / 100).toFixed(2)}`}
                 </Badge>
                 <Badge variant="secondary">
                   <Clock className="mr-1 h-3 w-3" />
