@@ -29,30 +29,19 @@ const DASHBOARD_LAYOUT_COLS: Record<string, string> = {
   "grid-4": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
 };
 
-function loadDashboardPrefs() {
-  if (typeof window === "undefined") {
-    return { order: DEFAULT_DASHBOARD_CARDS, layout: "grid-4" };
-  }
-  try {
-    const raw = window.localStorage.getItem("dashboardPrefs");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const order =
-        Array.isArray(parsed.order) && parsed.order.length
-          ? parsed.order
-          : DEFAULT_DASHBOARD_CARDS;
-      const layout = parsed.layout || "grid-4";
-      return { order, layout };
-    }
-  } catch {
-    // ignore malformed saved prefs
-  }
-  return { order: DEFAULT_DASHBOARD_CARDS, layout: "grid-4" };
+function readDashboardPrefs(prefs: unknown) {
+  const value = (prefs ?? {}) as { order?: unknown; layout?: unknown };
+  const order =
+    Array.isArray(value.order) && value.order.length
+      ? (value.order as string[])
+      : DEFAULT_DASHBOARD_CARDS;
+  const layout = typeof value.layout === "string" ? value.layout : "grid-4";
+  return { order, layout };
 }
 
 function Dashboard() {
   const { club, isStaff, profile } = useAuth();
-  const [dashboardPrefs] = useState(loadDashboardPrefs);
+  const dashboardPrefs = readDashboardPrefs(profile?.dashboard_prefs);
 
   const { data } = useQuery({
     enabled: !!club,
