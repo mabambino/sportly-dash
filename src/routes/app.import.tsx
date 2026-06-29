@@ -45,11 +45,12 @@ const TARGET_FIELDS = [
   { key: "ignore", label: "— Don't import —" },
   { key: "display_name", label: "Member name" },
   { key: "email", label: "Email" },
-  { key: "role", label: "Role (member / parent / coach)" },
+  { key: "role", label: "Role (student / parent / trainer)" },
   { key: "course", label: "Course / group name" },
 ] as const;
 
 type Step = "upload" | "map" | "done";
+type ImportRole = "student" | "parent" | "trainer";
 
 function ImportPage() {
   const { club, isStaff } = useAuth();
@@ -84,9 +85,9 @@ function ImportPage() {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: "array" });
       const sheet = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, {
+      const json = XLSX.utils.sheet_to_json(sheet, {
         defval: "",
-      });
+      }) as Record<string, any>[];
       if (!json.length) {
         toast.error("That sheet looks empty");
         return;
@@ -136,9 +137,9 @@ function ImportPage() {
     for (const row of rows) {
       const email = String(row[emailCol] ?? "").trim().toLowerCase();
       if (!email) continue;
-      const display_name = nameCol ? String(row[nameCol] ?? "").trim() : null;
+      const display_name = nameCol ? String(row[nameCol] ?? "").trim() : "";
       const rawRole = roleCol ? String(row[roleCol] ?? "").trim().toLowerCase() : "";
-      const role = ["member", "parent", "coach"].includes(rawRole) ? rawRole : "member";
+      const role: ImportRole = rawRole === "parent" ? "parent" : rawRole === "coach" || rawRole === "trainer" ? "trainer" : "student";
       const groupId = courseCol
         ? courseByName.get(String(row[courseCol] ?? "").trim().toLowerCase()) ?? null
         : null;
@@ -147,7 +148,7 @@ function ImportPage() {
       // update rather than duplicate.
       const { data: profile, error: pErr } = await supabase
         .from("profiles")
-        .upsert({ email, display_name }, { onConflict: "email" })
+        .upsert({ email, display_name: display_name || email }, { onConflict: "email" })
         .select("id")
         .single();
       if (pErr || !profile) continue;
