@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, MoreVertical, CreditCard, GripVertical } from "lucide-react";
+import { Plus, MoreVertical, CreditCard, GripVertical, Copy, Check } from "lucide-react";
 import { useState, useEffect, type DragEvent } from "react";
 
 export const Route = createFileRoute("/app/settings")({
@@ -101,8 +101,47 @@ const STATUS_STYLES: Record<string, string> = {
   Refund: "border-emerald-500/40 text-emerald-500",
 };
 
+const NOTIFICATION_OPTIONS = [
+  {
+    id: "schedule",
+    label: "Schedule updates",
+    description: "When sessions are added, moved or cancelled.",
+    default: true,
+  },
+  {
+    id: "attendance",
+    label: "Attendance reminders",
+    description: "Reminders to mark attendance after a session.",
+    default: true,
+  },
+  {
+    id: "billing",
+    label: "Billing & payments",
+    description: "Invoices, receipts and failed payments.",
+    default: true,
+  },
+  {
+    id: "digest",
+    label: "Weekly digest",
+    description: "A weekly summary of team activity.",
+    default: false,
+  },
+] as const;
+
+function readNotifPrefs(
+  prefs: { notifications?: Record<string, boolean> } | null | undefined,
+): Record<string, boolean> {
+  const saved = (prefs as { notifications?: Record<string, boolean> } | null)
+    ?.notifications;
+  const result: Record<string, boolean> = {};
+  for (const opt of NOTIFICATION_OPTIONS) {
+    result[opt.id] = saved?.[opt.id] ?? opt.default;
+  }
+  return result;
+}
+
 function SettingsPage() {
-  const { profile, user, refresh } = useAuth();
+  const { profile, user, club, refresh } = useAuth();
   const [emailChoice, setEmailChoice] = useState("existing");
   const initialDashPrefs = readDashboardPrefs(profile?.dashboard_prefs);
   const [dashOrder, setDashOrder] = useState<string[]>(initialDashPrefs.order);
@@ -146,6 +185,136 @@ function SettingsPage() {
   const handleDragEnd = () => {
     setDragIndex(null);
     setDragOverIndex(null);
+  };
+
+  const [detailsSaving, setDetailsSaving] = useState(false);
+  const [detailsSaved, setDetailsSaved] = useState(false);
+  const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? "");
+  const [isParent, setIsParent] = useState(profile?.is_parent ?? false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>(
+    readNotifPrefs(profile?.dashboard_prefs),
+  );
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifSaved, setNotifSaved] = useState(false);
+
+  useEffect(() => {
+    setDisplayName(profile?.display_name ?? "");
+    setAvatarUrl(profile?.avatar_url ?? "");
+    setIsParent(profile?.is_parent ?? false);
+    setNotifPrefs(readNotifPrefs(profile?.dashboard_prefs));
+  }, [profile]);
+
+  const saveDetails = async () => {
+    if (!user?.id) return;
+    setDetailsSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: displayName })
+      .eq("id", user.id);
+    setDetailsSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setDetailsSaved(true);
+    await refresh();
+    toast.success("Details saved");
+  };
+
+  const saveProfile = async () => {
+    if (!user?.id) return;
+    setProfileSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: avatarUrl || null, is_parent: isParent })
+      .eq("id", user.id);
+    setProfileSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setProfileSaved(true);
+    await refresh();
+    toast.success("Profile saved");
+  };
+
+  const savePassword = async () => {
+    if (!newPassword) {
+      toast.error("Enter a new password");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setPasswordSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setNewPassword("");
+    setConfirmPassword("");
+    toast.success("Password updated");
+  };
+
+  const saveEmail = async () => {
+    if (!newEmail) {
+      toast.error("Enter a new email");
+      return;
+    }
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    setEmailSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Check your inbox to confirm the new email");
+    setNewEmail("");
+    setEmailChoice("existing");
+  };
+
+  const copyTeamCode = async () => {
+    if (!club?.team_code) return;
+    await navigator.clipboard.writeText(club.team_code);
+    setCodeCopied(true);
+    toast.success("Team code copied");
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
+
+  const saveNotifications = async () => {
+    if (!user?.id) return;
+    setNotifSaving(true);
+    const existing = (profile?.dashboard_prefs ?? {}) as Record<string, unknown>;
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        dashboard_prefs: { ...existing, notifications: notifPrefs },
+      } as never)
+      .eq("id", user.id);
+    setNotifSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setNotifSaved(true);
+    await refresh();
+    toast.success("Notification preferences saved");
   };
 
   const saveDashboardLayout = async () => {
@@ -415,13 +584,355 @@ function SettingsPage() {
           </section>
         </TabsContent>
 
-        {TABS.filter((t) => t !== "Billings" && t !== "Dashboard").map((t) => (
-          <TabsContent key={t} value={t} className="mt-6">
-            <Card className="p-8 text-center text-sm text-muted-foreground">
-              {t} settings coming soon.
+        {/* My details */}
+        <TabsContent value="My details" className="mt-6 space-y-8">
+          <section>
+            <h2 className="font-semibold">My details</h2>
+            <p className="text-sm text-muted-foreground">
+              Update your personal information.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Personal info</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                This information is shown across your team workspace.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="display-name">Display name</Label>
+                <Input
+                  id="display-name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="account-email">Email</Label>
+                <Input id="account-email" value={profile?.email ?? ""} disabled />
+              </div>
+              <div className="sm:col-span-2 flex items-center gap-3">
+                <Button onClick={saveDetails} disabled={detailsSaving}>
+                  {detailsSaving ? "Saving…" : "Save changes"}
+                </Button>
+                {detailsSaved ? (
+                  <Badge className="border-emerald-500/40 text-emerald-500">
+                    Saved
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        </TabsContent>
+
+        {/* Profile */}
+        <TabsContent value="Profile" className="mt-6 space-y-8">
+          <section>
+            <h2 className="font-semibold">Profile</h2>
+            <p className="text-sm text-muted-foreground">
+              Customise how you appear to your team.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Avatar</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Paste a link to an image to use as your profile picture.
+              </p>
+            </div>
+            <div className="grid gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-muted text-lg font-semibold uppercase">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar preview" className="h-full w-full object-cover" />
+                  ) : (
+                    (profile?.display_name ?? "?").slice(0, 1)
+                  )}
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="avatar-url">Avatar URL</Label>
+                  <Input
+                    id="avatar-url"
+                    value={avatarUrl}
+                    onChange={(e) => setAvatarUrl(e.target.value)}
+                    placeholder="https://…"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="is-parent"
+                  checked={isParent}
+                  onCheckedChange={(v) => setIsParent(v === true)}
+                />
+                <Label htmlFor="is-parent" className="font-normal">
+                  I am a parent / guardian account
+                </Label>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button onClick={saveProfile} disabled={profileSaving}>
+                  {profileSaving ? "Saving…" : "Save profile"}
+                </Button>
+                {profileSaved ? (
+                  <Badge className="border-emerald-500/40 text-emerald-500">
+                    Saved
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        </TabsContent>
+
+        {/* Password */}
+        <TabsContent value="Password" className="mt-6 space-y-8">
+          <section>
+            <h2 className="font-semibold">Password</h2>
+            <p className="text-sm text-muted-foreground">
+              Choose a new password for your account.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Change password</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Use at least 8 characters. You will stay signed in on this device.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:max-w-md">
+              <div>
+                <Label htmlFor="new-password">New password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="New password"
+                />
+              </div>
+              <div>
+                <Label htmlFor="confirm-password">Confirm new password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                />
+              </div>
+              <div>
+                <Button onClick={savePassword} disabled={passwordSaving}>
+                  {passwordSaving ? "Updating…" : "Update password"}
+                </Button>
+              </div>
+            </div>
+          </section>
+        </TabsContent>
+
+        {/* Team */}
+        <TabsContent value="Team" className="mt-6 space-y-8">
+          <section>
+            <h2 className="font-semibold">Team</h2>
+            <p className="text-sm text-muted-foreground">
+              Your team workspace details and join code.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Workspace</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Share the team code so others can join your workspace.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:max-w-md">
+              <div>
+                <Label>Team name</Label>
+                <Input value={club?.name ?? ""} disabled />
+              </div>
+              <div>
+                <Label>Sport</Label>
+                <Input value={club?.sport ?? ""} disabled className="capitalize" />
+              </div>
+              <div>
+                <Label htmlFor="team-code">Team code</Label>
+                <div className="flex items-center gap-2">
+                  <Input id="team-code" value={club?.team_code ?? ""} readOnly className="font-mono uppercase" />
+                  <Button variant="outline" onClick={copyTeamCode} disabled={!club?.team_code}>
+                    {codeCopied ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </TabsContent>
+
+        {/* Plan */}
+        <TabsContent value="Plan" className="mt-6 space-y-8">
+          <section>
+            <h2 className="font-semibold">Plan</h2>
+            <p className="text-sm text-muted-foreground">
+              View your current subscription plan.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="grid gap-4 sm:grid-cols-2">
+            <Card className={`p-6 ${club?.plan === "free" ? "border-primary" : ""}`}>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Free</h3>
+                {club?.plan === "free" ? (
+                  <Badge className="border-primary/40 text-primary">Current</Badge>
+                ) : null}
+              </div>
+              <p className="mt-2 text-2xl font-bold">
+                $0<span className="text-sm font-normal text-muted-foreground">/mo</span>
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Core tools to manage a single team.
+              </p>
             </Card>
-          </TabsContent>
-        ))}
+            <Card className={`p-6 ${club?.plan === "pro" ? "border-primary" : ""}`}>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Pro</h3>
+                {club?.plan === "pro" ? (
+                  <Badge className="border-primary/40 text-primary">Current</Badge>
+                ) : null}
+              </div>
+              <p className="mt-2 text-2xl font-bold">
+                ${((club?.monthly_fee_cents ?? 0) / 100).toFixed(0)}
+                <span className="text-sm font-normal text-muted-foreground">/mo</span>
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Advanced billing, unlimited members and priority support.
+              </p>
+            </Card>
+          </section>
+        </TabsContent>
+
+        {/* Email */}
+        <TabsContent value="Email" className="mt-6 space-y-8">
+          <section>
+            <h2 className="font-semibold">Email</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage the email address linked to your account.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Contact email</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Keep your current email or switch to a new one.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:max-w-md">
+              <RadioGroup value={emailChoice} onValueChange={setEmailChoice}>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="existing" id="email-existing" />
+                  <Label htmlFor="email-existing" className="font-normal">
+                    Keep current ({profile?.email ?? "—"})
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="new" id="email-new" />
+                  <Label htmlFor="email-new" className="font-normal">
+                    Use a new email
+                  </Label>
+                </div>
+              </RadioGroup>
+              {emailChoice === "new" ? (
+                <div>
+                  <Label htmlFor="new-email">New email</Label>
+                  <Input
+                    id="new-email"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="name@example.com"
+                  />
+                </div>
+              ) : null}
+              <div>
+                <Button
+                  onClick={saveEmail}
+                  disabled={emailSaving || emailChoice === "existing"}
+                >
+                  {emailSaving ? "Saving…" : "Update email"}
+                </Button>
+              </div>
+            </div>
+          </section>
+        </TabsContent>
+
+        {/* Notifications */}
+        <TabsContent value="Notifications" className="mt-6 space-y-8">
+          <section>
+            <h2 className="font-semibold">Notifications</h2>
+            <p className="text-sm text-muted-foreground">
+              Choose what you want to be notified about.
+            </p>
+          </section>
+
+          <Separator />
+
+          <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <div>
+              <h3 className="font-semibold">Email notifications</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                We will only email you about the things you turn on here.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:max-w-md">
+              {NOTIFICATION_OPTIONS.map((opt) => (
+                <div key={opt.id} className="flex items-start gap-3">
+                  <Checkbox
+                    id={`notif-${opt.id}`}
+                    checked={notifPrefs[opt.id] ?? opt.default}
+                    onCheckedChange={(v) =>
+                      setNotifPrefs((prev) => ({ ...prev, [opt.id]: v === true }))
+                    }
+                  />
+                  <div>
+                    <Label htmlFor={`notif-${opt.id}`} className="font-normal">
+                      {opt.label}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">{opt.description}</p>
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center gap-3">
+                <Button onClick={saveNotifications} disabled={notifSaving}>
+                  {notifSaving ? "Saving…" : "Save preferences"}
+                </Button>
+                {notifSaved ? (
+                  <Badge className="border-emerald-500/40 text-emerald-500">
+                    Saved
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+          </section>
+        </TabsContent>
       </Tabs>
     </div>
   );
