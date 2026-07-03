@@ -2,18 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { addMember } from "@/lib/members.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EnrollQRDialog } from "@/components/EnrollQRDialog";
+import { Download, Search, UserPlus, QrCode, Copy } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/members")({
-  head: () => ({ meta: [{ title: "People — Syncletics" }] }),
+  head: () => ({ meta: [{ title: "Members — Syncletics" }] }),
   component: MembersPage,
 });
 
@@ -21,13 +24,15 @@ function MembersPage() {
   const { club, isStaff } = useAuth();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
-  const [tab, setTab] = useState<"all" | "staff" | "students" | "parents">("all");
+  const [addOpen, setAddOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     enabled: !!club,
     queryKey: ["members", club?.id],
     queryFn: async () => {
-      const { data: mems } = await supabase.from("memberships").select("*").eq("club_id", club!.id);
+      const { data: mems, error } = await supabase.from("memberships").select("*").eq("club_id", club!.id).order("joined_at", { ascending: false });
+      if (error) throw error;
       const ids = (mems || []).map((m) => m.user_id);
       const { data: profs } = await supabase.from("profiles").select("*").in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
       return (mems || []).map((m) => ({ ...m, profile: profs?.find((p) => p.id === m.user_id) }));
@@ -43,23 +48,15 @@ function MembersPage() {
     },
   });
 
-  const assignGroup = async (membershipId: string, groupId: string | null, memberUserId: string, newGroupId: string | null) => {
+  const assignGroup = async (membershipId: string, newGroupId: string | null) => {
     const { error } = await supabase
       .from("memberships")
       .update({ group_id: newGroupId || null })
       .eq("id", membershipId);
     if (error) { toast.error(error.message); return; }
-
-    // Auto-add to the new group's chat channel if applicable
     if (newGroupId && groups) {
       const group = groups.find((g: any) => g.id === newGroupId);
-      if (group?.chat_channel_id) {
-        // Insert a welcome message to the channel (marks the user as active in it)
-        // The channel is already accessible by all club members via RLS
-        toast.success(`Assigned to "${group.name}" — added to group chat`);
-      } else {
-        toast.success("Group assigned");
-      }
+      toast.success(group ? `Assigned to "${group.name}"` : "Group assigned");
     } else {
       toast.success("Group removed");
     }
@@ -67,22 +64,9 @@ function MembersPage() {
     qc.invalidateQueries({ queryKey: ["group-memberships"] });
   };
 
-  const all = (data || []).filter((m) =>
+  const members = (data || []).filter((m) =>
     !q || m.profile?.display_name?.toLowerCase().includes(q.toLowerCase()) || m.profile?.email?.toLowerCase().includes(q.toLowerCase())
   );
-  const isStaffRole = (r: string) => r === "club_owner" || r === "trainer";
-  const members = all.filter((m) => {
-    if (tab === "staff") return isStaffRole(m.role);
-    if (tab === "students") return m.role === "student";
-    if (tab === "parents") return m.role === "parent";
-    return true;
-  });
-  const counts = {
-    all: all.length,
-    staff: all.filter((m) => isStaffRole(m.role)).length,
-    students: all.filter((m) => m.role === "student").length,
-    parents: all.filter((m) => m.role === "parent").length,
-  };
 
   const exportCsv = () => {
     const rows = [["Name", "Email", "Role", "Group", "Joined"], ...members.map((m) => {
@@ -98,31 +82,28 @@ function MembersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold">People</h1>
-          <p className="text-sm text-muted-foreground">{members.length} shown in {club?.name}</p>
+          <h1 className="font-display text-3xl font-semibold">Members</h1>
+          <p className="text-sm text-muted-foreground">{members.length} {members.length === 1 ? "member" : "members"} in {club?.name}</p>
         </div>
-        {isStaff && <Button variant="outline" onClick={exportCsv}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>}
+        {isStaff && (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={exportCsv}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>
+            <Button className="bg-gradient-hero" onClick={() => setAddOpen(true)}><UserPlus className="mr-2 h-4 w-4" /> Add member</Button>
+          </div>
+        )}
       </div>
-
-      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-        <TabsList>
-          <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
-          <TabsTrigger value="staff">Staff ({counts.staff})</TabsTrigger>
-          <TabsTrigger value="students">Students ({counts.students})</TabsTrigger>
-          <TabsTrigger value="parents">Parents ({counts.parents})</TabsTrigger>
-        </TabsList>
-      </Tabs>
 
       <Card className="p-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Search people…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <Input className="pl-9" placeholder="Search members…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
       </Card>
 
       <Card className="overflow-hidden p-0">
         <div className="divide-y divide-border">
-          {members.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">No members yet. Share your team code <span className="font-mono font-semibold">{club?.team_code}</span> to invite them.</p>}
+          {isLoading && <p className="p-8 text-center text-sm text-muted-foreground">Loading members…</p>}
+          {!isLoading && members.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">No members yet. Share your team code <span className="font-mono font-semibold">{club?.team_code}</span> or use "Add member".</p>}
           {members.map((m) => {
             const group = groups?.find((g: any) => g.id === m.group_id);
             return (
@@ -149,7 +130,7 @@ function MembersPage() {
                   {isStaff && groups && groups.length > 0 && (
                     <Select
                       value={m.group_id || "none"}
-                      onValueChange={(val) => assignGroup(m.id, m.group_id, m.user_id, val === "none" ? null : val)}
+                      onValueChange={(val) => assignGroup(m.id, val === "none" ? null : val)}
                     >
                       <SelectTrigger className="h-7 w-36 text-xs">
                         <SelectValue placeholder="Assign group…" />
@@ -173,6 +154,137 @@ function MembersPage() {
           })}
         </div>
       </Card>
+
+      {club && (
+        <>
+          <AddMemberDialog
+            open={addOpen}
+            onOpenChange={setAddOpen}
+            clubId={club.id}
+            groups={groups || []}
+            onShowQr={() => { setAddOpen(false); setQrOpen(true); }}
+            onDone={() => qc.invalidateQueries({ queryKey: ["members"] })}
+          />
+          <EnrollQRDialog
+            open={qrOpen}
+            onOpenChange={setQrOpen}
+            clubId={club.id}
+            clubName={club.name}
+            teamCode={club.team_code}
+          />
+        </>
+      )}
     </div>
+  );
+}
+
+function AddMemberDialog({ open, onOpenChange, clubId, groups, onShowQr, onDone }: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  clubId: string;
+  groups: any[];
+  onShowQr: () => void;
+  onDone: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"student" | "trainer" | "parent">("student");
+  const [groupId, setGroupId] = useState<string>("none");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ existingAccount: boolean; tempPassword: string | null } | null>(null);
+
+  const reset = () => { setName(""); setEmail(""); setRole("student"); setGroupId("none"); setResult(null); };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const res = await addMember({
+        data: { clubId, email, displayName: name, role, groupId: groupId === "none" ? null : groupId },
+      });
+      setResult({ existingAccount: res.existingAccount, tempPassword: res.tempPassword });
+      toast.success(res.existingAccount ? "Existing account enrolled in the club" : "Account created and enrolled");
+      onDone();
+    } catch (err: any) {
+      toast.error(err?.message || "Could not add the member");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyPassword = () => {
+    if (result?.tempPassword) {
+      navigator.clipboard.writeText(result.tempPassword);
+      toast.success("Temporary password copied");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Add member</DialogTitle></DialogHeader>
+        {result ? (
+          <div className="space-y-4">
+            {result.tempPassword ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  A new account was created for <span className="font-medium text-foreground">{email}</span>.
+                  Share this temporary password with them — it is shown only once. They should change it after logging in.
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 rounded-md bg-muted px-3 py-2 font-mono text-sm">{result.tempPassword}</code>
+                  <Button size="icon" variant="outline" onClick={copyPassword}><Copy className="h-4 w-4" /></Button>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{email}</span> already had an account, so they were enrolled directly. They can log in with their existing password.
+              </p>
+            )}
+            <Button className="w-full" onClick={() => { onOpenChange(false); reset(); }}>Done</Button>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <Label>Full name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Jamie Novak" />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="jamie@example.com" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Role</Label>
+                <Select value={role} onValueChange={(v) => setRole(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="trainer">Trainer</SelectItem>
+                    <SelectItem value="parent">Parent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Course group</Label>
+                <Select value={groupId} onValueChange={setGroupId}>
+                  <SelectTrigger><SelectValue placeholder="No group" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No group</SelectItem>
+                    {groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Button type="submit" disabled={busy} className="w-full bg-gradient-hero">
+              {busy ? "Adding…" : "Add member"}
+            </Button>
+            <button type="button" onClick={onShowQr} className="flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+              <QrCode className="h-3.5 w-3.5" /> Or let them self-enroll with the team QR code
+            </button>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
