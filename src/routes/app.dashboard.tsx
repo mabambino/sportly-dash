@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DemoSeedButton } from "@/components/DemoSeedButton";
 import { SensitiveValue } from "@/components/SensitiveValue";
 import {
-  ArrowUpRight, Users, CalendarCheck, DollarSign, TrendingUp,
+  ArrowUpRight, Users, DollarSign, TrendingUp,
   UserPlus, Upload, Settings, Bell, CalendarDays, Play, Pause, Square,
 } from "lucide-react";
 import {
