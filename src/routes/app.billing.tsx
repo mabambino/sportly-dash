@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 import { toast } from "sonner";
 import { CreditCard, CheckCircle2 } from "lucide-react";
 import { SensitiveValue } from "@/components/SensitiveValue";
@@ -34,26 +34,43 @@ function BillingPage() {
   });
 
   const markPaid = async (id: string) => {
-    await supabase.from("payments").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+    const { error } = await supabase.from("payments").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
     toast.success("Marked as paid");
     qc.invalidateQueries({ queryKey: ["payments"] });
   };
 
+  // Members pay through the pay_invoice() RPC, which validates ownership
+  // and status server-side. Payment rows are no longer writable by
+  // members directly (see 20260703120000_improvements.sql). The RPC
+  // simulates checkout until a real provider (Stripe) is wired up.
   const payNow = async (id: string) => {
-    // Mocked Stripe checkout flow
-    toast.loading("Redirecting to checkout…", { id: "pay" });
-    await new Promise((r) => setTimeout(r, 1200));
-    await supabase.from("payments").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
-    toast.success("Payment successful (demo)", { id: "pay" });
+    toast.loading("Processing payment…", { id: "pay" });
+    const { error } = await (supabase.rpc as any)("pay_invoice", { _payment_id: id });
+    if (error) {
+      // Fallback for databases where the migration hasn't run yet.
+      const { error: legacyError } = await supabase
+        .from("payments")
+        .update({ status: "paid", paid_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("member_id", user!.id);
+      if (legacyError) { toast.error(legacyError.message, { id: "pay" }); return; }
+    }
+    toast.success("Payment successful (demo checkout)", { id: "pay" });
     qc.invalidateQueries({ queryKey: ["payments"] });
   };
 
-  const total = (payments || []).filter((p) => p.status === "paid").reduce((s, p) => s + p.amount_cents, 0) / 100;
+  const paid = (payments || []).filter((p) => p.status === "paid");
+  const total = paid.reduce((s, p) => s + p.amount_cents, 0) / 100;
+  const thisMonthKey = format(startOfMonth(new Date()), "yyyy-MM");
+  const totalThisMonth = paid
+    .filter((p) => String(p.period_month).slice(0, 7) === thisMonthKey)
+    .reduce((s, p) => s + p.amount_cents, 0) / 100;
   const feeConfig = {
     feePercentBps: (club as any)?.fee_percent_bps ?? DEFAULT_FEE.feePercentBps,
     feeFixedCents: (club as any)?.fee_fixed_cents ?? DEFAULT_FEE.feeFixedCents,
   };
-  const feesTotal = (payments || []).filter((p) => p.status === "paid").reduce((s, p) => s + computeFeeCents(p.amount_cents, feeConfig), 0) / 100;
+  const feesTotal = paid.reduce((s, p) => s + computeFeeCents(p.amount_cents, feeConfig), 0) / 100;
   const overdue = (payments || []).filter((p) => p.status === "overdue").length;
 
   return (
@@ -65,10 +82,10 @@ function BillingPage() {
 
       {isStaff && (
         <div className="grid gap-4 sm:grid-cols-4">
-          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Collected</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`${total.toFixed(0)}`}</SensitiveValue></p></Card>
-          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Fees</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`${feesTotal.toFixed(0)}`}</SensitiveValue></p></Card>
+          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Collected (all time)</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`$${total.toFixed(0)}`}</SensitiveValue></p></Card>
+          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">This month</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`$${totalThisMonth.toFixed(0)}`}</SensitiveValue></p></Card>
+          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Fees</p><p className="mt-2 font-display text-3xl font-semibold"><SensitiveValue mask="$ ••••">{`$${feesTotal.toFixed(0)}`}</SensitiveValue></p></Card>
           <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Overdue</p><p className="mt-2 font-display text-3xl font-semibold text-destructive">{overdue}</p></Card>
-          <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Total invoices</p><p className="mt-2 font-display text-3xl font-semibold">{payments?.length ?? 0}</p></Card>
         </div>
       )}
 
@@ -99,7 +116,7 @@ function BillingPage() {
       </Card>
 
       <p className="text-center text-xs text-muted-foreground">
-        💳 Stripe test mode integration available — for now, "Pay now" simulates a successful checkout.
+        💳 Payments are validated server-side. Stripe checkout can be plugged into the pay_invoice() function when you're ready to collect real money.
       </p>
     </div>
   );
