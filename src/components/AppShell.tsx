@@ -4,10 +4,11 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Trophy, LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
+  LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
 } from "lucide-react";
+import logoSyncletics from "@/assets/logo-syncletics-white.svg";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
