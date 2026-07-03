@@ -8,7 +8,7 @@ import {
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
 } from "lucide-react";
-import logoSyncletics from "@/assets/logo-syncletics-white.svg";
+import logoSyncletics from "@/assets/logo-syncletics.svg";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
