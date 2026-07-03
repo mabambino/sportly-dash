@@ -4,10 +4,11 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Trophy, LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
+  LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
 } from "lucide-react";
+import logoSyncletics from "@/assets/logo-syncletics-white.svg";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
@@ -142,8 +143,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="grid h-7 w-7 place-items-center rounded-md bg-gradient-hero text-primary-foreground"><Trophy className="h-3.5 w-3.5" /></div>
-          <span className="font-display font-semibold">{club.name}</span>
+          <Link to="/app/dashboard" className="flex items-center">
+            <img src={logoSyncletics} alt="Syncletics" className="h-6 w-auto dark:invert-0 invert" />
+          </Link>
         </div>
         <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
       </header>
@@ -156,9 +158,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <Link to="/" className="mb-6 flex items-center gap-2 px-2">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-hero text-primary-foreground"><Trophy className="h-4 w-4" /></div>
-            <span className="font-display font-semibold">Syncletics</span>
+          <Link to="/app/dashboard" className="mb-6 flex items-center gap-2 px-2">
+            <img src={logoSyncletics} alt="Syncletics" className="h-7 w-auto" />
           </Link>
           <button
             type="button"
