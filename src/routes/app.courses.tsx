@@ -8,14 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Users, Clock, DollarSign, Pencil, Trash2, GraduationCap } from "lucide-react";
+import { Plus, Users, Clock, DollarSign, Pencil, Trash2, GraduationCap, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -26,23 +26,53 @@ export const Route = createFileRoute("/app/courses")({
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+/** One recurring session in a course's weekly schedule. */
+interface ScheduleSlot {
+  day: string;
+  time: string;
+  duration: number;
+}
+
 interface CourseForm {
   name: string;
   description: string;
   price: string;
-  duration: string;
-  days: string[];
-  time: string;
+  slots: ScheduleSlot[];
 }
 
 const EMPTY_FORM: CourseForm = {
   name: "",
   description: "",
   price: "0",
-  duration: "60",
-  days: [],
-  time: "09:00",
+  slots: [{ day: "Mon", time: "17:00", duration: 60 }],
 };
+
+/** Read a course's schedule: prefer the flexible schedule_slots column,
+ *  fall back to the legacy one-time-for-all-days fields. */
+function readSlots(course: any): ScheduleSlot[] {
+  if (Array.isArray(course.schedule_slots) && course.schedule_slots.length) {
+    return course.schedule_slots.map((s: any) => ({
+      day: String(s.day ?? "Mon"),
+      time: String(s.time ?? "09:00"),
+      duration: Number(s.duration ?? course.session_duration_minutes ?? 60),
+    }));
+  }
+  return (course.schedule_days ?? []).map((day: string) => ({
+    day,
+    time: course.schedule_time ?? "09:00",
+    duration: course.session_duration_minutes ?? 60,
+  }));
+}
+
+const dayIndex = (d: string) => WEEKDAYS.indexOf(d);
+
+function describeSlots(slots: ScheduleSlot[]): string {
+  if (!slots.length) return "No schedule";
+  return [...slots]
+    .sort((a, b) => dayIndex(a.day) - dayIndex(b.day) || a.time.localeCompare(b.time))
+    .map((s) => `${s.day} ${s.time}`)
+    .join(" · ");
+}
 
 function CoursesPage() {
   const { club, isStaff } = useAuth();
@@ -69,11 +99,10 @@ function CoursesPage() {
     enabled: !!club,
     queryKey: ["course-memberships", club?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("memberships")
-        .select("*, profiles(display_name, email)")
-        .eq("club_id", club!.id);
-      return data || [];
+      const { data: mems } = await supabase.from("memberships").select("*").eq("club_id", club!.id);
+      const ids = (mems || []).map((m) => m.user_id);
+      const { data: profs } = await supabase.from("profiles").select("id, display_name, email").in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      return (mems || []).map((m) => ({ ...m, profiles: profs?.find((p) => p.id === m.user_id) }));
     },
   });
 
@@ -89,18 +118,19 @@ function CoursesPage() {
       name: course.name ?? "",
       description: course.description ?? "",
       price: String((course.price_cents ?? 0) / 100),
-      duration: String(course.session_duration_minutes ?? 60),
-      days: course.schedule_days ?? [],
-      time: course.schedule_time ?? "09:00",
+      slots: readSlots(course),
     });
     setDialogOpen(true);
   };
 
-  const toggleDay = (day: string) =>
-    setForm((f) => ({
-      ...f,
-      days: f.days.includes(day) ? f.days.filter((d) => d !== day) : [...f.days, day],
-    }));
+  const updateSlot = (i: number, patch: Partial<ScheduleSlot>) =>
+    setForm((f) => ({ ...f, slots: f.slots.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) }));
+
+  const addSlot = () =>
+    setForm((f) => ({ ...f, slots: [...f.slots, { day: "Mon", time: "17:00", duration: 60 }] }));
+
+  const removeSlot = (i: number) =>
+    setForm((f) => ({ ...f, slots: f.slots.filter((_, idx) => idx !== i) }));
 
   const save = async () => {
     if (!club) return;
@@ -108,27 +138,34 @@ function CoursesPage() {
       toast.error("Course name is required");
       return;
     }
-    const payload = {
+    const slots = form.slots.filter((s) => s.day && s.time);
+    // Legacy fields are kept in sync so older code paths keep working.
+    const basePayload = {
       club_id: club.id,
       name: form.name.trim(),
       description: form.description.trim() || null,
       price_cents: Math.round(parseFloat(form.price || "0") * 100),
-      session_duration_minutes: parseInt(form.duration || "60", 10),
-      schedule_days: form.days,
-      schedule_time: form.time,
+      session_duration_minutes: slots[0]?.duration ?? 60,
+      schedule_days: Array.from(new Set(slots.map((s) => s.day))).sort((a, b) => dayIndex(a) - dayIndex(b)),
+      schedule_time: slots[0]?.time ?? null,
     };
-    if (editing) {
-      const { error } = await supabase
-        .from("course_groups")
-        .update(payload)
-        .eq("id", editing.id);
-      if (error) return toast.error(error.message);
-      toast.success("Course updated");
-    } else {
-      const { error } = await supabase.from("course_groups").insert(payload);
-      if (error) return toast.error(error.message);
-      toast.success("Course created");
+
+    const attempt = async (withSlots: boolean) => {
+      const payload: any = withSlots ? { ...basePayload, schedule_slots: slots } : basePayload;
+      return editing
+        ? supabase.from("course_groups").update(payload).eq("id", editing.id)
+        : supabase.from("course_groups").insert(payload);
+    };
+
+    let { error } = await attempt(true);
+    if (error && /schedule_slots/.test(error.message)) {
+      // The flexible-schedule column hasn't been migrated yet — save the
+      // legacy fields and let the club know.
+      ({ error } = await attempt(false));
+      if (!error) toast.info("Saved with a single time for all days — run the latest database migration to enable per-day times.");
     }
+    if (error) return toast.error(error.message);
+    toast.success(editing ? "Course updated" : "Course created");
     setDialogOpen(false);
     qc.invalidateQueries({ queryKey: ["courses"] });
   };
@@ -151,7 +188,7 @@ function CoursesPage() {
         <div>
           <h1 className="font-display text-3xl font-semibold">Courses</h1>
           <p className="text-sm text-muted-foreground">
-            {courses?.length ?? 0} courses · set pricing and view who is enrolled
+            {courses?.length ?? 0} courses · set pricing, schedule and view who is enrolled
           </p>
         </div>
         {isStaff && (
@@ -164,6 +201,7 @@ function CoursesPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {courses?.map((course: any) => {
           const roster = rosterOf(course.id);
+          const slots = readSlots(course);
           return (
             <Card key={course.id} className="flex flex-col gap-3 p-5">
               <div className="flex items-start justify-between gap-3">
@@ -176,11 +214,7 @@ function CoursesPage() {
                   </span>
                   <div>
                     <p className="font-semibold leading-tight">{course.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {course.schedule_days?.length
-                        ? course.schedule_days.join(", ")
-                        : "No schedule"}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{describeSlots(slots)}</p>
                   </div>
                 </div>
                 {isStaff && (
@@ -206,7 +240,7 @@ function CoursesPage() {
                 </Badge>
                 <Badge variant="secondary">
                   <Clock className="mr-1 h-3 w-3" />
-                  {course.session_duration_minutes ?? 60} min
+                  {slots.length ? `${slots.length}×/week` : `${course.session_duration_minutes ?? 60} min`}
                 </Badge>
                 <Badge variant="secondary">
                   <Users className="mr-1 h-3 w-3" />
@@ -234,7 +268,7 @@ function CoursesPage() {
 
       {/* Create / edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Edit course" : "New course"}</DialogTitle>
           </DialogHeader>
@@ -255,52 +289,58 @@ function CoursesPage() {
                 placeholder="What this course covers…"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Price ($)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Session length (min)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="5"
-                  value={form.duration}
-                  onChange={(e) => setForm({ ...form, duration: e.target.value })}
-                />
-              </div>
-            </div>
             <div>
-              <Label>Schedule</Label>
-              <div className="mt-1 flex flex-wrap gap-1">
-                {WEEKDAYS.map((d) => (
-                  <Button
-                    key={d}
-                    type="button"
-                    size="sm"
-                    variant={form.days.includes(d) ? "default" : "outline"}
-                    onClick={() => toggleDay(d)}
-                  >
-                    {d}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label>Time</Label>
+              <Label>Price ($ / month)</Label>
               <Input
-                type="time"
-                value={form.time}
-                onChange={(e) => setForm({ ...form, time: e.target.value })}
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
               />
             </div>
+
+            <div>
+              <Label>Weekly schedule</Label>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Add one entry per session — each day can have its own time and length, and a day can have several sessions.
+              </p>
+              <div className="space-y-2">
+                {form.slots.map((slot, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <Select value={slot.day} onValueChange={(v) => updateSlot(i, { day: v })}>
+                      <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {WEEKDAYS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="time"
+                      className="w-28"
+                      value={slot.time}
+                      onChange={(e) => updateSlot(i, { time: e.target.value })}
+                    />
+                    <div className="relative flex-1">
+                      <Input
+                        type="number"
+                        min="5"
+                        step="5"
+                        value={slot.duration}
+                        onChange={(e) => updateSlot(i, { duration: parseInt(e.target.value || "60", 10) })}
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
+                    </div>
+                    <Button type="button" size="icon" variant="ghost" onClick={() => removeSlot(i)} disabled={form.slots.length === 1}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <Button type="button" size="sm" variant="outline" className="mt-2" onClick={addSlot}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> Add session
+              </Button>
+            </div>
+
             <Button onClick={save} className="w-full bg-gradient-hero">
               {editing ? "Save changes" : "Create course"}
             </Button>
