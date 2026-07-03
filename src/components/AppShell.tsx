@@ -143,8 +143,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="grid h-7 w-7 place-items-center rounded-md bg-gradient-hero text-primary-foreground"><Trophy className="h-3.5 w-3.5" /></div>
-          <span className="font-display font-semibold">{club.name}</span>
+          <Link to="/app/dashboard" className="flex items-center">
+            <img src={logoSyncletics} alt="Syncletics" className="h-6 w-auto dark:invert-0 invert" />
+          </Link>
         </div>
         <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
       </header>
