@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
-  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
+  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode, Search, Mail,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
-import { useState } from "react";
+import { useState, useEffect as useEffectR } from "react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
+
 
 type NavItem = { to: string; label: string; icon: typeof Users };
 type NavSection = { label: string | null; items: NavItem[] };
