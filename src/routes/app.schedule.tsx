@@ -152,62 +152,84 @@ function SchedulePage() {
         </div>
       </div>
 
-      <div className="grid gap-4">
-        {visibleSlots?.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground">No sessions scheduled yet.</Card>}
-        {visibleSlots?.map((s) => {
-          const count = rsvps?.filter((r) => r.slot_id === s.id).length ?? 0;
-          const mine = rsvps?.find((r) => r.slot_id === s.id && r.user_id === user?.id);
-          const past = new Date(s.starts_at) < new Date();
-          const full = count >= s.capacity;
-          const group = groups?.find((g: any) => g.id === s.group_id);
-          const durationMin = s.ends_at
-            ? Math.round((new Date(s.ends_at).getTime() - new Date(s.starts_at).getTime()) / 60000)
-            : null;
-          return (
-            <Card key={s.id} className="overflow-hidden">
-              {group && <div className="h-1 w-full" style={{ backgroundColor: group.color }} />}
-              <div className="flex flex-wrap items-start justify-between gap-4 p-5">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold">{s.title}</h3>
-                    {past && <Badge variant="secondary">Past</Badge>}
-                    {!past && full && <Badge variant="destructive">Full</Badge>}
-                    {group && (
-                      <span
-                        className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                        style={{ backgroundColor: group.color }}
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList>
+          <TabsTrigger value="list">List</TabsTrigger>
+          <TabsTrigger value="month">Month</TabsTrigger>
+          <TabsTrigger value="week">Week</TabsTrigger>
+          <TabsTrigger value="day">Day</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list" className="mt-4">
+          <div className="grid gap-4">
+            {visibleSlots?.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground">No sessions scheduled yet.</Card>}
+            {visibleSlots?.map((s) => {
+              const count = rsvps?.filter((r) => r.slot_id === s.id).length ?? 0;
+              const mine = rsvps?.find((r) => r.slot_id === s.id && r.user_id === user?.id);
+              const past = new Date(s.starts_at) < new Date();
+              const full = count >= s.capacity;
+              const group = groups?.find((g: any) => g.id === s.group_id);
+              const durationMin = s.ends_at
+                ? Math.round((new Date(s.ends_at).getTime() - new Date(s.starts_at).getTime()) / 60000)
+                : null;
+              return (
+                <Card key={s.id} className="overflow-hidden">
+                  {group && <div className="h-1 w-full" style={{ backgroundColor: group.color }} />}
+                  <div className="flex flex-wrap items-start justify-between gap-4 p-5">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold">{s.title}</h3>
+                        {past && <Badge variant="secondary">Past</Badge>}
+                        {!past && full && <Badge variant="destructive">Full</Badge>}
+                        {group && (
+                          <span
+                            className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                            style={{ backgroundColor: group.color }}
+                          >
+                            {group.name}
+                          </span>
+                        )}
+                      </div>
+                      {s.description && <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>}
+                      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="h-4 w-4" />
+                          {format(new Date(s.starts_at), "EEE MMM d, h:mm a")}
+                          {durationMin && <span className="text-xs">· {durationMin} min</span>}
+                        </span>
+                        {s.location && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {s.location}</span>}
+                        <span className="flex items-center gap-1.5"><UsersIcon className="h-4 w-4" /> {count}/{s.capacity}</span>
+                      </div>
+                    </div>
+                    {!past && (
+                      <Button
+                        onClick={() => toggleRsvp(s.id, s.capacity)}
+                        variant={mine ? "default" : "outline"}
+                        disabled={!mine && full}
                       >
-                        {group.name}
-                      </span>
+                        {mine ? <><Check className="mr-2 h-4 w-4" /> Going</> : full ? "Full" : "RSVP"}
+                      </Button>
                     )}
                   </div>
-                  {s.description && <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>}
-                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="h-4 w-4" />
-                      {format(new Date(s.starts_at), "EEE MMM d, h:mm a")}
-                      {durationMin && <span className="text-xs">· {durationMin} min</span>}
-                    </span>
-                    {s.location && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {s.location}</span>}
-                    <span className="flex items-center gap-1.5"><UsersIcon className="h-4 w-4" /> {count}/{s.capacity}</span>
-                  </div>
-                </div>
-                {!past && (
-                  <Button
-                    onClick={() => toggleRsvp(s.id, s.capacity)}
-                    variant={mine ? "default" : "outline"}
-                    disabled={!mine && full}
-                  >
-                    {mine ? <><Check className="mr-2 h-4 w-4" /> Going</> : full ? "Full" : "RSVP"}
-                  </Button>
-                )}
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="month" className="mt-4">
+          <MonthView slots={visibleSlots || []} groups={groups || []} />
+        </TabsContent>
+        <TabsContent value="week" className="mt-4">
+          <WeekView slots={visibleSlots || []} groups={groups || []} />
+        </TabsContent>
+        <TabsContent value="day" className="mt-4">
+          <DayView slots={visibleSlots || []} groups={groups || []} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
+
 }
 
 function NewSlotDialog({ groups, onDone }: { groups: any[]; onDone: () => void }) {
