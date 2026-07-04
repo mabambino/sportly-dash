@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { ArrowLeft, Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy } from "lucide-react";
+import { ArrowLeft, Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy, Eye, EyeOff } from "lucide-react";
 import logo from "@/assets/logo-syncletics.svg";
 
 const searchSchema = z.object({ mode: z.enum(["login", "signup"]).optional() });
