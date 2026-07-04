@@ -314,3 +314,172 @@ function NewSlotDialog({ groups, onDone }: { groups: any[]; onDone: () => void }
     </DialogContent>
   );
 }
+
+type Slot = { id: string; title: string; starts_at: string; ends_at: string; group_id: string | null; location: string | null };
+type Group = { id: string; name: string; color: string };
+
+function ViewHeader({ label, onPrev, onNext, onToday }: { label: string; onPrev: () => void; onNext: () => void; onToday: () => void }) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <h2 className="text-lg font-semibold">{label}</h2>
+      <div className="flex items-center gap-1">
+        <Button variant="outline" size="sm" onClick={onToday}>Today</Button>
+        <Button variant="outline" size="icon" onClick={onPrev}><ChevronLeft className="h-4 w-4" /></Button>
+        <Button variant="outline" size="icon" onClick={onNext}><ChevronRight className="h-4 w-4" /></Button>
+      </div>
+    </div>
+  );
+}
+
+function MonthView({ slots, groups }: { slots: Slot[]; groups: Group[] }) {
+  const [cursor, setCursor] = useState(new Date());
+  const days = useMemo(() => {
+    const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 });
+    const end = endOfWeek(endOfMonth(cursor), { weekStartsOn: 1 });
+    return eachDayOfInterval({ start, end });
+  }, [cursor]);
+  const colorFor = (gid: string | null) => groups.find((g) => g.id === gid)?.color || "hsl(var(--primary))";
+
+  return (
+    <Card className="p-4">
+      <ViewHeader
+        label={format(cursor, "MMMM yyyy")}
+        onPrev={() => setCursor(addMonths(cursor, -1))}
+        onNext={() => setCursor(addMonths(cursor, 1))}
+        onToday={() => setCursor(new Date())}
+      />
+      <div className="grid grid-cols-7 gap-px rounded-lg overflow-hidden bg-border text-xs">
+        {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d) => (
+          <div key={d} className="bg-muted/50 p-2 text-center font-medium text-muted-foreground">{d}</div>
+        ))}
+        {days.map((d) => {
+          const daySlots = slots.filter((s) => isSameDay(new Date(s.starts_at), d));
+          const otherMonth = !isSameMonth(d, cursor);
+          return (
+            <div key={d.toISOString()} className={`min-h-24 bg-background p-1.5 ${otherMonth ? "opacity-40" : ""}`}>
+              <div className={`text-[11px] font-semibold ${isToday(d) ? "text-primary" : "text-muted-foreground"}`}>
+                {format(d, "d")}
+              </div>
+              <div className="mt-1 space-y-0.5">
+                {daySlots.slice(0, 3).map((s) => (
+                  <div
+                    key={s.id}
+                    className="truncate rounded px-1.5 py-0.5 text-[10px] font-medium text-white"
+                    style={{ backgroundColor: colorFor(s.group_id) }}
+                    title={s.title}
+                  >
+                    {format(new Date(s.starts_at), "HH:mm")} {s.title}
+                  </div>
+                ))}
+                {daySlots.length > 3 && (
+                  <div className="text-[10px] text-muted-foreground">+{daySlots.length - 3} more</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+function WeekView({ slots, groups }: { slots: Slot[]; groups: Group[] }) {
+  const [cursor, setCursor] = useState(new Date());
+  const start = startOfWeek(cursor, { weekStartsOn: 1 });
+  const days = eachDayOfInterval({ start, end: addDays(start, 6) });
+  const hours = Array.from({ length: 14 }, (_, i) => i + 7); // 7..20
+  const colorFor = (gid: string | null) => groups.find((g) => g.id === gid)?.color || "hsl(var(--primary))";
+
+  return (
+    <Card className="p-4">
+      <ViewHeader
+        label={`${format(start, "MMM d")} – ${format(addDays(start, 6), "MMM d, yyyy")}`}
+        onPrev={() => setCursor(addDays(cursor, -7))}
+        onNext={() => setCursor(addDays(cursor, 7))}
+        onToday={() => setCursor(new Date())}
+      />
+      <div className="grid grid-cols-[3rem_repeat(7,minmax(0,1fr))] text-xs">
+        <div />
+        {days.map((d) => (
+          <div key={d.toISOString()} className={`p-2 text-center font-medium ${isToday(d) ? "text-primary" : "text-muted-foreground"}`}>
+            {format(d, "EEE d")}
+          </div>
+        ))}
+        {hours.map((h) => (
+          <>
+            <div key={`h-${h}`} className="border-t border-border pr-2 pt-1 text-right text-[10px] text-muted-foreground">{h}:00</div>
+            {days.map((d) => {
+              const cellStart = new Date(d); cellStart.setHours(h, 0, 0, 0);
+              const cellEnd = new Date(d); cellEnd.setHours(h + 1, 0, 0, 0);
+              const cellSlots = slots.filter((s) => {
+                const t = new Date(s.starts_at);
+                return t >= cellStart && t < cellEnd;
+              });
+              return (
+                <div key={`${d.toISOString()}-${h}`} className="min-h-12 border-t border-l border-border p-0.5">
+                  {cellSlots.map((s) => (
+                    <div
+                      key={s.id}
+                      className="truncate rounded px-1 py-0.5 text-[10px] font-medium text-white"
+                      style={{ backgroundColor: colorFor(s.group_id) }}
+                      title={s.title}
+                    >
+                      {s.title}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function DayView({ slots, groups }: { slots: Slot[]; groups: Group[] }) {
+  const [cursor, setCursor] = useState(new Date());
+  const hours = Array.from({ length: 16 }, (_, i) => i + 6); // 6..21
+  const daySlots = slots
+    .filter((s) => isSameDay(new Date(s.starts_at), cursor))
+    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+  const colorFor = (gid: string | null) => groups.find((g) => g.id === gid)?.color || "hsl(var(--primary))";
+
+  return (
+    <Card className="p-4">
+      <ViewHeader
+        label={format(cursor, "EEEE, MMMM d, yyyy")}
+        onPrev={() => setCursor(addDays(cursor, -1))}
+        onNext={() => setCursor(addDays(cursor, 1))}
+        onToday={() => setCursor(new Date())}
+      />
+      {daySlots.length === 0 ? (
+        <p className="py-10 text-center text-sm text-muted-foreground">No sessions on this day.</p>
+      ) : (
+        <div className="divide-y divide-border">
+          {hours.map((h) => {
+            const rowSlots = daySlots.filter((s) => new Date(s.starts_at).getHours() === h);
+            return (
+              <div key={h} className="grid grid-cols-[4rem_1fr] gap-3 py-2">
+                <div className="text-xs text-muted-foreground">{String(h).padStart(2, "0")}:00</div>
+                <div className="space-y-1">
+                  {rowSlots.map((s) => (
+                    <div
+                      key={s.id}
+                      className="rounded-md px-3 py-2 text-sm font-medium text-white"
+                      style={{ backgroundColor: colorFor(s.group_id) }}
+                    >
+                      {format(new Date(s.starts_at), "HH:mm")} · {s.title}
+                      {s.location && <span className="ml-2 text-xs opacity-80">{s.location}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+}
+
