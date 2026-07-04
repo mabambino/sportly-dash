@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
-  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
+  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode, Search, Mail,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
+
 
 type NavItem = { to: string; label: string; icon: typeof Users };
 type NavSection = { label: string | null; items: NavItem[] };
@@ -196,8 +198,49 @@ export function AppShell({ children }: { children: ReactNode }) {
         {mobileOpen && <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
         <main className="min-h-screen flex-1 lg:ml-0">
+          {/* Desktop top bar */}
+          <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b border-border bg-background/80 px-6 backdrop-blur lg:flex xl:px-8">
+            <div className="relative flex-1 max-w-xl">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search"
+                className="h-10 rounded-full border-border bg-muted/40 pl-9 pr-16 focus-visible:ring-1"
+              />
+              <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline-flex">
+                ⌘ F
+              </kbd>
+            </div>
+            <div className="ml-auto flex items-center gap-1">
+              <Link to="/app/chat" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Messages">
+                <Mail className="h-4 w-4" />
+              </Link>
+              <Link to="/app/announcements" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Announcements">
+                <Megaphone className="h-4 w-4" />
+              </Link>
+              <Link to="/app/notifications" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Notifications">
+                <Bell className="h-4 w-4" />
+              </Link>
+              <Link to="/app/settings" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Settings">
+                <Settings className="h-4 w-4" />
+              </Link>
+              <button onClick={signOut} className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Sign out">
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+            <Link to="/app/profile" className="flex items-center gap-3 rounded-full border border-border py-1 pl-1 pr-4 transition hover:bg-muted">
+              <div className="grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                {profile?.display_name?.[0]?.toUpperCase() ?? "?"}
+              </div>
+              <div className="min-w-0 leading-tight">
+                <p className="truncate text-xs font-bold uppercase tracking-wider">{profile?.display_name}</p>
+                <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
+              </div>
+            </Link>
+          </header>
           <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">{children}</div>
         </main>
+
       </div>
       <EnrollQRDialog
         open={qrOpen}

@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { ArrowLeft, Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy } from "lucide-react";
+import { ArrowLeft, Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy, Eye, EyeOff } from "lucide-react";
 import logo from "@/assets/logo-syncletics.svg";
 
 const searchSchema = z.object({ mode: z.enum(["login", "signup"]).optional() });
@@ -30,6 +30,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [remember, setRemember] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+
 
   useEffect(() => {
     if (!loading && user) {
@@ -112,8 +114,19 @@ function AuthPage() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="••••••••" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="h-11" required />
+                <div className="relative">
+                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 pr-10" required />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
+
 
               {!isSignup && (
                 <div className="flex items-center justify-between">

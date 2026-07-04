@@ -308,7 +308,7 @@ function TimeTrackerCard() {
     startRef.current = Date.now();
     const id = window.setInterval(() => {
       setMs(baseRef.current + (Date.now() - (startRef.current ?? Date.now())));
-    }, 50);
+    }, 30);
     return () => window.clearInterval(id);
   }, [running]);
 
@@ -326,15 +326,20 @@ function TimeTrackerCard() {
     setMs(0);
   };
 
-  const total = Math.floor(ms / 1000);
-  const hh = String(Math.floor(total / 3600)).padStart(2, "0");
-  const mm = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
-  const ss = String(total % 60).padStart(2, "0");
+  const total = ms;
+  const hh = String(Math.floor(total / 3600000)).padStart(2, "0");
+  const mm = String(Math.floor((total % 3600000) / 60000)).padStart(2, "0");
+  const ss = String(Math.floor((total % 60000) / 1000)).padStart(2, "0");
+  const cs = String(Math.floor((total % 1000) / 10)).padStart(2, "0");
+
 
   return (
     <Card className="flex flex-col justify-between border-transparent bg-primary p-6 text-primary-foreground">
       <p className="text-lg font-semibold">Time Tracker</p>
-      <p className="my-6 text-center font-mono text-5xl font-bold tracking-tight">{hh}:{mm}:{ss}</p>
+      <p className="my-6 text-center font-mono text-4xl font-bold tracking-tight tabular-nums">
+        {hh}:{mm}:{ss}<span className="text-2xl opacity-70">.{cs}</span>
+      </p>
+
       <div className="flex items-center justify-center gap-3">
         <button
           type="button"
