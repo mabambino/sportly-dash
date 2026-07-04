@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, MessageSquare, Mail, Send } from "lucide-react";
+import { MessageCircle, X, MessageSquare, Mail, Send, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
-type Mode = "menu" | "chat" | "email";
+type Mode = "menu" | "chat" | "email" | "suggest";
 
 type ChatMsg = { role: "user" | "support"; text: string };
 
 export function SupportBubble() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("menu");
   const [messages, setMessages] = useState<ChatMsg[]>([
@@ -19,6 +21,8 @@ export function SupportBubble() {
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [featureTitle, setFeatureTitle] = useState("");
+  const [featureDetails, setFeatureDetails] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,6 +55,18 @@ export function SupportBubble() {
     setOpen(false);
   };
 
+  const sendSuggestion = () => {
+    if (!featureTitle.trim() || !featureDetails.trim()) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    toast.success(t("support.suggestThanks"));
+    setFeatureTitle("");
+    setFeatureDetails("");
+    setMode("menu");
+    setOpen(false);
+  };
+
   return (
     <>
       {open && (
@@ -58,14 +74,16 @@ export function SupportBubble() {
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div>
               <h3 className="text-sm font-semibold">
-                {mode === "menu" && "Support"}
-                {mode === "chat" && "Live Chat"}
-                {mode === "email" && "Email us"}
+                {mode === "menu" && t("support.title")}
+                {mode === "chat" && t("support.liveChat")}
+                {mode === "email" && t("support.email")}
+                {mode === "suggest" && t("support.suggest")}
               </h3>
               <p className="text-xs text-muted-foreground">
-                {mode === "menu" && "How would you like to reach us?"}
+                {mode === "menu" && t("support.how")}
                 {mode === "chat" && "Typically replies in a few minutes"}
                 {mode === "email" && "We'll respond within 24 hours"}
+                {mode === "suggest" && t("support.suggestSub")}
               </p>
             </div>
             <div className="flex gap-1">
@@ -90,8 +108,8 @@ export function SupportBubble() {
                   <MessageSquare className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Live chat</div>
-                  <div className="text-xs text-muted-foreground">Chat with our team now</div>
+                  <div className="text-sm font-medium">{t("support.liveChat")}</div>
+                  <div className="text-xs text-muted-foreground">{t("support.liveChatSub")}</div>
                 </div>
               </button>
               <button
@@ -102,8 +120,20 @@ export function SupportBubble() {
                   <Mail className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Send an email</div>
-                  <div className="text-xs text-muted-foreground">We'll reply within 24 hours</div>
+                  <div className="text-sm font-medium">{t("support.email")}</div>
+                  <div className="text-xs text-muted-foreground">{t("support.emailSub")}</div>
+                </div>
+              </button>
+              <button
+                onClick={() => setMode("suggest")}
+                className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition hover:bg-accent"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Lightbulb className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">{t("support.suggest")}</div>
+                  <div className="text-xs text-muted-foreground">{t("support.suggestSub")}</div>
                 </div>
               </button>
             </div>
@@ -161,6 +191,25 @@ export function SupportBubble() {
               />
               <Button className="w-full" onClick={sendEmail}>
                 <Mail className="mr-2 h-4 w-4" /> Send email
+              </Button>
+            </div>
+          )}
+
+          {mode === "suggest" && (
+            <div className="space-y-3 p-4">
+              <Input
+                placeholder="Feature title (e.g. Export attendance to Excel)"
+                value={featureTitle}
+                onChange={(e) => setFeatureTitle(e.target.value)}
+              />
+              <Textarea
+                placeholder="Describe the feature and why it would help you…"
+                rows={5}
+                value={featureDetails}
+                onChange={(e) => setFeatureDetails(e.target.value)}
+              />
+              <Button className="w-full" onClick={sendSuggestion}>
+                <Lightbulb className="mr-2 h-4 w-4" /> {t("support.suggest")}
               </Button>
             </div>
           )}
