@@ -75,13 +75,13 @@ function Onboarding() {
     e.preventDefault();
     if (!user) return;
     setBusy(true);
-    const { data: club, error } = await supabase.from("clubs").select("*").eq("team_code", code.toUpperCase()).maybeSingle();
-    if (error || !club) { toast.error("Invalid team code"); setBusy(false); return; }
-    // If the QR code carried a group id, enroll the member straight into that group.
-    const insertPayload: Record<string, unknown> = { club_id: club.id, user_id: user.id, role: joinRole };
-    if (qrGroup) insertPayload.group_id = qrGroup;
-    const { error: mErr } = await supabase.from("memberships").insert(insertPayload);
-    if (mErr) { toast.error(mErr.message); setBusy(false); return; }
+    const { data: joined, error } = await (supabase.rpc as any)("join_club_by_code", {
+      _code: code,
+      _role: joinRole,
+      _group_id: qrGroup || null,
+    });
+    const club = Array.isArray(joined) ? joined[0] : joined;
+    if (error || !club) { toast.error(error?.message || "Invalid team code"); setBusy(false); return; }
     if (joinRole === "parent") {
       await supabase.from("profiles").update({ is_parent: true }).eq("id", user.id);
     }
