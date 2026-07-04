@@ -16,8 +16,7 @@ import {
   RadialBarChart, RadialBar, PolarAngleAxis,
 } from "recharts";
 import { format, subDays, endOfDay, startOfMonth } from "date-fns";
-import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
-import { toast } from "sonner";
+import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 
 export const Route = createFileRoute("/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Syncletics" }] }),
@@ -33,10 +32,25 @@ const DEFAULT_CARD_ORDER = [
   "Monthly Revenue",
 ];
 
-const LAYOUT_CLASSES: Record<string, string> = {
-  "grid-2": "grid gap-4 sm:grid-cols-2",
-  "grid-3": "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
-  "grid-4": "grid gap-4 sm:grid-cols-2 lg:grid-cols-4",
+const DEFAULT_WIDGET_ORDER = [
+  ...DEFAULT_CARD_ORDER,
+  "Club Analytics",
+  "Reminders",
+  "Attendance Progress",
+  "Time Tracker",
+  "Announcements",
+];
+
+const WIDGET_SIZES: Record<string, string> = {
+  "Total Members": "lg:col-span-3",
+  "Attendance Rate": "lg:col-span-3",
+  "Upcoming Sessions": "lg:col-span-3",
+  "Monthly Revenue": "lg:col-span-3",
+  "Club Analytics": "lg:col-span-8",
+  "Reminders": "lg:col-span-4",
+  "Attendance Progress": "lg:col-span-4",
+  "Time Tracker": "lg:col-span-4",
+  "Announcements": "lg:col-span-4",
 };
 
 function Dashboard() {
@@ -92,41 +106,52 @@ function Dashboard() {
   const normalizedOrder = useMemo(() => {
     const order = Array.isArray(prefs.order) && prefs.order.length ? prefs.order : DEFAULT_CARD_ORDER;
     return [
-      ...order.filter((card) => DEFAULT_CARD_ORDER.includes(card)),
-      ...DEFAULT_CARD_ORDER.filter((card) => !order.includes(card)),
+      ...order.filter((card) => DEFAULT_WIDGET_ORDER.includes(card)),
+      ...DEFAULT_WIDGET_ORDER.filter((card) => !order.includes(card)),
     ];
   }, [profile?.dashboard_prefs]);
   const [cardOrder, setCardOrder] = useState<string[]>(normalizedOrder);
 
   useEffect(() => {
-    if (!isRearranging) setCardOrder(normalizedOrder);
-  }, [normalizedOrder, isRearranging]);
+    if (isRearranging || !profile?.id) return;
+    const key = `syncletics-dashboard-order:${profile.id}`;
+    try {
+      const local = JSON.parse(localStorage.getItem(key) || "null");
+      if (Array.isArray(local)) {
+        setCardOrder([
+          ...local.filter((card) => DEFAULT_WIDGET_ORDER.includes(card)),
+          ...DEFAULT_WIDGET_ORDER.filter((card) => !local.includes(card)),
+        ]);
+        return;
+      }
+    } catch { /* Fall back to the cloud/default order. */ }
+    setCardOrder(normalizedOrder);
+  }, [normalizedOrder, isRearranging, profile?.id]);
 
   const moveCard = async (dropIndex: number) => {
     if (dragIndex === null || dragIndex === dropIndex || !profile?.id) {
       setDragIndex(null);
       return;
     }
-    const previous = [...cardOrder];
     const next = [...cardOrder];
     const [moved] = next.splice(dragIndex, 1);
     next.splice(dropIndex, 0, moved);
     setCardOrder(next);
     setDragIndex(null);
 
+    // Always persist per user on this device. Cloud sync is best-effort so
+    // older deployments without dashboard_prefs still retain the arrangement.
+    localStorage.setItem(`syncletics-dashboard-order:${profile.id}`, JSON.stringify(next));
+
     const { error } = await supabase
       .from("profiles")
       .update({ dashboard_prefs: { ...prefs, order: next } } as any)
       .eq("id", profile.id);
     if (error) {
-      setCardOrder(previous);
-      toast.error("Could not save the dashboard order");
       return;
     }
     await refresh();
   };
-  const layoutClass = LAYOUT_CLASSES[prefs.layout ?? ""] ?? LAYOUT_CLASSES["grid-4"];
-
   const STAT_CARDS: Record<string, { label: string; value: string | number; sub: string; subIcon?: typeof Users; to: string; sensitive?: boolean }> = {
     "Total Members": {
       label: "Total Members",
@@ -157,6 +182,7 @@ function Dashboard() {
       sensitive: true,
     },
   };
+  const firstStatName = cardOrder.find((name) => DEFAULT_CARD_ORDER.includes(name));
 
   if (error) {
     return <Card className="p-8 text-center text-sm text-destructive">Could not load the dashboard: {(error as Error).message}</Card>;
@@ -197,27 +223,53 @@ function Dashboard() {
         <div className="flex justify-end"><DemoSeedButton /></div>
       )}
 
-      {/* Stat cards */}
+      {/* Every dashboard widget participates in one persistent drag order. */}
       {isLoading ? (
-        <div className={layoutClass}>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="p-6"><Skeleton className="h-4 w-24" /><Skeleton className="mt-4 h-10 w-20" /><Skeleton className="mt-4 h-3 w-24" /></Card>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-12">
+          {DEFAULT_WIDGET_ORDER.map((name) => (
+            <Card key={name} className={`${WIDGET_SIZES[name]} p-6`}><Skeleton className="h-4 w-24" /><Skeleton className="mt-4 h-10 w-20" /><Skeleton className="mt-4 h-3 w-24" /></Card>
           ))}
         </div>
       ) : (
-        <div className={layoutClass}>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-12">
           {cardOrder.map((name, index) => {
             const c = STAT_CARDS[name];
+            let content: ReactNode;
+            if (c) {
+              content = <StatCard label={c.label} value={c.value} sub={c.sub} subIcon={c.subIcon} to={c.to} sensitive={c.sensitive} filled={name === firstStatName} />;
+            } else if (name === "Club Analytics") {
+              content = (
+                <Card className="h-full p-6">
+                  <div className="flex items-center justify-between"><p className="text-lg font-semibold">Club Analytics</p><span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">Last 7 days</span></div>
+                  <div className="mt-6 h-72">
+                    <ResponsiveContainer width="100%" height="100%"><AreaChart data={growth}>
+                      <defs><linearGradient id="analytics-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.35} /><stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} /></linearGradient></defs>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} vertical={false} /><XAxis dataKey="day" stroke="currentColor" fontSize={12} tickLine={false} axisLine={false} /><YAxis stroke="currentColor" fontSize={12} allowDecimals={false} tickLine={false} axisLine={false} /><Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8 }} /><Area dataKey="members" stroke="var(--color-primary)" strokeWidth={2.5} fill="url(#analytics-fill)" />
+                    </AreaChart></ResponsiveContainer>
+                  </div>
+                </Card>
+              );
+            } else if (name === "Reminders") {
+              content = (
+                <Card className="h-full p-6"><div className="flex items-center gap-2"><Bell className="h-5 w-5" /><p className="text-lg font-semibold">Reminders</p></div><div className="mt-6 space-y-3">
+                  {(data?.slots.length ?? 0) === 0 ? <p className="text-sm text-muted-foreground">No upcoming sessions scheduled.</p> : data!.slots.slice(0, 4).map((s) => <div key={s.id} className="rounded-lg border border-border p-3"><p className="truncate text-sm font-medium">{s.title}</p><p className="mt-0.5 text-xs text-muted-foreground">{format(new Date(s.starts_at), "EEE MMM d, h:mm a")}</p></div>)}
+                </div></Card>
+              );
+            } else if (name === "Attendance Progress") {
+              content = <AttendanceProgressCard present={data?.attPresent ?? 0} total={data?.attTotal ?? 0} rate={attRate} />;
+            } else if (name === "Time Tracker") {
+              content = <TimeTrackerCard />;
+            } else {
+              content = (
+                <Card className="h-full p-6"><div className="flex items-center justify-between"><p className="text-lg font-semibold">Announcements</p><Link to="/app/announcements" className="text-xs font-medium text-muted-foreground hover:text-foreground">View all</Link></div><div className="mt-4 space-y-4">
+                  {(data?.ann.length ?? 0) === 0 ? <p className="text-sm text-muted-foreground">No announcements yet.</p> : data!.ann.map((a) => <div key={a.id} className="border-b border-border pb-3 last:border-0 last:pb-0"><p className="text-sm font-medium">{a.title}</p><p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{a.body}</p></div>)}
+                </div></Card>
+              );
+            }
             return (
-              <StatCard
+              <DashboardWidget
                 key={name}
-                label={c.label}
-                value={c.value}
-                sub={c.sub}
-                subIcon={c.subIcon}
-                to={c.to}
-                sensitive={c.sensitive}
-                filled={index === 0}
+                className={WIDGET_SIZES[name]}
                 rearranging={isRearranging}
                 dragging={dragIndex === index}
                 onDragStart={(event) => {
@@ -227,98 +279,22 @@ function Dashboard() {
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={() => void moveCard(index)}
                 onDragEnd={() => setDragIndex(null)}
-              />
+              >
+                {content}
+              </DashboardWidget>
             );
           })}
         </div>
       )}
-
-      {/* Analytics + Reminders */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="p-6 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <p className="text-lg font-semibold">Club Analytics</p>
-            <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">Last 7 days</span>
-          </div>
-          <div className="mt-6 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={growth}>
-                <defs>
-                  <linearGradient id="analytics-fill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.15} vertical={false} />
-                <XAxis dataKey="day" stroke="currentColor" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="currentColor" fontSize={12} allowDecimals={false} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8 }} />
-                <Area dataKey="members" stroke="var(--color-primary)" strokeWidth={2.5} fill="url(#analytics-fill)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            <p className="text-lg font-semibold">Reminders</p>
-          </div>
-          <div className="mt-6 space-y-3">
-            {(data?.slots.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground">No upcoming sessions scheduled.</p>
-            ) : (
-              data!.slots.slice(0, 4).map((s) => (
-                <div key={s.id} className="rounded-lg border border-border p-3">
-                  <p className="text-sm font-medium truncate">{s.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {format(new Date(s.starts_at), "EEE MMM d, h:mm a")}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-      </div>
-
-      {/* Attendance progress + Time tracker + Announcements */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <AttendanceProgressCard present={data?.attPresent ?? 0} total={data?.attTotal ?? 0} rate={attRate} />
-        <TimeTrackerCard />
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-lg font-semibold">Announcements</p>
-            <Link to="/app/announcements" className="text-xs font-medium text-muted-foreground hover:text-foreground">View all</Link>
-          </div>
-          <div className="mt-4 space-y-4">
-            {(data?.ann.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground">No announcements yet.</p>
-            ) : (
-              data!.ann.map((a) => (
-                <div key={a.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                  <p className="text-sm font-medium">{a.title}</p>
-                  <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{a.body}</p>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-      </div>
     </div>
   );
 }
 
-function StatCard({
-  label, value, sub, subIcon: SubIcon, to, filled, sensitive,
-  rearranging, dragging, onDragStart, onDragOver, onDrop, onDragEnd,
+function DashboardWidget({
+  children, className, rearranging, dragging, onDragStart, onDragOver, onDrop, onDragEnd,
 }: {
-  label: string;
-  value: string | number;
-  sub: string;
-  subIcon?: typeof Users;
-  to: string;
-  filled?: boolean;
-  sensitive?: boolean;
+  children: ReactNode;
+  className?: string;
   rearranging?: boolean;
   dragging?: boolean;
   onDragStart?: (event: DragEvent<HTMLDivElement>) => void;
@@ -327,29 +303,38 @@ function StatCard({
   onDragEnd?: () => void;
 }) {
   return (
-    <Card
+    <div
       draggable={rearranging}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
-      className={
-        "relative overflow-hidden p-6 transition " +
-        (rearranging ? "cursor-grab select-none ring-2 ring-primary/20 active:cursor-grabbing " : "") +
-        (dragging ? "scale-[0.98] opacity-50 " : "") +
-        (filled ? "border-transparent bg-primary text-primary-foreground" : "")
-      }
+      className={`${className ?? ""} relative h-full transition ${rearranging ? "cursor-grab select-none rounded-xl ring-2 ring-primary active:cursor-grabbing" : ""} ${dragging ? "scale-[0.98] opacity-50" : ""}`}
     >
+      {rearranging && <span className="absolute right-3 top-3 z-20 grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground shadow"><GripVertical className="h-4 w-4" /></span>}
+      <div className={`h-full ${rearranging ? "pointer-events-none" : ""}`}>{children}</div>
+    </div>
+  );
+}
+
+function StatCard({
+  label, value, sub, subIcon: SubIcon, to, filled, sensitive,
+}: {
+  label: string;
+  value: string | number;
+  sub: string;
+  subIcon?: typeof Users;
+  to: string;
+  filled?: boolean;
+  sensitive?: boolean;
+}) {
+  return (
+    <Card className={"relative h-full overflow-hidden p-6 " + (filled ? "border-transparent bg-primary text-primary-foreground" : "")}>
       <div className="flex items-start justify-between">
         <p className={"text-[11px] font-semibold uppercase tracking-widest " + (filled ? "text-primary-foreground/70" : "text-muted-foreground")}>
           {label}
         </p>
-        {rearranging ? (
-          <span className={"grid h-8 w-8 place-items-center rounded-full " + (filled ? "bg-primary-foreground/10" : "bg-muted")}>
-            <GripVertical className="h-4 w-4" />
-          </span>
-        ) : (
-          <Link
+        <Link
             to={to}
             className={
               "grid h-8 w-8 place-items-center rounded-full transition " +
@@ -360,8 +345,7 @@ function StatCard({
             aria-label={`Open ${label}`}
           >
             <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        )}
+        </Link>
       </div>
       <p className="mt-6 text-4xl font-bold tracking-tight">
         {sensitive ? <SensitiveValue mask="$ ••••">{value}</SensitiveValue> : value}
@@ -377,7 +361,7 @@ function StatCard({
 function AttendanceProgressCard({ present, total, rate }: { present: number; total: number; rate: number }) {
   const chartData = [{ name: "rate", value: rate, fill: "var(--color-primary)" }];
   return (
-    <Card className="p-6">
+    <Card className="h-full p-6">
       <p className="text-lg font-semibold">Attendance Progress</p>
       <div className="mt-4 flex items-center justify-center">
         <div className="relative h-40 w-full">
@@ -445,7 +429,7 @@ function TimeTrackerCard() {
 
 
   return (
-    <Card className="flex flex-col justify-between border-transparent bg-primary p-6 text-primary-foreground">
+    <Card className="flex h-full flex-col justify-between border-transparent bg-primary p-6 text-primary-foreground">
       <p className="text-lg font-semibold">Time Tracker</p>
       <p className="my-6 text-center font-mono text-4xl font-bold tracking-tight tabular-nums">
         {hh}:{mm}:{ss}<span className="text-2xl opacity-70">.{cs}</span>
