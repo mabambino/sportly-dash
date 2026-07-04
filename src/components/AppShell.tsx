@@ -9,7 +9,7 @@ import {
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode, Search, Mail,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
-import { useState, useEffect as useEffectR } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
