@@ -406,8 +406,8 @@ function WeekView({ slots, groups }: { slots: Slot[]; groups: Group[] }) {
           </div>
         ))}
         {hours.map((h) => (
-          <>
-            <div key={`h-${h}`} className="border-t border-border pr-2 pt-1 text-right text-[10px] text-muted-foreground">{h}:00</div>
+          <div key={`row-${h}`} className="contents">
+            <div className="border-t border-border pr-2 pt-1 text-right text-[10px] text-muted-foreground">{h}:00</div>
             {days.map((d) => {
               const cellStart = new Date(d); cellStart.setHours(h, 0, 0, 0);
               const cellEnd = new Date(d); cellEnd.setHours(h + 1, 0, 0, 0);
@@ -430,8 +430,9 @@ function WeekView({ slots, groups }: { slots: Slot[]; groups: Group[] }) {
                 </div>
               );
             })}
-          </>
+          </div>
         ))}
+
       </div>
     </Card>
   );
