@@ -9,14 +9,15 @@ import { DemoSeedButton } from "@/components/DemoSeedButton";
 import { SensitiveValue } from "@/components/SensitiveValue";
 import {
   ArrowUpRight, Users, DollarSign, TrendingUp,
-  UserPlus, Upload, Settings, Bell, CalendarDays, Play, Pause, Square,
+  UserPlus, Upload, GripVertical, Check, Bell, CalendarDays, Play, Pause, Square,
 } from "lucide-react";
 import {
   ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid,
   RadialBarChart, RadialBar, PolarAngleAxis,
 } from "recharts";
 import { format, subDays, endOfDay, startOfMonth } from "date-fns";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Syncletics" }] }),
@@ -39,7 +40,9 @@ const LAYOUT_CLASSES: Record<string, string> = {
 };
 
 function Dashboard() {
-  const { club, isStaff, profile } = useAuth();
+  const { club, isStaff, profile, refresh } = useAuth();
+  const [isRearranging, setIsRearranging] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const { data, isLoading, error } = useQuery({
     enabled: !!club,
@@ -86,11 +89,42 @@ function Dashboard() {
 
   // Respect the card order + layout saved in Settings → Dashboard.
   const prefs = (profile?.dashboard_prefs ?? {}) as { order?: string[]; layout?: string };
-  const savedOrder = Array.isArray(prefs.order) && prefs.order.length ? prefs.order : DEFAULT_CARD_ORDER;
-  const cardOrder = [
-    ...savedOrder.filter((c) => DEFAULT_CARD_ORDER.includes(c)),
-    ...DEFAULT_CARD_ORDER.filter((c) => !savedOrder.includes(c)),
-  ];
+  const normalizedOrder = useMemo(() => {
+    const order = Array.isArray(prefs.order) && prefs.order.length ? prefs.order : DEFAULT_CARD_ORDER;
+    return [
+      ...order.filter((card) => DEFAULT_CARD_ORDER.includes(card)),
+      ...DEFAULT_CARD_ORDER.filter((card) => !order.includes(card)),
+    ];
+  }, [profile?.dashboard_prefs]);
+  const [cardOrder, setCardOrder] = useState<string[]>(normalizedOrder);
+
+  useEffect(() => {
+    if (!isRearranging) setCardOrder(normalizedOrder);
+  }, [normalizedOrder, isRearranging]);
+
+  const moveCard = async (dropIndex: number) => {
+    if (dragIndex === null || dragIndex === dropIndex || !profile?.id) {
+      setDragIndex(null);
+      return;
+    }
+    const previous = [...cardOrder];
+    const next = [...cardOrder];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(dropIndex, 0, moved);
+    setCardOrder(next);
+    setDragIndex(null);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ dashboard_prefs: { ...prefs, order: next } } as any)
+      .eq("id", profile.id);
+    if (error) {
+      setCardOrder(previous);
+      toast.error("Could not save the dashboard order");
+      return;
+    }
+    await refresh();
+  };
   const layoutClass = LAYOUT_CLASSES[prefs.layout ?? ""] ?? LAYOUT_CLASSES["grid-4"];
 
   const STAT_CARDS: Record<string, { label: string; value: string | number; sub: string; subIcon?: typeof Users; to: string; sensitive?: boolean }> = {
@@ -146,8 +180,15 @@ function Dashboard() {
           <Button asChild variant="outline" className="rounded-full">
             <Link to="/app/import"><Upload className="mr-2 h-4 w-4" />Import Data</Link>
           </Button>
-          <Button asChild variant="outline" size="icon" className="rounded-full">
-            <Link to="/app/settings"><Settings className="h-4 w-4" /></Link>
+          <Button
+            variant={isRearranging ? "default" : "outline"}
+            size="icon"
+            className="rounded-full"
+            onClick={() => { setIsRearranging((value) => !value); setDragIndex(null); }}
+            aria-label={isRearranging ? "Finish rearranging dashboard cards" : "Rearrange dashboard cards"}
+            title={isRearranging ? "Done rearranging" : "Rearrange cards"}
+          >
+            {isRearranging ? <Check className="h-4 w-4" /> : <GripVertical className="h-4 w-4" />}
           </Button>
         </div>
       </div>
@@ -177,6 +218,15 @@ function Dashboard() {
                 to={c.to}
                 sensitive={c.sensitive}
                 filled={index === 0}
+                rearranging={isRearranging}
+                dragging={dragIndex === index}
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  setDragIndex(index);
+                }}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => void moveCard(index)}
+                onDragEnd={() => setDragIndex(null)}
               />
             );
           })}
@@ -260,6 +310,7 @@ function Dashboard() {
 
 function StatCard({
   label, value, sub, subIcon: SubIcon, to, filled, sensitive,
+  rearranging, dragging, onDragStart, onDragOver, onDrop, onDragEnd,
 }: {
   label: string;
   value: string | number;
@@ -268,11 +319,24 @@ function StatCard({
   to: string;
   filled?: boolean;
   sensitive?: boolean;
+  rearranging?: boolean;
+  dragging?: boolean;
+  onDragStart?: (event: DragEvent<HTMLDivElement>) => void;
+  onDragOver?: (event: DragEvent<HTMLDivElement>) => void;
+  onDrop?: () => void;
+  onDragEnd?: () => void;
 }) {
   return (
     <Card
+      draggable={rearranging}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
       className={
-        "relative overflow-hidden p-6 " +
+        "relative overflow-hidden p-6 transition " +
+        (rearranging ? "cursor-grab select-none ring-2 ring-primary/20 active:cursor-grabbing " : "") +
+        (dragging ? "scale-[0.98] opacity-50 " : "") +
         (filled ? "border-transparent bg-primary text-primary-foreground" : "")
       }
     >
@@ -280,18 +344,24 @@ function StatCard({
         <p className={"text-[11px] font-semibold uppercase tracking-widest " + (filled ? "text-primary-foreground/70" : "text-muted-foreground")}>
           {label}
         </p>
-        <Link
-          to={to}
-          className={
-            "grid h-8 w-8 place-items-center rounded-full transition " +
-            (filled
-              ? "bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
-              : "bg-muted text-muted-foreground hover:bg-muted-foreground/10 hover:text-foreground")
-          }
-          aria-label={`Open ${label}`}
-        >
-          <ArrowUpRight className="h-4 w-4" />
-        </Link>
+        {rearranging ? (
+          <span className={"grid h-8 w-8 place-items-center rounded-full " + (filled ? "bg-primary-foreground/10" : "bg-muted")}>
+            <GripVertical className="h-4 w-4" />
+          </span>
+        ) : (
+          <Link
+            to={to}
+            className={
+              "grid h-8 w-8 place-items-center rounded-full transition " +
+              (filled
+                ? "bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
+                : "bg-muted text-muted-foreground hover:bg-muted-foreground/10 hover:text-foreground")
+            }
+            aria-label={`Open ${label}`}
+          >
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+        )}
       </div>
       <p className="mt-6 text-4xl font-bold tracking-tight">
         {sensitive ? <SensitiveValue mask="$ ••••">{value}</SensitiveValue> : value}
