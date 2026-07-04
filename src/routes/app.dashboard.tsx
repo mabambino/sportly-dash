@@ -336,7 +336,10 @@ function TimeTrackerCard() {
   return (
     <Card className="flex flex-col justify-between border-transparent bg-primary p-6 text-primary-foreground">
       <p className="text-lg font-semibold">Time Tracker</p>
-      <p className="my-6 text-center font-mono text-5xl font-bold tracking-tight">{hh}:{mm}:{ss}</p>
+      <p className="my-6 text-center font-mono text-4xl font-bold tracking-tight tabular-nums">
+        {hh}:{mm}:{ss}<span className="text-2xl opacity-70">.{cs}</span>
+      </p>
+
       <div className="flex items-center justify-center gap-3">
         <button
           type="button"
