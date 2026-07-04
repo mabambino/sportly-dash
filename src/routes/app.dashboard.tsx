@@ -308,7 +308,7 @@ function TimeTrackerCard() {
     startRef.current = Date.now();
     const id = window.setInterval(() => {
       setMs(baseRef.current + (Date.now() - (startRef.current ?? Date.now())));
-    }, 50);
+    }, 30);
     return () => window.clearInterval(id);
   }, [running]);
 
