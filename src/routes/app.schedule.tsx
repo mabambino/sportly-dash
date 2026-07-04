@@ -57,22 +57,15 @@ function SchedulePage() {
     },
   });
 
-  const toggleRsvp = async (slotId: string, capacity: number) => {
+  const toggleRsvp = async (slotId: string, _capacity: number) => {
     if (!user) return;
     const existing = rsvps?.find((r) => r.slot_id === slotId && r.user_id === user.id);
-    if (existing) {
-      await supabase.from("rsvps").delete().eq("id", existing.id);
-      toast.success("RSVP removed");
-    } else {
-      // Enforce capacity before inserting.
-      const going = rsvps?.filter((r) => r.slot_id === slotId).length ?? 0;
-      if (going >= capacity) {
-        toast.error("This session is full");
-        return;
-      }
-      await supabase.from("rsvps").insert({ slot_id: slotId, user_id: user.id, status: "going" });
-      toast.success("You're going!");
-    }
+    const { error } = await (supabase.rpc as any)("set_session_rsvp", {
+      _slot_id: slotId,
+      _going: !existing,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success(existing ? "RSVP removed" : "You're going!");
     qc.invalidateQueries({ queryKey: ["rsvps"] });
   };
 
@@ -483,4 +476,3 @@ function DayView({ slots, groups }: { slots: Slot[]; groups: Group[] }) {
     </Card>
   );
 }
-
