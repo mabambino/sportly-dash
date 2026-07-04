@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { addMember } from "@/lib/members.functions";
 const sb: any = supabase;
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -145,28 +146,18 @@ function ImportPage() {
         ? courseByName.get(String(row[courseCol] ?? "").trim().toLowerCase()) ?? null
         : null;
 
-      // Upsert the profile, then the membership. We match on email so re-imports
-      // update rather than duplicate.
-      const { data: profile, error: pErr } = await sb
-        .from("profiles")
-        .upsert({ email, display_name: display_name || email }, { onConflict: "email" })
-        .select("id")
-        .single();
-      if (pErr || !profile) continue;
-
-      const { error: mErr } = await sb
-        .from("memberships")
-        .upsert(
-          {
-            club_id: club.id,
-            user_id: profile.id,
-            role,
-            group_id: groupId,
-            approved: true,
-          },
-          { onConflict: "club_id,user_id" },
-        );
-      if (!mErr) ok++;
+      try {
+        await addMember({ data: {
+          clubId: club.id,
+          email,
+          displayName: display_name || email,
+          role,
+          groupId,
+        } });
+        ok++;
+      } catch {
+        // Continue importing valid rows and report the successful total.
+      }
     }
     setBusy(false);
     setImportedCount(ok);
