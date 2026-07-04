@@ -9,10 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, MapPin, Clock, Users as UsersIcon, Check, Download } from "lucide-react";
-import { useState } from "react";
-import { format } from "date-fns";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Plus, MapPin, Clock, Users as UsersIcon, Check, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  format, addDays, addMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  eachDayOfInterval, isSameMonth, isSameDay, isToday,
+} from "date-fns";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/app/schedule")({
   head: () => ({ meta: [{ title: "Schedule — Syncletics" }] }),
