@@ -239,7 +239,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </button>
           <NavList />
-          <div className="mt-auto space-y-3 pt-4">
+          {/* Account controls belong in the mobile drawer. On desktop the same
+              actions are available from the top bar and account pages. */}
+          <div className="mt-auto space-y-3 pt-4 lg:hidden">
             <LanguageMenu />
             <div className="flex items-center gap-2 rounded-lg px-2 py-2">
               <div className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
