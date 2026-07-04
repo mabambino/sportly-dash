@@ -1,0 +1,324 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+
+export const LANGUAGES = [
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "mk", label: "Македонски", flag: "🇲🇰" },
+  { code: "sq", label: "Shqip", flag: "🇦🇱" },
+  { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+] as const;
+
+export type LangCode = (typeof LANGUAGES)[number]["code"];
+
+export const LANG_STORAGE_KEY = "syncletics-lang";
+
+type Dict = Record<string, string>;
+
+const en: Dict = {
+  "nav.dashboard": "Dashboard",
+  "nav.home": "Home",
+  "nav.members": "Members",
+  "nav.schedule": "Schedule",
+  "nav.attendance": "Attendance",
+  "nav.stats": "Stats",
+  "nav.pipeline": "Pipeline",
+  "nav.groups": "Groups",
+  "nav.chat": "Chat",
+  "nav.billing": "Billing",
+  "nav.announcements": "Announcements",
+  "nav.notifications": "Notifications",
+  "nav.profile": "My profile",
+  "nav.settings": "Settings",
+  "common.signOut": "Sign out",
+  "common.teamCode": "Team code",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.language": "Language",
+  "common.theme": "Theme",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "theme.system": "System",
+  "dashboard.welcomeBack": "Welcome back",
+  "dashboard.yourHome": "Your home",
+  "dashboard.activeMembers": "Active members",
+  "dashboard.attendanceRate": "Attendance rate",
+  "dashboard.upcomingSessions": "Upcoming sessions",
+  "dashboard.monthlyRevenue": "Monthly revenue",
+  "settings.title": "Settings",
+  "settings.subtitle": "Manage your account settings and preferences.",
+  "settings.search": "Search settings…",
+  "settings.noResults": "No settings match your search.",
+  "support.title": "Support",
+  "support.how": "How would you like to reach us?",
+  "support.liveChat": "Live chat",
+  "support.liveChatSub": "Chat with our team now",
+  "support.email": "Send an email",
+  "support.emailSub": "We'll reply within 24 hours",
+  "support.suggest": "Suggest a feature",
+  "support.suggestSub": "Tell us what to build next",
+  "support.suggestThanks": "Thanks! Your suggestion was sent to the team.",
+};
+
+const mk: Dict = {
+  "nav.dashboard": "Контролна табла",
+  "nav.home": "Почетна",
+  "nav.members": "Членови",
+  "nav.schedule": "Распоред",
+  "nav.attendance": "Присуство",
+  "nav.stats": "Статистика",
+  "nav.pipeline": "Процес",
+  "nav.groups": "Групи",
+  "nav.chat": "Разговор",
+  "nav.billing": "Наплата",
+  "nav.announcements": "Известувања",
+  "nav.notifications": "Нотификации",
+  "nav.profile": "Мој профил",
+  "nav.settings": "Поставки",
+  "common.signOut": "Одјави се",
+  "common.teamCode": "Тимски код",
+  "common.save": "Зачувај",
+  "common.cancel": "Откажи",
+  "common.language": "Јазик",
+  "common.theme": "Тема",
+  "theme.light": "Светла",
+  "theme.dark": "Темна",
+  "theme.system": "Системска",
+  "dashboard.welcomeBack": "Добредојде назад",
+  "dashboard.yourHome": "Твојата почетна",
+  "dashboard.activeMembers": "Активни членови",
+  "dashboard.attendanceRate": "Стапка на присуство",
+  "dashboard.upcomingSessions": "Претстојни термини",
+  "dashboard.monthlyRevenue": "Месечен приход",
+  "settings.title": "Поставки",
+  "settings.subtitle": "Управувај со поставките и преференциите на сметката.",
+  "settings.search": "Пребарај поставки…",
+  "settings.noResults": "Нема поставки што одговараат на пребарувањето.",
+  "support.title": "Поддршка",
+  "support.how": "Како сакаш да нè контактираш?",
+  "support.liveChat": "Разговор во живо",
+  "support.liveChatSub": "Разговарај со нашиот тим сега",
+  "support.email": "Испрати е-пошта",
+  "support.emailSub": "Ќе одговориме во рок од 24 часа",
+  "support.suggest": "Предложи функција",
+  "support.suggestSub": "Кажи ни што да изградиме следно",
+  "support.suggestThanks": "Благодариме! Твојот предлог е испратен до тимот.",
+};
+
+const sq: Dict = {
+  "nav.dashboard": "Paneli",
+  "nav.home": "Kryefaqja",
+  "nav.members": "Anëtarët",
+  "nav.schedule": "Orari",
+  "nav.attendance": "Pjesëmarrja",
+  "nav.stats": "Statistikat",
+  "nav.pipeline": "Procesi",
+  "nav.groups": "Grupet",
+  "nav.chat": "Biseda",
+  "nav.billing": "Faturimi",
+  "nav.announcements": "Njoftimet",
+  "nav.notifications": "Njoftimet e sistemit",
+  "nav.profile": "Profili im",
+  "nav.settings": "Cilësimet",
+  "common.signOut": "Dilni",
+  "common.teamCode": "Kodi i ekipit",
+  "common.save": "Ruaj",
+  "common.cancel": "Anulo",
+  "common.language": "Gjuha",
+  "common.theme": "Tema",
+  "theme.light": "E çelët",
+  "theme.dark": "E errët",
+  "theme.system": "Sistemi",
+  "dashboard.welcomeBack": "Mirë se u ktheve",
+  "dashboard.yourHome": "Faqja jote",
+  "dashboard.activeMembers": "Anëtarë aktivë",
+  "dashboard.attendanceRate": "Shkalla e pjesëmarrjes",
+  "dashboard.upcomingSessions": "Seancat e ardhshme",
+  "dashboard.monthlyRevenue": "Të ardhurat mujore",
+  "settings.title": "Cilësimet",
+  "settings.subtitle": "Menaxho cilësimet dhe preferencat e llogarisë.",
+  "settings.search": "Kërko cilësimet…",
+  "settings.noResults": "Asnjë cilësim nuk përputhet me kërkimin.",
+  "support.title": "Mbështetja",
+  "support.how": "Si dëshiron të na kontaktosh?",
+  "support.liveChat": "Bisedë e drejtpërdrejtë",
+  "support.liveChatSub": "Bisedo me ekipin tonë tani",
+  "support.email": "Dërgo email",
+  "support.emailSub": "Do të përgjigjemi brenda 24 orësh",
+  "support.suggest": "Sugjero një veçori",
+  "support.suggestSub": "Na thuaj çfarë të ndërtojmë më pas",
+  "support.suggestThanks": "Faleminderit! Sugjerimi yt iu dërgua ekipit.",
+};
+
+const de: Dict = {
+  "nav.dashboard": "Dashboard",
+  "nav.home": "Startseite",
+  "nav.members": "Mitglieder",
+  "nav.schedule": "Zeitplan",
+  "nav.attendance": "Anwesenheit",
+  "nav.stats": "Statistiken",
+  "nav.pipeline": "Pipeline",
+  "nav.groups": "Gruppen",
+  "nav.chat": "Chat",
+  "nav.billing": "Abrechnung",
+  "nav.announcements": "Ankündigungen",
+  "nav.notifications": "Benachrichtigungen",
+  "nav.profile": "Mein Profil",
+  "nav.settings": "Einstellungen",
+  "common.signOut": "Abmelden",
+  "common.teamCode": "Team-Code",
+  "common.save": "Speichern",
+  "common.cancel": "Abbrechen",
+  "common.language": "Sprache",
+  "common.theme": "Design",
+  "theme.light": "Hell",
+  "theme.dark": "Dunkel",
+  "theme.system": "System",
+  "dashboard.welcomeBack": "Willkommen zurück",
+  "dashboard.yourHome": "Deine Startseite",
+  "dashboard.activeMembers": "Aktive Mitglieder",
+  "dashboard.attendanceRate": "Anwesenheitsquote",
+  "dashboard.upcomingSessions": "Kommende Einheiten",
+  "dashboard.monthlyRevenue": "Monatlicher Umsatz",
+  "settings.title": "Einstellungen",
+  "settings.subtitle": "Verwalte deine Kontoeinstellungen und Präferenzen.",
+  "settings.search": "Einstellungen durchsuchen…",
+  "settings.noResults": "Keine Einstellungen entsprechen deiner Suche.",
+  "support.title": "Support",
+  "support.how": "Wie möchtest du uns erreichen?",
+  "support.liveChat": "Live-Chat",
+  "support.liveChatSub": "Chatte jetzt mit unserem Team",
+  "support.email": "E-Mail senden",
+  "support.emailSub": "Wir antworten innerhalb von 24 Stunden",
+  "support.suggest": "Funktion vorschlagen",
+  "support.suggestSub": "Sag uns, was wir als Nächstes bauen sollen",
+  "support.suggestThanks": "Danke! Dein Vorschlag wurde an das Team gesendet.",
+};
+
+const fr: Dict = {
+  "nav.dashboard": "Tableau de bord",
+  "nav.home": "Accueil",
+  "nav.members": "Membres",
+  "nav.schedule": "Planning",
+  "nav.attendance": "Présence",
+  "nav.stats": "Statistiques",
+  "nav.pipeline": "Pipeline",
+  "nav.groups": "Groupes",
+  "nav.chat": "Chat",
+  "nav.billing": "Facturation",
+  "nav.announcements": "Annonces",
+  "nav.notifications": "Notifications",
+  "nav.profile": "Mon profil",
+  "nav.settings": "Paramètres",
+  "common.signOut": "Se déconnecter",
+  "common.teamCode": "Code d'équipe",
+  "common.save": "Enregistrer",
+  "common.cancel": "Annuler",
+  "common.language": "Langue",
+  "common.theme": "Thème",
+  "theme.light": "Clair",
+  "theme.dark": "Sombre",
+  "theme.system": "Système",
+  "dashboard.welcomeBack": "Bon retour",
+  "dashboard.yourHome": "Votre accueil",
+  "dashboard.activeMembers": "Membres actifs",
+  "dashboard.attendanceRate": "Taux de présence",
+  "dashboard.upcomingSessions": "Séances à venir",
+  "dashboard.monthlyRevenue": "Revenu mensuel",
+  "settings.title": "Paramètres",
+  "settings.subtitle": "Gérez les paramètres et préférences de votre compte.",
+  "settings.search": "Rechercher des paramètres…",
+  "settings.noResults": "Aucun paramètre ne correspond à votre recherche.",
+  "support.title": "Assistance",
+  "support.how": "Comment souhaitez-vous nous joindre ?",
+  "support.liveChat": "Chat en direct",
+  "support.liveChatSub": "Discutez avec notre équipe maintenant",
+  "support.email": "Envoyer un e-mail",
+  "support.emailSub": "Nous répondons sous 24 heures",
+  "support.suggest": "Suggérer une fonctionnalité",
+  "support.suggestSub": "Dites-nous quoi construire ensuite",
+  "support.suggestThanks": "Merci ! Votre suggestion a été envoyée à l'équipe.",
+};
+
+const es: Dict = {
+  "nav.dashboard": "Panel",
+  "nav.home": "Inicio",
+  "nav.members": "Miembros",
+  "nav.schedule": "Horario",
+  "nav.attendance": "Asistencia",
+  "nav.stats": "Estadísticas",
+  "nav.pipeline": "Pipeline",
+  "nav.groups": "Grupos",
+  "nav.chat": "Chat",
+  "nav.billing": "Facturación",
+  "nav.announcements": "Anuncios",
+  "nav.notifications": "Notificaciones",
+  "nav.profile": "Mi perfil",
+  "nav.settings": "Ajustes",
+  "common.signOut": "Cerrar sesión",
+  "common.teamCode": "Código de equipo",
+  "common.save": "Guardar",
+  "common.cancel": "Cancelar",
+  "common.language": "Idioma",
+  "common.theme": "Tema",
+  "theme.light": "Claro",
+  "theme.dark": "Oscuro",
+  "theme.system": "Sistema",
+  "dashboard.welcomeBack": "Bienvenido de nuevo",
+  "dashboard.yourHome": "Tu inicio",
+  "dashboard.activeMembers": "Miembros activos",
+  "dashboard.attendanceRate": "Tasa de asistencia",
+  "dashboard.upcomingSessions": "Próximas sesiones",
+  "dashboard.monthlyRevenue": "Ingresos mensuales",
+  "settings.title": "Ajustes",
+  "settings.subtitle": "Gestiona los ajustes y preferencias de tu cuenta.",
+  "settings.search": "Buscar ajustes…",
+  "settings.noResults": "Ningún ajuste coincide con tu búsqueda.",
+  "support.title": "Soporte",
+  "support.how": "¿Cómo quieres contactarnos?",
+  "support.liveChat": "Chat en vivo",
+  "support.liveChatSub": "Chatea con nuestro equipo ahora",
+  "support.email": "Enviar un correo",
+  "support.emailSub": "Respondemos en 24 horas",
+  "support.suggest": "Sugerir una función",
+  "support.suggestSub": "Dinos qué construir a continuación",
+  "support.suggestThanks": "¡Gracias! Tu sugerencia fue enviada al equipo.",
+};
+
+const DICTS: Record<LangCode, Dict> = { en, mk, sq, de, fr, es };
+
+interface I18nCtx {
+  lang: LangCode;
+  setLang: (l: LangCode) => void;
+  t: (key: string) => string;
+}
+
+const I18nContext = createContext<I18nCtx | null>(null);
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<LangCode>("en");
+
+  useEffect(() => {
+    const stored = localStorage.getItem(LANG_STORAGE_KEY) as LangCode | null;
+    if (stored && DICTS[stored]) setLangState(stored);
+  }, []);
+
+  const setLang = (l: LangCode) => {
+    setLangState(l);
+    try {
+      localStorage.setItem(LANG_STORAGE_KEY, l);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const t = (key: string) => DICTS[lang][key] ?? en[key] ?? key;
+
+  return <I18nContext.Provider value={{ lang, setLang, t }}>{children}</I18nContext.Provider>;
+}
+
+export function useI18n() {
+  const ctx = useContext(I18nContext);
+  if (!ctx) throw new Error("useI18n must be inside LanguageProvider");
+  return ctx;
+}
