@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { ArrowLeft, Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy, Eye, EyeOff, GraduationCap, HeartHandshake, Building2 } from "lucide-react";
 import logo from "@/assets/logo-syncletics.svg";
 
 const searchSchema = z.object({ mode: z.enum(["login", "signup"]).optional() });
@@ -19,33 +19,57 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+type SignupRole = "student" | "parent" | "club_owner";
+type View = "form" | "forgot" | "reset";
+
+const ROLES: { value: SignupRole; label: string; icon: typeof Users }[] = [
+  { value: "student", label: "Student", icon: GraduationCap },
+  { value: "parent", label: "Parent", icon: HeartHandshake },
+  { value: "club_owner", label: "Club owner", icon: Building2 },
+];
+
 function AuthPage() {
   const { mode = "signup" } = Route.useSearch();
   const navigate = useNavigate();
   const { user, membership, loading } = useAuth();
   const [tab, setTab] = useState<"login" | "signup">(mode);
+  const [view, setView] = useState<View>("form");
   const [busy, setBusy] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [name, setName] = useState("");
+  const [signupRole, setSignupRole] = useState<SignupRole>("student");
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
+  // When the user arrives from a password-recovery email link, Supabase fires
+  // PASSWORD_RECOVERY — show the "set a new password" form instead of redirecting.
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setView("reset");
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
+    if (view === "reset") return; // stay here so the user can set a new password
     if (!loading && user) {
       if (membership) navigate({ to: "/app/dashboard" });
       else navigate({ to: "/onboarding" });
     }
-  }, [user, membership, loading, navigate]);
+  }, [user, membership, loading, navigate, view]);
 
   const onSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { display_name: name || email.split("@")[0] }, emailRedirectTo: `${window.location.origin}/onboarding` },
+      options: {
+        data: { display_name: name || email.split("@")[0], signup_role: signupRole },
+        emailRedirectTo: `${window.location.origin}/onboarding`,
+      },
     });
     if (error) toast.error(error.message);
     else toast.success("Welcome! Setting up your account…");
@@ -59,6 +83,49 @@ function AuthPage() {
     if (error) toast.error(error.message);
     else toast.success("Welcome back!");
     setBusy(false);
+  };
+
+  const onOAuth = async (provider: "google" | "apple") => {
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/onboarding` },
+    });
+    if (error) {
+      toast.error(error.message);
+      setBusy(false);
+    }
+    // On success the browser is redirected to the provider, so no cleanup needed.
+  };
+
+  const onForgot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) { toast.error("Please enter your email address"); return; }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth?mode=login`,
+    });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Check your inbox — we sent you a password reset link.");
+      setView("form");
+      setTab("login");
+    }
+  };
+
+  const onResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Password updated! You're signed in.");
+      setView("form");
+      navigate({ to: "/app/dashboard" });
+    }
   };
 
   const isSignup = tab === "signup";
@@ -79,81 +146,146 @@ function AuthPage() {
           </div>
 
           <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
-            <h1 className="font-display text-3xl font-semibold tracking-tight">
-              {isSignup ? "Create your account" : "Log in to your account"}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {isSignup ? "Start managing your club in minutes." : "Welcome back! Select method to log in."}
-            </p>
+            {view === "reset" ? (
+              <>
+                <h1 className="font-display text-3xl font-semibold tracking-tight">Set a new password</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Choose a new password for your account.</p>
+                <form onSubmit={onResetPassword} className="mt-6 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="new-password">New password</Label>
+                    <div className="relative">
+                      <Input id="new-password" type={showPassword ? "text" : "password"} placeholder="••••••••" minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-11 pr-10" required />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <Button type="submit" disabled={busy} className="h-11 w-full bg-gradient-hero text-base font-medium">
+                    {busy ? "Updating…" : "Update password"}
+                  </Button>
+                </form>
+              </>
+            ) : view === "forgot" ? (
+              <>
+                <h1 className="font-display text-3xl font-semibold tracking-tight">Reset your password</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Enter your email and we'll send you a reset link.</p>
+                <form onSubmit={onForgot} className="mt-6 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="forgot-email">Email</Label>
+                    <Input id="forgot-email" type="email" placeholder="you@club.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11" required />
+                  </div>
+                  <Button type="submit" disabled={busy} className="h-11 w-full bg-gradient-hero text-base font-medium">
+                    {busy ? "Sending…" : "Send reset link"}
+                  </Button>
+                  <button type="button" className="w-full text-center text-sm font-medium text-primary hover:underline" onClick={() => setView("form")}>
+                    Back to log in
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <h1 className="font-display text-3xl font-semibold tracking-tight">
+                  {isSignup ? "Create your account" : "Log in to your account"}
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {isSignup ? "Start managing your club in minutes." : "Welcome back! Select method to log in."}
+                </p>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button variant="outline" type="button" className="h-11" onClick={() => toast.info("Google sign-in coming soon")}>
-                <GoogleIcon className="mr-2 h-4 w-4" /> Google
-              </Button>
-              <Button variant="outline" type="button" className="h-11" onClick={() => toast.info("Apple sign-in coming soon")}>
-                <AppleIcon className="mr-2 h-4 w-4" /> Apple
-              </Button>
-            </div>
-
-            <div className="my-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs uppercase tracking-wider text-muted-foreground">or continue with email</span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
-
-            <form onSubmit={isSignup ? onSignup : onLogin} className="space-y-4">
-              {isSignup && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="name">Full name</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" className="h-11" required />
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <Button variant="outline" type="button" disabled={busy} className="h-11" onClick={() => onOAuth("google")}>
+                    <GoogleIcon className="mr-2 h-4 w-4" /> Google
+                  </Button>
+                  <Button variant="outline" type="button" disabled={busy} className="h-11" onClick={() => onOAuth("apple")}>
+                    <AppleIcon className="mr-2 h-4 w-4" /> Apple
+                  </Button>
                 </div>
-              )}
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="you@club.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11" required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 pr-10" required />
+
+                <div className="my-6 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">or continue with email</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                <form onSubmit={isSignup ? onSignup : onLogin} className="space-y-4">
+                  {isSignup && (
+                    <>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="name">Full name</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" className="h-11" required />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>I am a…</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {ROLES.map((r) => (
+                            <button
+                              key={r.value}
+                              type="button"
+                              onClick={() => setSignupRole(r.value)}
+                              className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-2.5 text-xs font-medium transition-colors ${
+                                signupRole === r.value
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border text-muted-foreground hover:bg-accent/50"
+                              }`}
+                            >
+                              <r.icon className="h-4 w-4" /> {r.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" placeholder="you@club.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11" required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 pr-10" required />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {!isSignup && (
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} /> Remember me
+                      </label>
+                      <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => setView("forgot")}>
+                        Forgot Password?
+                      </button>
+                    </div>
+                  )}
+
+                  <Button type="submit" disabled={busy} className="h-11 w-full bg-gradient-hero text-base font-medium">
+                    {busy ? (isSignup ? "Creating…" : "Signing in…") : isSignup ? "Create account" : "Log in"}
+                  </Button>
+                </form>
+
+                <p className="mt-6 text-center text-sm text-muted-foreground">
+                  {isSignup ? "Already have an account? " : "Don't have an account? "}
                   <button
                     type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="font-medium text-primary hover:underline"
+                    onClick={() => setTab(isSignup ? "login" : "signup")}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {isSignup ? "Log in" : "Create an account"}
                   </button>
-                </div>
-              </div>
-
-
-              {!isSignup && (
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} /> Remember me
-                  </label>
-                  <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => toast.info("Password reset coming soon")}>
-                    Forgot Password?
-                  </button>
-                </div>
-              )}
-
-              <Button type="submit" disabled={busy} className="h-11 w-full bg-gradient-hero text-base font-medium">
-                {busy ? (isSignup ? "Creating…" : "Signing in…") : isSignup ? "Create account" : "Log in"}
-              </Button>
-            </form>
-
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              {isSignup ? "Already have an account? " : "Don't have an account? "}
-              <button
-                type="button"
-                className="font-medium text-primary hover:underline"
-                onClick={() => setTab(isSignup ? "login" : "signup")}
-              >
-                {isSignup ? "Log in" : "Create an account"}
-              </button>
-            </p>
+                </p>
+              </>
+            )}
           </div>
 
           <p className="text-center text-xs text-muted-foreground">© {new Date().getFullYear()} Syncletics. All rights reserved.</p>

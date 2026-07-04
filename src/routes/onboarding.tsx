@@ -1,22 +1,31 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Trophy, Building2, Users } from "lucide-react";
+import { Trophy, Building2, Users, QrCode } from "lucide-react";
+
+const searchSchema = z.object({
+  code: z.string().optional(),
+  group: z.string().optional(),
+});
 
 export const Route = createFileRoute("/onboarding")({
+  validateSearch: searchSchema,
   head: () => ({ meta: [{ title: "Get started — Syncletics" }] }),
   component: Onboarding,
 });
 
 function Onboarding() {
   const { user, membership, loading, refresh, signOut, profile } = useAuth();
+  const { code: qrCode, group: qrGroup } = Route.useSearch();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
 
@@ -25,13 +34,26 @@ function Onboarding() {
     if (!loading && membership) navigate({ to: "/app/dashboard" });
   }, [user, membership, loading, navigate]);
 
+  // Role chosen at signup ("student" | "parent" | "club_owner"), if any.
+  const signupRole = (user?.user_metadata?.signup_role as string | undefined) ?? undefined;
+
   // Create club
   const [clubName, setClubName] = useState("");
   const [sport, setSport] = useState("Soccer");
 
-  // Join club
-  const [code, setCode] = useState("");
-  const [joinRole, setJoinRole] = useState<"student" | "parent">("student");
+  // Join club — prefilled from a scanned QR code (?code=XXXXXX&group=<id>)
+  const [code, setCode] = useState(qrCode?.toUpperCase() ?? "");
+  const [joinRole, setJoinRole] = useState<"student" | "parent">(
+    signupRole === "parent" ? "parent" : "student"
+  );
+
+  useEffect(() => {
+    if (qrCode) setCode(qrCode.toUpperCase());
+  }, [qrCode]);
+
+  // Default to the correct tab: QR scans and student/parent signups land on "join".
+  const defaultTab =
+    qrCode || signupRole === "student" || signupRole === "parent" ? "join" : "create";
 
   const onCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,12 +77,15 @@ function Onboarding() {
     setBusy(true);
     const { data: club, error } = await supabase.from("clubs").select("*").eq("team_code", code.toUpperCase()).maybeSingle();
     if (error || !club) { toast.error("Invalid team code"); setBusy(false); return; }
-    const { error: mErr } = await supabase.from("memberships").insert({ club_id: club.id, user_id: user.id, role: joinRole });
+    // If the QR code carried a group id, enroll the member straight into that group.
+    const insertPayload: Record<string, unknown> = { club_id: club.id, user_id: user.id, role: joinRole };
+    if (qrGroup) insertPayload.group_id = qrGroup;
+    const { error: mErr } = await supabase.from("memberships").insert(insertPayload);
     if (mErr) { toast.error(mErr.message); setBusy(false); return; }
     if (joinRole === "parent") {
       await supabase.from("profiles").update({ is_parent: true }).eq("id", user.id);
     }
-    toast.success(`Joined ${club.name}!`);
+    toast.success(qrGroup ? `Joined ${club.name} and enrolled in your group!` : `Joined ${club.name}!`);
     await refresh();
     navigate({ to: "/app/dashboard" });
   };
@@ -80,7 +105,7 @@ function Onboarding() {
           <p className="mt-2 text-muted-foreground">Are you running a club, or joining one?</p>
         </div>
         <Card className="p-6 shadow-elegant">
-          <Tabs defaultValue="create">
+          <Tabs defaultValue={defaultTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="create"><Building2 className="mr-2 h-4 w-4" /> I run a club</TabsTrigger>
               <TabsTrigger value="join"><Users className="mr-2 h-4 w-4" /> I'm joining one</TabsTrigger>
@@ -94,6 +119,15 @@ function Onboarding() {
             </TabsContent>
             <TabsContent value="join" className="mt-6">
               <form onSubmit={onJoin} className="space-y-4">
+                {qrCode && (
+                  <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+                    <QrCode className="h-4 w-4 text-primary" />
+                    <span>
+                      QR code scanned — team code prefilled{qrGroup ? "," : "."}
+                      {qrGroup && " you'll be enrolled in the selected group."}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <Label>Team code</Label>
                   <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="ABCD23" required className="font-mono uppercase tracking-widest" maxLength={6} />
@@ -106,6 +140,11 @@ function Onboarding() {
                     <Button type="button" variant={joinRole === "parent" ? "default" : "outline"} onClick={() => setJoinRole("parent")}>Parent</Button>
                   </div>
                 </div>
+                {qrGroup && (
+                  <Badge variant="secondary" className="font-normal">
+                    Group enrollment via QR — group will be assigned automatically
+                  </Badge>
+                )}
                 <Button type="submit" disabled={busy} className="w-full bg-gradient-hero">{busy ? "Joining…" : "Join club"}</Button>
               </form>
             </TabsContent>

@@ -1,16 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { getEmbedStats, submitEmbedLead } from "@/lib/embed.functions";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Users, UserCheck, CalendarCheck } from "lucide-react";
 import { useState } from "react";
+import { format } from "date-fns";
+
+const searchSchema = z.object({
+  theme: z.enum(["light", "dark"]).optional(),
+  accent: z.string().optional(),
+  stats: z.string().optional(),
+  schedule: z.string().optional(),
+  form: z.string().optional(),
+});
 
 export const Route = createFileRoute("/embed/$clubId")({
+  validateSearch: searchSchema,
   head: () => ({ meta: [{ title: "Register — Syncletics" }] }),
   component: EmbedWidget,
 });
 
 function EmbedWidget() {
   const { clubId } = Route.useParams();
+  const search = Route.useSearch();
+  const dark = search.theme === "dark";
+  const accent = search.accent && /^#[0-9a-fA-F]{3,8}$/.test(search.accent) ? search.accent : undefined;
+  const showStats = search.stats !== "0";
+  const showSchedule = search.schedule !== "0";
+  const showForm = search.form !== "0";
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["embed", clubId],
     queryFn: () => getEmbedStats({ data: { clubId } }),
@@ -41,45 +59,84 @@ function EmbedWidget() {
   if (isLoading) return <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">Loading…</div>;
   if (error || !data) return <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">Club not found</div>;
 
+  const accentStyle = accent ? ({ "--primary": accent, "--ring": accent } as React.CSSProperties) : undefined;
+
   return (
-    <div className="min-h-screen bg-background p-4 font-sans text-foreground">
-      <div className="mx-auto max-w-md space-y-4">
-        <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-transparent p-5">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">{data.club.sport || "Sports club"}</p>
-          <h1 className="font-display text-2xl font-semibold">Join {data.club.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Register your interest and the team will be in touch.</p>
-        </div>
-
-        {done ? (
-          <div className="rounded-xl border border-border bg-card p-6 text-center">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
-            <p className="mt-3 font-medium">Thanks, {form.name.split(" ")[0] || "there"}!</p>
-            <p className="mt-1 text-sm text-muted-foreground">Your registration was sent to {data.club.name}. They'll reach out soon.</p>
+    <div className={dark ? "dark" : undefined} style={accentStyle}>
+      <div className="min-h-screen bg-background p-4 font-sans text-foreground">
+        <div className="mx-auto max-w-md space-y-4">
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-transparent p-5">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">{data.club.sport || "Sports club"}</p>
+            <h1 className="font-display text-2xl font-semibold">Join {data.club.name}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Register your interest and the team will be in touch.</p>
           </div>
-        ) : (
-          <form onSubmit={submit} className="space-y-3 rounded-xl border border-border bg-card p-5">
-            <Field label="Full name *">
-              <input value={form.name} onChange={update("name")} required placeholder="Jane Doe" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
-            </Field>
-            <Field label="Email">
-              <input type="email" value={form.email} onChange={update("email")} placeholder="jane@email.com" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
-            </Field>
-            <Field label="Phone">
-              <input value={form.phone} onChange={update("phone")} placeholder="+1 555 123 4567" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
-            </Field>
-            <Field label="Anything we should know?">
-              <textarea value={form.notes} onChange={update("notes")} rows={3} placeholder="Age, experience, preferred days…" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
-            </Field>
-            {err && <p className="text-xs text-destructive">{err}</p>}
-            <button type="submit" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-hero px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">
-              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-              {busy ? "Sending…" : "Register"}
-            </button>
-          </form>
-        )}
 
-        <p className="text-center text-[10px] uppercase tracking-wider text-muted-foreground">Powered by Syncletics</p>
+          {showStats && (
+            <div className="grid grid-cols-3 gap-2">
+              <StatTile icon={<Users className="h-4 w-4" />} value={data.stats.students} label="Students" />
+              <StatTile icon={<UserCheck className="h-4 w-4" />} value={data.stats.trainers} label="Coaches" />
+              <StatTile icon={<CalendarCheck className="h-4 w-4" />} value={`${data.stats.attRate}%`} label="Attendance" />
+            </div>
+          )}
+
+          {showSchedule && data.upcoming.length > 0 && (
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Upcoming sessions</p>
+              <div className="mt-2 divide-y divide-border">
+                {data.upcoming.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between py-2 text-sm">
+                    <span className="font-medium">{s.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(s.starts_at), "EEE MMM d, h:mm a")}
+                      {s.location ? ` • ${s.location}` : ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showForm && (done ? (
+            <div className="rounded-xl border border-border bg-card p-6 text-center">
+              <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
+              <p className="mt-3 font-medium">Thanks, {form.name.split(" ")[0] || "there"}!</p>
+              <p className="mt-1 text-sm text-muted-foreground">Your registration was sent to {data.club.name}. They'll reach out soon.</p>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="space-y-3 rounded-xl border border-border bg-card p-5">
+              <Field label="Full name *">
+                <input value={form.name} onChange={update("name")} required placeholder="Jane Doe" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+              </Field>
+              <Field label="Email">
+                <input type="email" value={form.email} onChange={update("email")} placeholder="jane@email.com" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+              </Field>
+              <Field label="Phone">
+                <input value={form.phone} onChange={update("phone")} placeholder="+1 555 123 4567" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+              </Field>
+              <Field label="Anything we should know?">
+                <textarea value={form.notes} onChange={update("notes")} rows={3} placeholder="Age, experience, preferred days…" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+              </Field>
+              {err && <p className="text-xs text-destructive">{err}</p>}
+              <button type="submit" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-hero px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60" style={accent ? { background: accent } : undefined}>
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                {busy ? "Sending…" : "Register"}
+              </button>
+            </form>
+          ))}
+
+          <p className="text-center text-[10px] uppercase tracking-wider text-muted-foreground">Powered by Syncletics</p>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function StatTile({ icon, value, label }: { icon: any; value: string | number; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3">
+      <span className="text-primary">{icon}</span>
+      <span className="font-display text-lg font-semibold">{value}</span>
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
     </div>
   );
 }
