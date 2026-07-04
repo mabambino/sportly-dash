@@ -47,6 +47,11 @@ const DEFAULT_DASHBOARD_CARDS = [
   "Attendance Rate",
   "Upcoming Sessions",
   "Monthly Revenue",
+  "Club Analytics",
+  "Reminders",
+  "Attendance Progress",
+  "Time Tracker",
+  "Announcements",
 ];
 
 const DASHBOARD_LAYOUTS = [
@@ -57,10 +62,11 @@ const DASHBOARD_LAYOUTS = [
 
 function readDashboardPrefs(prefs: unknown) {
   const value = (prefs ?? {}) as { order?: unknown; layout?: unknown };
-  const order =
-    Array.isArray(value.order) && value.order.length
-      ? (value.order as string[])
-      : DEFAULT_DASHBOARD_CARDS;
+  const saved = Array.isArray(value.order) ? (value.order as string[]) : [];
+  const order = [
+    ...saved.filter((card) => DEFAULT_DASHBOARD_CARDS.includes(card)),
+    ...DEFAULT_DASHBOARD_CARDS.filter((card) => !saved.includes(card)),
+  ];
   const layout = typeof value.layout === "string" ? value.layout : "grid-4";
   return { order, layout };
 }
