@@ -61,10 +61,9 @@ export function GlobalSearch() {
     queryKey: ["global-search", club?.id, term],
     queryFn: async (): Promise<SearchResult[]> => {
       const safe = term.replace(/[,()%_]/g, " ").trim();
-      const [memberships, profiles, leads, slots, groups, payments] = await Promise.all([
+      const [memberships, profiles, slots, groups, payments] = await Promise.all([
         supabase.from("memberships").select("user_id, role").eq("club_id", club!.id).limit(250),
         supabase.from("profiles").select("id, display_name, email").or(`display_name.ilike.%${safe}%,email.ilike.%${safe}%`).limit(12),
-        supabase.from("leads").select("id, name, email, status").eq("club_id", club!.id).or(`name.ilike.%${safe}%,email.ilike.%${safe}%,status.ilike.%${safe}%`).limit(8),
         supabase.from("time_slots").select("id, title, location, starts_at").eq("club_id", club!.id).or(`title.ilike.%${safe}%,location.ilike.%${safe}%`).limit(8),
         supabase.from("course_groups").select("id, name, description").eq("club_id", club!.id).or(`name.ilike.%${safe}%,description.ilike.%${safe}%`).limit(8),
         supabase.from("payments").select("id, member_id, status, amount_cents").eq("club_id", club!.id).limit(250),
@@ -85,7 +84,6 @@ export function GlobalSearch() {
         const memberPayments = (payments.data || []).filter((payment) => payment.member_id === p.id);
         if (memberPayments.length) results.push({ id: `payment-${p.id}`, title: `${p.display_name || p.email} payments`, subtitle: `${memberPayments.length} invoice${memberPayments.length === 1 ? "" : "s"}`, to: "/app/revenue", icon: CreditCard });
       }
-      for (const lead of leads.data || []) results.push({ id: `lead-${lead.id}`, title: lead.name, subtitle: `${lead.status} lead${lead.email ? ` · ${lead.email}` : ""}`, to: "/app/leads", icon: UserCog });
       for (const slot of slots.data || []) results.push({ id: `slot-${slot.id}`, title: slot.title, subtitle: slot.location || "Scheduled session", to: "/app/schedule", icon: Calendar });
       for (const group of groups.data || []) results.push({ id: `group-${group.id}`, title: group.name, subtitle: group.description || "Course group", to: "/app/groups", icon: Layers });
       return results.slice(0, 20);
