@@ -84,7 +84,6 @@ export function GlobalSearch() {
         const memberPayments = (payments.data || []).filter((payment) => payment.member_id === p.id);
         if (memberPayments.length) results.push({ id: `payment-${p.id}`, title: `${p.display_name || p.email} payments`, subtitle: `${memberPayments.length} invoice${memberPayments.length === 1 ? "" : "s"}`, to: "/app/revenue", icon: CreditCard });
       }
-      }
       for (const slot of slots.data || []) results.push({ id: `slot-${slot.id}`, title: slot.title, subtitle: slot.location || "Scheduled session", to: "/app/schedule", icon: Calendar });
       for (const group of groups.data || []) results.push({ id: `group-${group.id}`, title: group.name, subtitle: group.description || "Course group", to: "/app/groups", icon: Layers });
       return results.slice(0, 20);
