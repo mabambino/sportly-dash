@@ -61,10 +61,9 @@ export function GlobalSearch() {
     queryKey: ["global-search", club?.id, term],
     queryFn: async (): Promise<SearchResult[]> => {
       const safe = term.replace(/[,()%_]/g, " ").trim();
-      const [memberships, profiles, leads, slots, groups, payments] = await Promise.all([
+      const [memberships, profiles, slots, groups, payments] = await Promise.all([
         supabase.from("memberships").select("user_id, role").eq("club_id", club!.id).limit(250),
         supabase.from("profiles").select("id, display_name, email").or(`display_name.ilike.%${safe}%,email.ilike.%${safe}%`).limit(12),
-        supabase.from("leads").select("id, name, email, status").eq("club_id", club!.id).or(`name.ilike.%${safe}%,email.ilike.%${safe}%,status.ilike.%${safe}%`).limit(8),
         supabase.from("time_slots").select("id, title, location, starts_at").eq("club_id", club!.id).or(`title.ilike.%${safe}%,location.ilike.%${safe}%`).limit(8),
         supabase.from("course_groups").select("id, name, description").eq("club_id", club!.id).or(`name.ilike.%${safe}%,description.ilike.%${safe}%`).limit(8),
         supabase.from("payments").select("id, member_id, status, amount_cents").eq("club_id", club!.id).limit(250),
