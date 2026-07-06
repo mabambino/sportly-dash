@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import faviconUrl from "@/assets/favicon.svg";
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
@@ -74,7 +75,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9153c59b-4275-4477-8955-80d9d67e7d60/id-preview-535b48c7--f5a14ad7-3554-4cf1-b8ea-a33a57923a12.lovable.app-1781802311126.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9153c59b-4275-4477-8955-80d9d67e7d60/id-preview-535b48c7--f5a14ad7-3554-4cf1-b8ea-a33a57923a12.lovable.app-1781802311126.png" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/svg+xml", href: faviconUrl },
+      { rel: "apple-touch-icon", href: faviconUrl },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
