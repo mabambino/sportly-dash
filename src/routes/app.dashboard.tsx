@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   ArrowUpRight, Users, DollarSign, TrendingUp,
-  UserPlus, Upload, GripVertical, Check, Bell, CalendarDays, Play, Pause, Square, Save,
+  UserPlus, Upload, GripVertical, Check, Bell, CalendarDays, Play, Pause, Square, Save, Eye, EyeOff,
 } from "lucide-react";
 import {
   ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid,
@@ -60,6 +60,7 @@ const WIDGET_SIZES: Record<string, string> = {
 
 function Dashboard() {
   const { club, isStaff, profile, refresh } = useAuth();
+  const { hideAll, toggle: togglePrivacy } = usePrivacy();
   const [isRearranging, setIsRearranging] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
@@ -220,6 +221,16 @@ function Dashboard() {
             title={isRearranging ? "Done rearranging" : "Rearrange cards"}
           >
             {isRearranging ? <Check className="h-4 w-4" /> : <GripVertical className="h-4 w-4" />}
+          </Button>
+          <Button
+            variant={hideAll ? "default" : "outline"}
+            size="icon"
+            className="rounded-full"
+            onClick={togglePrivacy}
+            aria-label={hideAll ? "Show dashboard info" : "Hide dashboard info"}
+            title={hideAll ? "Privacy on — dashboard info hidden" : "Privacy off — hide dashboard info"}
+          >
+            {hideAll ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
         </div>
       </div>
