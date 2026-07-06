@@ -132,7 +132,7 @@ function AuthPage() {
   const isSignup = tab === "signup";
 
   return (
-    <div className="min-h-screen bg-muted/30 lg:p-6">
+    <div className="min-h-screen bg-background lg:p-6">
       <div className="mx-auto grid min-h-screen overflow-hidden rounded-none bg-background shadow-elegant lg:min-h-[calc(100vh-3rem)] lg:grid-cols-2 lg:rounded-2xl">
         {/* Left: form */}
         <div className="flex flex-col px-6 py-8 sm:px-12 lg:px-16 lg:py-12">
