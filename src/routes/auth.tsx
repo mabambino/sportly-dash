@@ -136,6 +136,10 @@ function AuthPage() {
       <div className="mx-auto grid min-h-screen overflow-hidden rounded-none bg-background shadow-elegant lg:min-h-[calc(100vh-3rem)] lg:grid-cols-2 lg:rounded-2xl">
         {/* Left: form */}
         <div className="flex flex-col px-6 py-8 sm:px-12 lg:px-16 lg:py-12">
+          <div className="mb-6">
+            <img src={logoSyncletics} alt="Syncletics" className="h-8 w-auto dark:hidden" />
+            <img src={logoSyncleticsWhite} alt="Syncletics" className="hidden h-8 w-auto dark:block" />
+          </div>
           <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
             {view === "reset" ? (
               <>
