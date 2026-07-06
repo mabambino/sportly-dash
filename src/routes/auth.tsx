@@ -8,8 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { ArrowLeft, Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy, Eye, EyeOff, GraduationCap, HeartHandshake, Building2 } from "lucide-react";
-import logo from "@/assets/logo-syncletics.svg";
+import { Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy, Eye, EyeOff, GraduationCap, HeartHandshake, Building2 } from "lucide-react";
 
 const searchSchema = z.object({ mode: z.enum(["login", "signup"]).optional() });
 
@@ -135,16 +134,6 @@ function AuthPage() {
       <div className="mx-auto grid min-h-screen overflow-hidden rounded-none bg-background shadow-elegant lg:min-h-[calc(100vh-3rem)] lg:grid-cols-2 lg:rounded-2xl">
         {/* Left: form */}
         <div className="flex flex-col px-6 py-8 sm:px-12 lg:px-16 lg:py-12">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Syncletics" className="h-8 w-8" />
-              <span className="font-display text-lg font-semibold">Syncletics</span>
-            </Link>
-            <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="h-3.5 w-3.5" /> Home
-            </Link>
-          </div>
-
           <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
             {view === "reset" ? (
               <>
