@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,10 +13,13 @@ export const Route = createFileRoute("/app/profile")({
 });
 
 function ProfilePage() {
-  const { user, profile, club } = useAuth();
+  const { user, profile, club, membership, isStaff } = useAuth();
 
+  // Athlete stats (attendance, badges, tracked metrics) only make sense for the
+  // people who are actually coached — students and parents. Staff (owner /
+  // trainer) get a club-management profile instead, so don't run this query.
   const { data } = useQuery({
-    enabled: !!user && !!club,
+    enabled: !!user && !!club && !isStaff,
     queryKey: ["my-profile", user?.id],
     queryFn: async () => {
       const [stats, att, badges] = await Promise.all([
@@ -30,6 +33,7 @@ function ProfilePage() {
 
   const metrics = Array.from(new Set((data?.stats || []).map((s) => s.metric)));
   const attRate = data?.att.length ? Math.round((data.att.filter((a) => a.status === "present").length / data.att.length) * 100) : 0;
+  const roleLabel = (membership?.role ?? "member").replace(/_/g, " ");
 
   return (
     <div className="space-y-6">
@@ -38,11 +42,16 @@ function ProfilePage() {
           {profile?.display_name?.[0]?.toUpperCase()}
         </div>
         <div>
-          <h1 className="font-display text-3xl font-semibold">{profile?.display_name}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="font-display text-3xl font-semibold">{profile?.display_name}</h1>
+            <Badge variant="secondary" className="capitalize">{roleLabel}</Badge>
+          </div>
           <p className="text-sm text-muted-foreground">{profile?.email}</p>
         </div>
       </div>
 
+      {isStaff ? <StaffProfile club={club} membership={membership} /> : (
+      <>
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Sessions attended</p><p className="mt-2 font-display text-3xl font-semibold">{data?.att.filter((a) => a.status === "present").length ?? 0}</p></Card>
         <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Attendance rate</p><p className="mt-2 font-display text-3xl font-semibold">{attRate}%</p></Card>
@@ -101,6 +110,40 @@ function ProfilePage() {
           ))}
           {(data?.att.length ?? 0) === 0 && <p className="py-3 text-sm text-muted-foreground">No attendance records yet.</p>}
         </div>
+      </Card>
+      </>
+      )}
+    </div>
+  );
+}
+
+function StaffProfile({ club, membership }: { club: { name?: string; sport?: string; team_code?: string } | null; membership: { role?: string; joined_at?: string } | null }) {
+  const joined = membership?.joined_at ? format(new Date(membership.joined_at), "MMM d, yyyy") : null;
+  const links = [
+    { to: "/app/settings", label: "Club settings" },
+    { to: "/app/members", label: "Members" },
+    { to: "/app/schedule", label: "Schedule" },
+    { to: "/app/announcements", label: "Announcements" },
+    { to: "/app/revenue", label: "Revenue" },
+  ];
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Club</p><p className="mt-2 truncate font-display text-2xl font-semibold">{club?.name ?? "—"}</p></Card>
+        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Sport</p><p className="mt-2 truncate font-display text-2xl font-semibold">{club?.sport ?? "—"}</p></Card>
+        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Team code</p><p className="mt-2 font-mono text-2xl font-semibold">{club?.team_code ?? "—"}</p></Card>
+      </div>
+      <Card className="p-5">
+        <p className="text-sm font-medium">Manage your club</p>
+        <p className="mt-1 text-sm text-muted-foreground">Jump to the areas you run day to day.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {links.map((l) => (
+            <Link key={l.to} to={l.to} className="rounded-full border border-border px-4 py-2 text-sm font-medium transition hover:bg-accent">
+              {l.label}
+            </Link>
+          ))}
+        </div>
+        {joined && <p className="mt-4 text-xs text-muted-foreground">On this team since {joined}.</p>}
       </Card>
     </div>
   );
