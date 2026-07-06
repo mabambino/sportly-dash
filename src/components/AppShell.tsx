@@ -14,7 +14,7 @@ import {
 import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
-  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode, Mail,
+  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
   Sun, Moon, Languages,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
@@ -23,6 +23,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { MessagesPopover, AnnouncementsPopover, NotificationsPopover } from "@/components/HeaderQuickViews";
 import { useAvatar } from "@/lib/user-settings";
 
 
@@ -279,15 +280,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="ml-auto flex items-center gap-1">
               <ThemeToggle />
               <LanguageMenu compact />
-              <Link to="/app/chat" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Messages">
-                <Mail className="h-4 w-4" />
-              </Link>
-              <Link to="/app/announcements" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Announcements">
-                <Megaphone className="h-4 w-4" />
-              </Link>
-              <Link to="/app/notifications" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Notifications">
-                <Bell className="h-4 w-4" />
-              </Link>
+              <MessagesPopover />
+              <AnnouncementsPopover />
+              <NotificationsPopover />
               <Link to="/app/settings" className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Settings">
                 <Settings className="h-4 w-4" />
               </Link>
