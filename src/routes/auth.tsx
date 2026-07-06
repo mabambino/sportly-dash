@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy, Eye, EyeOff, GraduationCap, HeartHandshake, Building2 } from "lucide-react";
+import logoSyncletics from "@/assets/logo-syncletics.svg";
+import logoSyncleticsWhite from "@/assets/logo-syncletics-white.svg";
 
 const searchSchema = z.object({ mode: z.enum(["login", "signup"]).optional() });
 
@@ -134,6 +136,10 @@ function AuthPage() {
       <div className="mx-auto grid min-h-screen overflow-hidden rounded-none bg-background shadow-elegant lg:min-h-[calc(100vh-3rem)] lg:grid-cols-2 lg:rounded-2xl">
         {/* Left: form */}
         <div className="flex flex-col px-6 py-8 sm:px-12 lg:px-16 lg:py-12">
+          <div className="mb-6">
+            <img src={logoSyncletics} alt="Syncletics" className="h-8 w-auto dark:hidden" />
+            <img src={logoSyncleticsWhite} alt="Syncletics" className="hidden h-8 w-auto dark:block" />
+          </div>
           <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
             {view === "reset" ? (
               <>
