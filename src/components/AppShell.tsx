@@ -14,15 +14,15 @@ import {
 import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
-  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode, Search, Mail,
+  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode, Mail,
   Sun, Moon, Languages,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
 import logoSyncleticsWhite from "@/assets/logo-syncletics-white.svg";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { useAvatar } from "@/lib/user-settings";
 
 
@@ -275,17 +275,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="min-h-screen flex-1 lg:ml-0">
           {/* Desktop top bar */}
           <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b border-border bg-background/80 px-6 backdrop-blur lg:flex xl:px-8">
-            <div className="relative flex-1 max-w-xl">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder={t("common.search")}
-                className="h-10 rounded-full border-border bg-muted/40 pl-9 pr-16 focus-visible:ring-1"
-              />
-              <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline-flex">
-                ⌘ F
-              </kbd>
-            </div>
+            <GlobalSearch />
             <div className="ml-auto flex items-center gap-1">
               <ThemeToggle />
               <LanguageMenu compact />

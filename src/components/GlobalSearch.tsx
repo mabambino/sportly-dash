@@ -12,6 +12,7 @@ type SearchResult = {
   to: string;
   icon: typeof Search;
   keywords?: string;
+  search?: Record<string, unknown>;
 };
 
 const FEATURE_RESULTS: SearchResult[] = [
@@ -46,7 +47,7 @@ export function GlobalSearch() {
 
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "f") {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         inputRef.current?.focus();
         setOpen(true);
@@ -80,7 +81,7 @@ export function GlobalSearch() {
       for (const p of matchedProfiles) {
         const role = membershipByUser.get(p.id);
         if (!role) continue;
-        results.push({ id: `profile-${p.id}`, title: p.display_name || p.email, subtitle: `${role.replace("_", " ")} · ${p.email}`, to: "/app/members", icon: Users });
+        results.push({ id: `profile-${p.id}`, title: p.display_name || p.email, subtitle: `${role.replace("_", " ")} · ${p.email}`, to: "/app/members", icon: Users, search: { q: p.display_name || p.email } });
         const memberPayments = (payments.data || []).filter((payment) => payment.member_id === p.id);
         if (memberPayments.length) results.push({ id: `payment-${p.id}`, title: `${p.display_name || p.email} payments`, subtitle: `${memberPayments.length} invoice${memberPayments.length === 1 ? "" : "s"}`, to: "/app/revenue", icon: CreditCard });
       }
@@ -101,7 +102,7 @@ export function GlobalSearch() {
   const choose = (result: SearchResult) => {
     setOpen(false);
     setQuery("");
-    navigate({ to: result.to as any });
+    navigate({ to: result.to as any, search: (result.search ?? {}) as any });
   };
 
   return (
@@ -124,7 +125,7 @@ export function GlobalSearch() {
         aria-label="Search the application"
         aria-expanded={open}
       />
-      <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:block">⌘ F</kbd>
+      <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:block">⌘ K</kbd>
 
       {open && (
         <div className="absolute left-0 right-0 top-12 z-50 max-h-[28rem] overflow-y-auto rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-xl">
