@@ -116,7 +116,7 @@ function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-4 py-12">
         <div className="mb-8 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
