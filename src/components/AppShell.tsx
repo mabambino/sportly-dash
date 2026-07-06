@@ -15,7 +15,7 @@ import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
-  Sun, Moon, Languages,
+  Sun, Moon, Languages, MoreHorizontal,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
 import logoSyncleticsWhite from "@/assets/logo-syncletics-white.svg";
@@ -99,6 +99,19 @@ const memberSections: NavSection[] = [
   },
 ];
 
+const bottomTabs: NavItem[] = [
+  { to: "/app/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/app/schedule", labelKey: "nav.calendar", icon: Calendar },
+  { to: "/app/chat", labelKey: "nav.chat", icon: MessagesSquare },
+  { to: "/app/progress", labelKey: "nav.progress", icon: LineChart },
+];
+
+const moreTabs: NavItem[] = [
+  { to: "/app/billing", labelKey: "nav.billingRevenue", icon: CreditCard },
+  { to: "/app/announcements", labelKey: "nav.announcements", icon: Megaphone },
+  { to: "/app/notifications", labelKey: "nav.notifications", icon: Bell },
+];
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading, membership, club, isStaff, profile, signOut } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
@@ -106,6 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
@@ -298,10 +312,67 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </Link>
           </header>
-          <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">{children}</div>
+          <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 lg:px-8 lg:py-10">{children}</div>
         </main>
 
       </div>
+      {/* Mobile bottom navigation */}
+      {moreOpen && (
+        <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMoreOpen(false)} />
+      )}
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
+        {moreOpen && (
+          <div className="absolute inset-x-0 bottom-full space-y-0.5 rounded-t-2xl border-t border-border bg-background p-2 shadow-lg">
+            {moreTabs.map((item) => {
+              const active = pathname === item.to;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMoreOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" /> {t(item.labelKey)}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+        <div className="grid grid-cols-5">
+          {bottomTabs.map((item) => {
+            const active = pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setMoreOpen(false)}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="max-w-full truncate px-1">{t(item.labelKey)}</span>
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setMoreOpen(!moreOpen)}
+            className={cn(
+              "flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+              moreOpen || moreTabs.some((i) => pathname === i.to) ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+            aria-label={t("nav.more")}
+          >
+            <MoreHorizontal className="h-5 w-5" />
+            <span>{t("nav.more")}</span>
+          </button>
+        </div>
+      </nav>
       <EnrollQRDialog
         open={qrOpen}
         onOpenChange={setQrOpen}
