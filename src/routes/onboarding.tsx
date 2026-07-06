@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Trophy, Building2, Users, QrCode } from "lucide-react";
+import { Trophy, Building2, Users, QrCode, HeartPulse } from "lucide-react";
 
 const searchSchema = z.object({
   code: z.string().optional(),
@@ -46,6 +47,11 @@ function Onboarding() {
   const [joinRole, setJoinRole] = useState<"student" | "parent">(
     signupRole === "parent" ? "parent" : "student"
   );
+
+  // Health questionnaire — shown when a kid (student) joins a club.
+  const [healthHas, setHealthHas] = useState<"unknown" | "yes" | "no">("unknown");
+  const [healthDetails, setHealthDetails] = useState("");
+  const [healthLifestyle, setHealthLifestyle] = useState("");
 
   useEffect(() => {
     if (qrCode) setCode(qrCode.toUpperCase());
@@ -84,6 +90,25 @@ function Onboarding() {
     if (error || !club) { toast.error(error?.message || "Invalid team code"); setBusy(false); return; }
     if (joinRole === "parent") {
       await supabase.from("profiles").update({ is_parent: true }).eq("id", user.id);
+    }
+    // Attach the kid's health questionnaire to their profile (best-effort — the
+    // join still succeeds even if the health_info column isn't present yet).
+    if (joinRole === "student" && healthHas !== "unknown") {
+      try {
+        await supabase
+          .from("profiles")
+          .update({
+            health_info: {
+              has_condition: healthHas === "yes",
+              details: healthDetails.trim(),
+              lifestyle_impact: healthLifestyle.trim(),
+              submitted_at: new Date().toISOString(),
+            },
+          } as any)
+          .eq("id", user.id);
+      } catch {
+        /* ignore — optional data */
+      }
     }
     toast.success(qrGroup ? `Joined ${club.name} and enrolled in your group!` : `Joined ${club.name}!`);
     await refresh();
@@ -140,6 +165,35 @@ function Onboarding() {
                     <Button type="button" variant={joinRole === "parent" ? "default" : "outline"} onClick={() => setJoinRole("parent")}>Parent</Button>
                   </div>
                 </div>
+                {joinRole === "student" && (
+                  <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+                    <div className="flex items-center gap-2">
+                      <HeartPulse className="h-4 w-4 text-primary" />
+                      <p className="text-sm font-medium">Health questionnaire</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Has the child had a health problem, condition, or something in the past that affects
+                      their current lifestyle or activity? This helps coaches keep them safe.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button type="button" size="sm" variant={healthHas === "no" ? "default" : "outline"} onClick={() => setHealthHas("no")}>No</Button>
+                      <Button type="button" size="sm" variant={healthHas === "yes" ? "default" : "outline"} onClick={() => setHealthHas("yes")}>Yes</Button>
+                    </div>
+                    {healthHas === "yes" && (
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs">What was the problem or condition?</Label>
+                          <Textarea value={healthDetails} onChange={(e) => setHealthDetails(e.target.value)} placeholder="e.g. asthma, a past injury, an allergy…" rows={2} />
+                        </div>
+                        <div>
+                          <Label className="text-xs">How does it affect their lifestyle now?</Label>
+                          <Textarea value={healthLifestyle} onChange={(e) => setHealthLifestyle(e.target.value)} placeholder="e.g. needs breaks, avoids certain activities, carries an inhaler…" rows={2} />
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-[11px] text-muted-foreground">Optional — you can update this later in your profile.</p>
+                  </div>
+                )}
                 {qrGroup && (
                   <Badge variant="secondary" className="font-normal">
                     Group enrollment via QR — group will be assigned automatically
