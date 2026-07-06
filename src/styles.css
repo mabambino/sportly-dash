@@ -114,11 +114,11 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: #A0D9D9;
-  --sidebar: oklch(0.16 0.04 265);
+  --sidebar: oklch(0.18 0.005 20);
   --sidebar-foreground: oklch(0.98 0 0);
   --sidebar-primary: #A0D9D9;
   --sidebar-primary-foreground: #0B2626;
-  --sidebar-accent: oklch(0.25 0.03 265);
+  --sidebar-accent: oklch(0.25 0.005 20);
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: #A0D9D9;
@@ -127,7 +127,7 @@
      against the dark background. Text on these buttons is --primary-foreground
      (dark), which stays legible on this lighter gradient. */
   --gradient-hero: linear-gradient(135deg, #A0D9D9 0%, #7EC8C8 55%, #5BB0B0 100%);
-  --gradient-subtle: linear-gradient(180deg, oklch(0.25 0.03 265) 0%, oklch(0.195 0.005 20) 100%);
+  --gradient-subtle: linear-gradient(180deg, oklch(0.22 0.005 20) 0%, oklch(0.195 0.005 20) 100%);
 }
 
 @layer base {
