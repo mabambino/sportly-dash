@@ -20,6 +20,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider, themeInitScript } from "@/lib/theme-context";
+import { PrivacyProvider } from "@/lib/user-settings";
 import { LanguageProvider } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { SupportBubble } from "@/components/SupportBubble";
@@ -110,9 +111,11 @@ function RootComponent() {
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
-            <Outlet />
-            <SupportBubble />
-            <Toaster richColors position="top-right" />
+            <PrivacyProvider>
+              <Outlet />
+              <SupportBubble />
+              <Toaster richColors position="top-right" />
+            </PrivacyProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>

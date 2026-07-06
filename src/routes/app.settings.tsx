@@ -18,11 +18,20 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/tabs";
-import { GripVertical, Trash2, Search, Sun, Moon, Monitor, Languages } from "lucide-react";
-import { useState, useEffect, useMemo, type DragEvent } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { GripVertical, Trash2, Search, Sun, Moon, Monitor, Languages, Camera, Eye, EyeOff, UserCircle } from "lucide-react";
+import { useState, useEffect, useMemo, type DragEvent, type ChangeEvent } from "react";
 import { describeFee, DEFAULT_FEE } from "@/lib/fees";
 import { useTheme, type Theme } from "@/lib/theme-context";
 import { useI18n, LANGUAGES, type LangCode } from "@/lib/i18n";
+import { usePrivacy, useAvatar, setLocalAvatar } from "@/lib/user-settings";
 
 export const Route = createFileRoute("/app/settings")({
   head: () => ({ meta: [{ title: "Settings — Syncletics" }] }),
@@ -36,7 +45,7 @@ const TAB_INDEX: { value: string; label: string; keywords: string[] }[] = [
   { value: "team", label: "Team", keywords: ["roles", "permissions", "members", "trainer", "student", "parent", "remove member", "staff", "promote"] },
   { value: "billing", label: "Billing", keywords: ["payment", "platform fee", "stripe", "invoices", "checkout", "revenue"] },
   { value: "dashboard", label: "Dashboard", keywords: ["layout", "cards", "tiles", "order", "rearrange", "grid", "widgets", "drag"] },
-  { value: "account", label: "Account", keywords: ["password", "display name", "email", "security", "credentials", "personal details", "profile"] },
+  { value: "account", label: "Account", keywords: ["password", "display name", "email", "security", "credentials", "personal details", "profile", "profile picture", "avatar", "photo", "privacy", "hide", "eye"] },
   { value: "appearance", label: "Appearance", keywords: ["theme", "dark mode", "light mode", "dark", "light", "system", "colors", "display"] },
   { value: "language", label: "Language", keywords: ["translation", "locale", "english", "macedonian", "albanian", "german", "french", "spanish", "multilanguage"] },
 ];
@@ -333,6 +342,147 @@ function BillingSettings() {
   );
 }
 
+function ProfilePrivacyCard() {
+  const { user, profile, refresh } = useAuth();
+  const avatar = useAvatar(user?.id, profile?.avatar_url ?? null);
+  const { hideAll, setHideAll } = usePrivacy();
+
+  const [picOpen, setPicOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [nameOpen, setNameOpen] = useState(false);
+
+  const [preview, setPreview] = useState<string | null>(null);
+  const [savingPic, setSavingPic] = useState(false);
+
+  const [name, setName] = useState(profile?.display_name ?? "");
+  const [savingName, setSavingName] = useState(false);
+  useEffect(() => { setName(profile?.display_name ?? ""); }, [profile?.display_name]);
+
+  const onPickFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 2_000_000) { toast.error("Image must be under 2MB"); return; }
+    const reader = new FileReader();
+    reader.onload = () => setPreview(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  };
+
+  const savePicture = async () => {
+    if (!user?.id || !preview) return;
+    setSavingPic(true);
+    setLocalAvatar(user.id, preview);
+    // Best-effort cloud save; the local override already updates the UI.
+    try { await supabase.from("profiles").update({ avatar_url: preview } as any).eq("id", user.id); } catch { /* ignore */ }
+    setSavingPic(false);
+    toast.success("Profile picture updated");
+    setPreview(null);
+    setPicOpen(false);
+    await refresh();
+  };
+
+  const removePicture = async () => {
+    if (!user?.id) return;
+    setLocalAvatar(user.id, null);
+    try { await supabase.from("profiles").update({ avatar_url: null } as any).eq("id", user.id); } catch { /* ignore */ }
+    setPreview(null);
+    toast.success("Profile picture removed");
+    await refresh();
+  };
+
+  const saveName = async () => {
+    if (!user?.id) return;
+    setSavingName(true);
+    const { error } = await supabase.from("profiles").update({ display_name: name.trim() }).eq("id", user.id);
+    setSavingName(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Display name updated");
+    setNameOpen(false);
+    await refresh();
+  };
+
+  const initial = profile?.display_name?.[0]?.toUpperCase() ?? "?";
+
+  return (
+    <Card className="p-6">
+      <h3 className="font-semibold">Profile &amp; privacy</h3>
+      <p className="mb-4 text-sm text-muted-foreground">Quick actions — each opens in its own small window.</p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <button type="button" onClick={() => setPicOpen(true)} className="flex flex-col items-center gap-2 rounded-xl border border-border p-4 text-center transition-colors hover:bg-accent/50">
+          {avatar
+            ? <img src={avatar} alt="Profile" className="h-12 w-12 rounded-full object-cover" />
+            : <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 font-semibold text-primary">{initial}</div>}
+          <span className="text-sm font-medium">Profile picture</span>
+        </button>
+        <button type="button" onClick={() => setPrivacyOpen(true)} className="flex flex-col items-center gap-2 rounded-xl border border-border p-4 text-center transition-colors hover:bg-accent/50">
+          <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">{hideAll ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</div>
+          <span className="text-sm font-medium">Privacy · {hideAll ? "on" : "off"}</span>
+        </button>
+        <button type="button" onClick={() => setNameOpen(true)} className="flex flex-col items-center gap-2 rounded-xl border border-border p-4 text-center transition-colors hover:bg-accent/50">
+          <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary"><UserCircle className="h-5 w-5" /></div>
+          <span className="text-sm font-medium">Display name</span>
+        </button>
+      </div>
+
+      {/* Profile picture — small window */}
+      <Dialog open={picOpen} onOpenChange={(o) => { setPicOpen(o); if (!o) setPreview(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Profile picture</DialogTitle></DialogHeader>
+          <div className="flex flex-col items-center gap-4">
+            {preview
+              ? <img src={preview} alt="Preview" className="h-24 w-24 rounded-full object-cover" />
+              : avatar
+                ? <img src={avatar} alt="Current" className="h-24 w-24 rounded-full object-cover" />
+                : <div className="grid h-24 w-24 place-items-center rounded-full bg-primary/10 text-2xl font-semibold text-primary">{initial}</div>}
+            <label className="cursor-pointer">
+              <input type="file" accept="image/*" className="hidden" onChange={onPickFile} />
+              <span className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-accent"><Camera className="h-4 w-4" /> Choose image</span>
+            </label>
+            <p className="text-xs text-muted-foreground">PNG or JPG, up to 2MB.</p>
+          </div>
+          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+            {avatar ? <Button variant="ghost" className="text-destructive" onClick={removePicture}><Trash2 className="mr-2 h-4 w-4" /> Remove</Button> : <span />}
+            <Button onClick={savePicture} disabled={!preview || savingPic}>{savingPic ? "Saving…" : "Save picture"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Privacy eye toggle — small window */}
+      <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Privacy</DialogTitle></DialogHeader>
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">{hideAll ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</div>
+              <div>
+                <p className="text-sm font-medium">Hide info on the dashboard</p>
+                <p className="text-xs text-muted-foreground">Masks members, revenue and other figures until you turn this off.</p>
+              </div>
+            </div>
+            <Switch checked={hideAll} onCheckedChange={setHideAll} aria-label="Toggle privacy mode" />
+          </div>
+          <DialogFooter><Button onClick={() => setPrivacyOpen(false)}>Done</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Display name — small window */}
+      <Dialog open={nameOpen} onOpenChange={setNameOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Display name</DialogTitle></DialogHeader>
+          <div className="space-y-1.5">
+            <Label>Display name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNameOpen(false)}>Cancel</Button>
+            <Button onClick={saveName} disabled={savingName || !name.trim()}>{savingName ? "Saving…" : "Save"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
 function AccountSettings() {
   const { profile, user, refresh } = useAuth();
   const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
@@ -371,6 +521,7 @@ function AccountSettings() {
 
   return (
     <div className="max-w-xl space-y-6">
+      <ProfilePrivacyCard />
       <Card className="p-6">
         <h3 className="font-semibold">Personal details</h3>
         <p className="mb-4 text-sm text-muted-foreground">This is how your name appears across the app.</p>

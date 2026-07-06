@@ -7,9 +7,14 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DemoSeedButton } from "@/components/DemoSeedButton";
 import { SensitiveValue } from "@/components/SensitiveValue";
+import { usePrivacy } from "@/lib/user-settings";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import {
   ArrowUpRight, Users, DollarSign, TrendingUp,
-  UserPlus, Upload, GripVertical, Check, Bell, CalendarDays, Play, Pause, Square,
+  UserPlus, Upload, GripVertical, Check, Bell, CalendarDays, Play, Pause, Square, Save,
 } from "lucide-react";
 import {
   ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid,
@@ -328,6 +333,8 @@ function StatCard({
   filled?: boolean;
   sensitive?: boolean;
 }) {
+  const { hideAll } = usePrivacy();
+  const masked = sensitive || hideAll;
   return (
     <Card className={"relative h-full overflow-hidden p-6 " + (filled ? "border-transparent bg-primary text-primary-foreground" : "")}>
       <div className="flex items-start justify-between">
@@ -348,7 +355,7 @@ function StatCard({
         </Link>
       </div>
       <p className="mt-6 text-4xl font-bold tracking-tight">
-        {sensitive ? <SensitiveValue mask="$ ••••">{value}</SensitiveValue> : value}
+        {masked ? <SensitiveValue mask={sensitive ? "$ ••••" : "••••"}>{value}</SensitiveValue> : value}
       </p>
       <div className={"mt-4 flex items-center gap-1.5 text-xs " + (filled ? "text-primary-foreground/70" : "text-muted-foreground")}>
         {SubIcon && <SubIcon className="h-3.5 w-3.5" />}
@@ -392,11 +399,57 @@ function AttendanceProgressCard({ present, total, rate }: { present: number; tot
   );
 }
 
+type TimeEntry = { id: string; memberId: string; memberName: string; ms: number; note: string; savedAt: string };
+
+function formatDuration(ms: number) {
+  const hh = Math.floor(ms / 3600000);
+  const mm = Math.floor((ms % 3600000) / 60000);
+  const ss = Math.floor((ms % 60000) / 1000);
+  return `${hh > 0 ? `${hh}h ` : ""}${String(mm).padStart(2, "0")}m ${String(ss).padStart(2, "0")}s`;
+}
+
 function TimeTrackerCard() {
+  const { club } = useAuth();
   const [ms, setMs] = useState(0);
   const [running, setRunning] = useState(false);
   const startRef = useRef<number | null>(null);
   const baseRef = useRef(0);
+
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [memberId, setMemberId] = useState<string>("");
+  const [note, setNote] = useState("");
+  const [entries, setEntries] = useState<TimeEntry[]>([]);
+
+  const entriesKey = club ? `syncletics-time-entries:${club.id}` : null;
+
+  // Load previously saved entries for this club.
+  useEffect(() => {
+    if (!entriesKey) return;
+    try {
+      const raw = JSON.parse(localStorage.getItem(entriesKey) || "null");
+      if (Array.isArray(raw)) setEntries(raw);
+    } catch {
+      /* ignore */
+    }
+  }, [entriesKey]);
+
+  // Club members the tracked time can be attributed to.
+  const { data: members } = useQuery({
+    enabled: !!club,
+    queryKey: ["time-tracker-members", club?.id],
+    queryFn: async () => {
+      const { data: mems } = await supabase.from("memberships").select("user_id").eq("club_id", club!.id);
+      const ids = (mems || []).map((m) => m.user_id);
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      return (mems || []).map((m) => ({
+        id: m.user_id,
+        name: profs?.find((p) => p.id === m.user_id)?.display_name || "Member",
+      }));
+    },
+  });
 
   useEffect(() => {
     if (!running) return;
@@ -421,17 +474,52 @@ function TimeTrackerCard() {
     setMs(0);
   };
 
+  const openSave = () => {
+    // Pause so the saved duration is stable while the dialog is open.
+    if (running) {
+      baseRef.current = ms;
+      setRunning(false);
+    }
+    setSaveOpen(true);
+  };
+
+  const saveEntry = () => {
+    if (!entriesKey) return;
+    if (!memberId) { toast.error("Choose a member to add this time to"); return; }
+    if (ms <= 0) { toast.error("Track some time before saving"); return; }
+    const member = (members || []).find((m) => m.id === memberId);
+    const entry: TimeEntry = {
+      id: `${Date.now()}`,
+      memberId,
+      memberName: member?.name || "Member",
+      ms,
+      note: note.trim(),
+      savedAt: new Date().toISOString(),
+    };
+    const next = [entry, ...entries].slice(0, 50);
+    setEntries(next);
+    try {
+      localStorage.setItem(entriesKey, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+    toast.success(`Added ${formatDuration(ms)} to ${entry.memberName}`);
+    setSaveOpen(false);
+    setNote("");
+    setMemberId("");
+    reset();
+  };
+
   const total = ms;
   const hh = String(Math.floor(total / 3600000)).padStart(2, "0");
   const mm = String(Math.floor((total % 3600000) / 60000)).padStart(2, "0");
   const ss = String(Math.floor((total % 60000) / 1000)).padStart(2, "0");
   const cs = String(Math.floor((total % 1000) / 10)).padStart(2, "0");
 
-
   return (
-    <Card className="flex h-full flex-col justify-between border-transparent bg-primary p-6 text-primary-foreground">
+    <Card className="flex h-full flex-col border-transparent bg-primary p-6 text-primary-foreground">
       <p className="text-lg font-semibold">Time Tracker</p>
-      <p className="my-6 text-center font-mono text-4xl font-bold tracking-tight tabular-nums">
+      <p className="my-5 text-center font-mono text-4xl font-bold tracking-tight tabular-nums">
         {hh}:{mm}:{ss}<span className="text-2xl opacity-70">.{cs}</span>
       </p>
 
@@ -452,12 +540,68 @@ function TimeTrackerCard() {
         >
           <Square className="h-5 w-5" />
         </button>
+        <button
+          type="button"
+          onClick={openSave}
+          disabled={ms <= 0}
+          className="grid h-12 w-12 place-items-center rounded-full bg-primary-foreground/15 text-primary-foreground transition hover:bg-primary-foreground/25 disabled:opacity-40"
+          aria-label="Save time to a member"
+          title="Save time to a member"
+        >
+          <Save className="h-5 w-5" />
+        </button>
       </div>
+
+      {entries.length > 0 && (
+        <div className="mt-5 space-y-1.5 border-t border-primary-foreground/15 pt-4">
+          <p className="text-xs font-medium uppercase tracking-wider opacity-70">Recent</p>
+          {entries.slice(0, 3).map((e) => (
+            <div key={e.id} className="flex items-center justify-between text-sm">
+              <span className="truncate">{e.memberName}</span>
+              <span className="font-mono tabular-nums opacity-90">{formatDuration(e.ms)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add time to a member</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-foreground">
+            <div className="rounded-lg bg-muted p-3 text-center font-mono text-2xl font-bold tabular-nums">
+              {formatDuration(ms)}
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Member</label>
+              <Select value={memberId} onValueChange={setMemberId}>
+                <SelectTrigger><SelectValue placeholder="Select a member" /></SelectTrigger>
+                <SelectContent>
+                  {(members || []).map((m) => (
+                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Note (optional)</label>
+              <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. 1:1 session" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveOpen(false)}>Cancel</Button>
+            <Button onClick={saveEntry}><Save className="mr-2 h-4 w-4" /> Save time</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
 
 function MemberHome({ data, profile }: { data: any; profile: any }) {
+  const { hideAll } = usePrivacy();
+  const stat = (value: number) => (hideAll ? <SensitiveValue>{value}</SensitiveValue> : value);
   return (
     <div className="space-y-6">
       <div>
@@ -465,9 +609,9 @@ function MemberHome({ data, profile }: { data: any; profile: any }) {
         <h1 className="mt-1 text-3xl font-bold">Your home</h1>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Upcoming sessions</p><p className="mt-2 text-3xl font-bold">{data?.slots.length ?? 0}</p></Card>
-        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Announcements</p><p className="mt-2 text-3xl font-bold">{data?.ann.length ?? 0}</p></Card>
-        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Members in club</p><p className="mt-2 text-3xl font-bold">{data?.members.length ?? 0}</p></Card>
+        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Upcoming sessions</p><p className="mt-2 text-3xl font-bold">{stat(data?.slots.length ?? 0)}</p></Card>
+        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Announcements</p><p className="mt-2 text-3xl font-bold">{stat(data?.ann.length ?? 0)}</p></Card>
+        <Card className="p-5"><p className="text-xs uppercase text-muted-foreground">Members in club</p><p className="mt-2 text-3xl font-bold">{stat(data?.members.length ?? 0)}</p></Card>
       </div>
       <Card className="p-6">
         <p className="text-sm font-medium">Upcoming sessions</p>
