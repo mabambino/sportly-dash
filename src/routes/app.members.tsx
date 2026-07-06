@@ -12,10 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
 import { Download, Search, UserPlus, QrCode, Copy } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/members")({
+  // Accept an optional ?q= so the global search can deep-link a member lookup.
+  // Returning an object with the key omitted (rather than q: undefined) keeps the
+  // param truly optional, so existing <Link to="/app/members"> calls still compile.
+  validateSearch: (search: Record<string, unknown>): { q?: string } =>
+    typeof search.q === "string" && search.q ? { q: search.q } : {},
   head: () => ({ meta: [{ title: "Members — Syncletics" }] }),
   component: MembersPage,
 });
@@ -23,7 +28,13 @@ export const Route = createFileRoute("/app/members")({
 function MembersPage() {
   const { club, isStaff } = useAuth();
   const qc = useQueryClient();
-  const [q, setQ] = useState("");
+  const { q: initialQ } = Route.useSearch();
+  const [q, setQ] = useState(initialQ ?? "");
+
+  // Keep the search box in sync when navigated here with a new ?q=.
+  useEffect(() => {
+    if (initialQ !== undefined) setQ(initialQ);
+  }, [initialQ]);
   const [addOpen, setAddOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
 
