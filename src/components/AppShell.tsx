@@ -18,10 +18,12 @@ import {
   Sun, Moon, Languages,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
+import logoSyncleticsWhite from "@/assets/logo-syncletics-white.svg";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
+import { useAvatar } from "@/lib/user-settings";
 
 
 type NavItem = { to: string; labelKey: string; icon: typeof Users };
@@ -162,6 +164,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     </DropdownMenu>
   );
 
+  const UserBubble = ({ size, fallbackClass }: { size: string; fallbackClass: string }) => {
+    const avatar = useAvatar(user.id, profile?.avatar_url ?? null);
+    const initial = profile?.display_name?.[0]?.toUpperCase() ?? "?";
+    return avatar ? (
+      <img src={avatar} alt={profile?.display_name ?? "Profile"} className={cn(size, "shrink-0 rounded-full object-cover")} />
+    ) : (
+      <div className={cn(size, "grid shrink-0 place-items-center rounded-full", fallbackClass)}>{initial}</div>
+    );
+  };
+
   const NavList = () => (
     <nav className="space-y-4">
       {sections.map((section, i) => (
@@ -203,7 +215,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
           <Link to="/app/dashboard" className="flex items-center">
-            <img src={logoSyncletics} alt="Syncletics" className="h-6 w-auto dark:invert-0 invert" />
+            <img src={logoSyncletics} alt="Syncletics" className="h-6 w-auto dark:hidden" />
+            <img src={logoSyncleticsWhite} alt="Syncletics" className="hidden h-6 w-auto dark:block" />
           </Link>
         </div>
         <div className="flex items-center gap-1">
@@ -221,7 +234,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
         >
           <Link to="/app/dashboard" className="mb-6 flex items-center gap-2 px-2">
-            <img src={logoSyncletics} alt="Syncletics" className="h-7 w-auto" />
+            <img src={logoSyncletics} alt="Syncletics" className="h-7 w-auto dark:hidden" />
+            <img src={logoSyncleticsWhite} alt="Syncletics" className="hidden h-7 w-auto dark:block" />
           </Link>
           <button
             type="button"
@@ -244,9 +258,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mt-auto space-y-3 pt-4 lg:hidden">
             <LanguageMenu />
             <div className="flex items-center gap-2 rounded-lg px-2 py-2">
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                {profile?.display_name?.[0]?.toUpperCase() ?? "?"}
-              </div>
+              <UserBubble size="h-8 w-8" fallbackClass="bg-primary/10 text-xs font-semibold text-primary" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{profile?.display_name}</p>
                 <p className="truncate text-xs capitalize text-muted-foreground">{membership.role.replace("_", " ")}</p>
@@ -294,9 +306,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             </div>
             <Link to="/app/profile" className="flex items-center gap-3 rounded-full border border-border py-1 pl-1 pr-4 transition hover:bg-muted">
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                {profile?.display_name?.[0]?.toUpperCase() ?? "?"}
-              </div>
+              <UserBubble size="h-8 w-8" fallbackClass="bg-primary text-xs font-semibold text-primary-foreground" />
               <div className="min-w-0 leading-tight">
                 <p className="truncate text-xs font-bold uppercase tracking-wider">{profile?.display_name}</p>
                 <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
