@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Calendar, MessageSquare, CreditCard, Users, BarChart3, Trophy, Eye, EyeOff, GraduationCap, HeartHandshake, Building2 } from "lucide-react";
+import logoSyncletics from "@/assets/logo-syncletics.svg";
+import logoSyncleticsWhite from "@/assets/logo-syncletics-white.svg";
 
 const searchSchema = z.object({ mode: z.enum(["login", "signup"]).optional() });
 
