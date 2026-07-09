@@ -52,11 +52,11 @@ const WIDGET_SIZES: Record<string, string> = {
   "Attendance Rate": "lg:col-span-3",
   "Upcoming Sessions": "lg:col-span-3",
   "Monthly Revenue": "lg:col-span-3",
-  "Club Analytics": "lg:col-span-8",
-  "Reminders": "lg:col-span-4",
-  "Attendance Progress": "lg:col-span-4",
-  "Time Tracker": "lg:col-span-4",
-  "Announcements": "lg:col-span-4",
+  "Club Analytics": "col-span-2 lg:col-span-8",
+  "Reminders": "col-span-2 lg:col-span-4",
+  "Attendance Progress": "col-span-2 lg:col-span-4",
+  "Time Tracker": "col-span-2 lg:col-span-4",
+  "Announcements": "col-span-2 lg:col-span-4",
 };
 
 function Dashboard() {
@@ -319,13 +319,13 @@ function Dashboard() {
 
       {/* Every dashboard widget participates in one persistent drag order. */}
       {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-12">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-12">
           {DEFAULT_WIDGET_ORDER.map((name) => (
             <Card key={name} className={`${WIDGET_SIZES[name]} p-6`}><Skeleton className="h-4 w-24" /><Skeleton className="mt-4 h-10 w-20" /><Skeleton className="mt-4 h-3 w-24" /></Card>
           ))}
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-12">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-12">
           {cardOrder.map((name, index) => {
             const c = STAT_CARDS[name];
             let content: ReactNode;
