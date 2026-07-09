@@ -132,12 +132,12 @@ function SettingsPage() {
         </Card>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex w-full flex-wrap justify-start gap-1 border-b border-border bg-transparent p-0">
+          <TabsList className="flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto border-b border-border bg-transparent p-0">
             {visibleTabs.map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="shrink-0 whitespace-nowrap rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
               >
                 {tab.label}
               </TabsTrigger>
