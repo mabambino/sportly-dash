@@ -25,6 +25,7 @@ import { PrivacyProvider } from "@/lib/user-settings";
 import { LanguageProvider } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { SupportBubble } from "@/components/SupportBubble";
+import { initNative } from "@/lib/native";
 
 function NotFoundComponent() {
   return (
@@ -111,6 +112,7 @@ function RootComponent() {
     });
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
+  useEffect(() => { void initNative(); }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
