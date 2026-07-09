@@ -15,12 +15,13 @@ import { toast } from "sonner";
 import {
   ArrowUpRight, Users, DollarSign, TrendingUp,
   UserPlus, Upload, GripVertical, Check, Bell, CalendarDays, Play, Pause, Square, Save, Eye, EyeOff,
+  Zap, CreditCard, CalendarPlus, Megaphone,
 } from "lucide-react";
 import {
   ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid,
   RadialBarChart, RadialBar, PolarAngleAxis,
 } from "recharts";
-import { format, subDays, endOfDay, startOfMonth } from "date-fns";
+import { format, subDays, endOfDay, startOfMonth, startOfYear } from "date-fns";
 import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 
 export const Route = createFileRoute("/app/dashboard")({
@@ -68,11 +69,10 @@ function Dashboard() {
     enabled: !!club,
     queryKey: ["dashboard", club?.id],
     queryFn: async () => {
-      const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
       const [members, slots, monthPayments, attTotal, attPresent, ann] = await Promise.all([
         supabase.from("memberships").select("role, joined_at").eq("club_id", club!.id),
         supabase.from("time_slots").select("*").eq("club_id", club!.id).gte("starts_at", new Date().toISOString()).order("starts_at").limit(5),
-        supabase.from("payments").select("amount_cents, status").eq("club_id", club!.id).gte("period_month", monthStart),
+        supabase.from("payments").select("amount_cents, status, period_month").eq("club_id", club!.id).gte("period_month", format(startOfYear(new Date()), "yyyy-MM-dd")),
         supabase.from("attendance_records").select("id, time_slots!inner(club_id)", { count: "exact", head: true }).eq("time_slots.club_id", club!.id),
         supabase.from("attendance_records").select("id, time_slots!inner(club_id)", { count: "exact", head: true }).eq("time_slots.club_id", club!.id).eq("status", "present"),
         supabase.from("announcements").select("*").eq("club_id", club!.id).order("created_at", { ascending: false }).limit(3),
@@ -93,8 +93,20 @@ function Dashboard() {
   const members = data?.members || [];
   const students = members.filter((m) => m.role === "student");
   const attRate = data?.attTotal ? Math.round((data.attPresent / data.attTotal) * 100) : 0;
-  const paidThisMonth = (data?.monthPayments || []).filter((p) => p.status === "paid");
+  const monthStartStr = format(startOfMonth(new Date()), "yyyy-MM-dd");
+  const paidThisMonth = (data?.monthPayments || []).filter((p) => p.status === "paid" && p.period_month >= monthStartStr);
   const revenueThisMonth = paidThisMonth.reduce((s, p) => s + p.amount_cents, 0) / 100;
+  const [revPeriod, setRevPeriod] = useState<"month" | "quarter" | "year">("month");
+  const revPeriodStart = (() => {
+    const now = new Date();
+    if (revPeriod === "month") return monthStartStr;
+    if (revPeriod === "quarter") return format(new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1), "yyyy-MM-dd");
+    return format(startOfYear(now), "yyyy-MM-dd");
+  })();
+  const periodPayments = (data?.monthPayments || []).filter((p) => p.period_month >= revPeriodStart);
+  const revCollected = periodPayments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount_cents, 0) / 100;
+  const revOutstanding = periodPayments.filter((p) => p.status !== "paid").reduce((s, p) => s + p.amount_cents, 0) / 100;
+  const revOverdue = periodPayments.filter((p) => p.status === "overdue").length;
 
   const growth = useMemo(() => {
     const days = 7;
@@ -198,9 +210,56 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Mobile hero: revenue summary */}
+      <div className="rounded-3xl bg-gradient-to-br from-primary to-primary/70 p-5 text-primary-foreground lg:hidden">
+        <div className="flex items-center gap-2">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-primary-foreground/20"><DollarSign className="h-4 w-4" /></span>
+          <p className="font-medium">Total Revenue</p>
+        </div>
+        <p className="mt-3 text-5xl font-bold tracking-tight">
+          {hideAll ? <SensitiveValue mask="$ ••••">{`$${revCollected.toFixed(2)}`}</SensitiveValue> : `$${revCollected.toFixed(2)}`}
+        </p>
+        <div className="mt-4 flex gap-10 text-sm">
+          <div><p className="text-primary-foreground/70">Outstanding</p><p className="mt-0.5 font-semibold">{hideAll ? "••••" : `$${revOutstanding.toFixed(2)}`}</p></div>
+          <div><p className="text-primary-foreground/70">Overdue</p><p className="mt-0.5 font-semibold">{revOverdue}</p></div>
+        </div>
+        <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1">
+          {([["month", "This Month"], ["quarter", "This Quarter"], ["year", "This Year"]] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setRevPeriod(key)}
+              className={"whitespace-nowrap rounded-full border border-primary-foreground/30 px-4 py-1.5 text-sm font-medium transition " + (revPeriod === key ? "bg-primary-foreground text-primary" : "text-primary-foreground/90 hover:bg-primary-foreground/10")}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile quick actions */}
+      <div className="lg:hidden">
+        <div className="flex items-center gap-2">
+          <Zap className="h-5 w-5" />
+          <h2 className="text-xl font-bold">Quick Actions</h2>
+        </div>
+        <div className="-mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-1">
+          {([
+            { to: "/app/billing", label: "New Invoice", icon: CreditCard },
+            { to: "/app/schedule", label: "New Session", icon: CalendarPlus },
+            { to: "/app/members", label: "New Member", icon: UserPlus },
+            { to: "/app/announcements", label: "Announcement", icon: Megaphone },
+          ] as const).map((qa) => (
+            <Link key={qa.label} to={qa.to} className="flex w-36 shrink-0 flex-col items-center gap-3 rounded-2xl border border-border bg-card py-5 transition hover:border-primary/40">
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/15 text-primary"><qa.icon className="h-5 w-5" /></span>
+              <span className="text-sm font-medium">{qa.label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
+        <div className="hidden min-w-0 lg:block">
           <p className="text-sm text-muted-foreground">Welcome back{profile ? `, ${profile.display_name.split(" ")[0]}` : ""}</p>
           <h1 className="mt-1 truncate text-3xl font-bold tracking-tight sm:text-4xl">{club?.name} Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">Manage your club, members, and sessions with ease.</p>
