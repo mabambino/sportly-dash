@@ -15,8 +15,9 @@ import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
-  Sun, Moon, Languages, MoreHorizontal,
+  Sun, Moon, Languages, Menu,
 } from "lucide-react";
+import faviconUrl from "@/assets/favicon.svg";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
 import logoSyncleticsWhite from "@/assets/logo-syncletics-white.svg";
 import { useState } from "react";
@@ -230,13 +231,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Mobile header */}
       <header className="sticky top-0 z-40 grid h-14 grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-border bg-background px-4 lg:hidden">
-        <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="flex items-center">
-          <UserBubble size="h-9 w-9" fallbackClass="bg-primary/10 text-sm font-semibold text-primary" />
+        <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="grid h-9 w-9 place-items-center rounded-full text-foreground hover:bg-muted">
+          <Menu className="h-5 w-5" />
         </button>
-        <p className="truncate text-center font-display text-lg font-semibold">{pageTitle}</p>
-        <div className="flex items-center gap-1 justify-self-end">
-          <ThemeToggle />
-          <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
+        <Link to="/app/dashboard" className="flex items-center justify-center" aria-label="Dashboard">
+          <img src={faviconUrl} alt="Syncletics" className="h-7 w-7 dark:invert" />
+        </Link>
+        <div className="justify-self-end">
+          <NotificationsPopover />
         </div>
       </header>
 
@@ -323,6 +325,33 @@ export function AppShell({ children }: { children: ReactNode }) {
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
         {moreOpen && (
           <div className="absolute inset-x-0 bottom-full space-y-0.5 rounded-t-2xl border-t border-border bg-background p-2 shadow-lg">
+            <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+              <UserBubble size="h-9 w-9" fallbackClass="bg-primary/10 text-sm font-semibold text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{profile?.display_name}</p>
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+              </div>
+            </div>
+            <Link
+              to="/app/profile"
+              onClick={() => setMoreOpen(false)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname === "/app/profile" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+              )}
+            >
+              <UserIcon className="h-4 w-4" /> {t("nav.profile")}
+            </Link>
+            <Link
+              to="/app/settings"
+              onClick={() => setMoreOpen(false)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname === "/app/settings" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+              )}
+            >
+              <Settings className="h-4 w-4" /> {t("nav.settings")}
+            </Link>
             {moreTabs.map((item) => {
               const active = pathname === item.to;
               return (
@@ -339,6 +368,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Link>
               );
             })}
+            <button
+              type="button"
+              onClick={() => { setMoreOpen(false); signOut(); }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              <LogOut className="h-4 w-4" /> {t("common.signOut")}
+            </button>
           </div>
         )}
         <div className="grid grid-cols-5">
@@ -364,12 +400,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setMoreOpen(!moreOpen)}
             className={cn(
               "flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
-              moreOpen || moreTabs.some((i) => pathname === i.to) ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              moreOpen || pathname === "/app/profile" || pathname === "/app/settings" || moreTabs.some((i) => pathname === i.to)
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
             )}
-            aria-label={t("nav.more")}
+            aria-label="Account"
           >
-            <MoreHorizontal className="h-5 w-5" />
-            <span>{t("nav.more")}</span>
+            <UserBubble size="h-5 w-5" fallbackClass="bg-primary/10 text-[9px] font-semibold text-primary" />
+            <span>Account</span>
           </button>
         </div>
       </nav>
