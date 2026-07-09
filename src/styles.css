@@ -191,3 +191,9 @@ textarea,
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.01em;
 }
+
+/* While the on-screen keyboard is open (native shell), hide app chrome so it
+   does not ride up above the keyboard like a webpage. */
+.kb-open [data-hide-on-keyboard] {
+  display: none !important;
+}
