@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useState } from "react";
-import { Plus, Send, Hash, Radio } from "lucide-react";
+import { Plus, Send, Hash, Radio, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ function ChatPage() {
   const [activeChannel, setActiveChannel] = useState<string>("");
   const [draft, setDraft] = useState("");
   const [open, setOpen] = useState(false);
+  const [mobileThreadOpen, setMobileThreadOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: channels } = useQuery({
@@ -74,8 +75,8 @@ function ChatPage() {
   };
 
   return (
-    <div className="grid h-[calc(100vh-12rem)] grid-cols-1 gap-4 md:grid-cols-[16rem_1fr]">
-      <Card className="p-3">
+    <div className="grid h-[calc(100dvh-11.5rem)] grid-cols-1 gap-4 md:h-[calc(100vh-12rem)] md:grid-cols-[16rem_1fr]">
+      <Card className={cn("p-3", mobileThreadOpen && "hidden md:block")}>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-semibold">Channels</p>
           {isStaff && (
@@ -88,45 +89,51 @@ function ChatPage() {
         <div className="space-y-1">
           {channels?.length === 0 && <p className="px-2 text-xs text-muted-foreground">No channels yet.</p>}
           {channels?.map((c) => (
-            <button key={c.id} onClick={() => setActiveChannel(c.id)} className={cn(
-              "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm",
+            <button key={c.id} onClick={() => { setActiveChannel(c.id); setMobileThreadOpen(true); }} className={cn(
+              "flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-sm transition-colors",
               activeChannel === c.id ? "bg-primary text-primary-foreground" : "hover:bg-accent"
             )}>
-              {c.is_broadcast ? <Radio className="h-3.5 w-3.5" /> : <Hash className="h-3.5 w-3.5" />}
-              <span className="truncate">{c.name}</span>
+              <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", activeChannel === c.id ? "bg-primary-foreground/20" : "bg-primary/10 text-primary")}>
+                {c.is_broadcast ? <Radio className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-medium">{c.name}</span>
+                <span className={cn("block truncate text-xs", activeChannel === c.id ? "text-primary-foreground/70" : "text-muted-foreground")}>{c.is_broadcast ? "Broadcast" : "Group chat"}</span>
+              </span>
             </button>
           ))}
         </div>
       </Card>
 
-      <Card className="flex flex-col overflow-hidden p-0">
-        <div className="border-b border-border p-4">
-          <p className="font-semibold">{channels?.find((c) => c.id === activeChannel)?.name || "Select a channel"}</p>
+      <Card className={cn("flex flex-col overflow-hidden p-0", !mobileThreadOpen && "hidden md:flex")}>
+        <div className="flex items-center gap-2 border-b border-border p-3 md:p-4">
+          <button type="button" onClick={() => setMobileThreadOpen(false)} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-muted md:hidden" aria-label="Back to channels">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+            {channels?.find((c) => c.id === activeChannel)?.is_broadcast ? <Radio className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
+          </span>
+          <p className="truncate font-semibold">{channels?.find((c) => c.id === activeChannel)?.name || "Select a channel"}</p>
         </div>
-        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+        <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4">
           {messages?.length === 0 && <p className="text-center text-sm text-muted-foreground">No messages yet — say hi 👋</p>}
           {messages?.map((m) => {
             const mine = m.sender_id === user?.id;
             return (
-              <div key={m.id} className={cn("flex gap-2", mine && "flex-row-reverse")}>
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                  {m.sender?.display_name?.[0]?.toUpperCase() ?? "?"}
-                </div>
-                <div className={cn("max-w-[70%]", mine && "items-end text-right")}>
-                  <p className="text-xs text-muted-foreground">{m.sender?.display_name} · {format(new Date(m.created_at), "h:mm a")}</p>
-                  <div className={cn("mt-1 inline-block rounded-2xl px-3 py-2 text-sm",
-                    mine ? "bg-primary text-primary-foreground" : "bg-muted")}>
-                    {m.content}
-                  </div>
+              <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
+                <div className={cn("max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm", mine ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm bg-muted")}>
+                  {!mine && <p className="mb-0.5 text-[11px] font-semibold text-primary">{m.sender?.display_name}</p>}
+                  <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                  <p className={cn("mt-1 text-right text-[10px] leading-none", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>{format(new Date(m.created_at), "h:mm a")}</p>
                 </div>
               </div>
             );
           })}
         </div>
         {activeChannel && (
-          <form onSubmit={send} className="flex gap-2 border-t border-border p-3">
-            <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Message…" />
-            <Button type="submit" size="icon" className="bg-gradient-hero"><Send className="h-4 w-4" /></Button>
+          <form onSubmit={send} className="flex items-center gap-2 border-t border-border p-3">
+            <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Message…" className="h-10 rounded-full" />
+            <Button type="submit" size="icon" className="h-10 w-10 shrink-0 rounded-full bg-gradient-hero"><Send className="h-4 w-4" /></Button>
           </form>
         )}
       </Card>
