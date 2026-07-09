@@ -24,7 +24,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { EnrollQRDialog } from "@/components/EnrollQRDialog";
 import { GlobalSearch } from "@/components/GlobalSearch";
-import { MessagesPopover, AnnouncementsPopover, NotificationsPopover } from "@/components/HeaderQuickViews";
+import { MessagesPopover, AnnouncementsPopover, NotificationsPopover, AlertsPopover } from "@/components/HeaderQuickViews";
 import { useAvatar } from "@/lib/user-settings";
 
 
@@ -109,8 +109,6 @@ const bottomTabs: NavItem[] = [
 
 const moreTabs: NavItem[] = [
   { to: "/app/billing", labelKey: "nav.billingRevenue", icon: CreditCard },
-  { to: "/app/announcements", labelKey: "nav.announcements", icon: Megaphone },
-  { to: "/app/notifications", labelKey: "nav.notifications", icon: Bell },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -238,7 +236,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <img src={faviconUrl} alt="Syncletics" className="h-7 w-7 dark:invert" />
         </Link>
         <div className="justify-self-end">
-          <NotificationsPopover />
+          <AlertsPopover />
         </div>
       </header>
 
