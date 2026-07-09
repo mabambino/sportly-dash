@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
-  CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Menu, Kanban, Layers,
+  CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
   Sun, Moon, Languages, MoreHorizontal,
 } from "lucide-react";
@@ -133,6 +133,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const sections = isStaff ? adminSections : memberSections;
   const currentLang = LANGUAGES.find((l) => l.code === lang) ?? LANGUAGES[0];
+  const pageTitle = (() => {
+    const all = [...adminSections, ...memberSections].flatMap((s) => s.items).concat(moreTabs);
+    const hit = all.find((i) => i.to === pathname);
+    return hit ? t(hit.labelKey) : club.name;
+  })();
 
   const ThemeToggle = ({ className }: { className?: string }) => (
     <button
@@ -224,17 +229,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile header */}
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:hidden">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
-            <Menu className="h-5 w-5" />
-          </Button>
-          <Link to="/app/dashboard" className="flex items-center">
-            <img src={logoSyncletics} alt="Syncletics" className="h-6 w-auto dark:hidden" />
-            <img src={logoSyncleticsWhite} alt="Syncletics" className="hidden h-6 w-auto dark:block" />
-          </Link>
-        </div>
-        <div className="flex items-center gap-1">
+      <header className="sticky top-0 z-40 grid h-14 grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-border bg-background px-4 lg:hidden">
+        <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="flex items-center">
+          <UserBubble size="h-9 w-9" fallbackClass="bg-primary/10 text-sm font-semibold text-primary" />
+        </button>
+        <p className="truncate text-center font-display text-lg font-semibold">{pageTitle}</p>
+        <div className="flex items-center gap-1 justify-self-end">
           <ThemeToggle />
           <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
         </div>
