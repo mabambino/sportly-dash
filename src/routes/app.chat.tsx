@@ -13,6 +13,11 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const previewTime = (iso: string) => {
+  const d = new Date(iso);
+  return d.toDateString() === new Date().toDateString() ? format(d, "h:mm a") : format(d, "MMM d");
+};
+
 export const Route = createFileRoute("/app/chat")({
   head: () => ({ meta: [{ title: "Chat — Syncletics" }] }),
   component: ChatPage,
@@ -32,7 +37,19 @@ function ChatPage() {
     queryKey: ["channels", club?.id],
     queryFn: async () => {
       const { data } = await supabase.from("chat_channels").select("*").eq("club_id", club!.id).order("created_at");
-      return data || [];
+      const list = data || [];
+      const ids = list.map((c) => c.id);
+      const { data: recent } = await supabase
+        .from("chat_messages")
+        .select("channel_id, content, created_at")
+        .in("channel_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"])
+        .order("created_at", { ascending: false })
+        .limit(120);
+      const lastByChannel: Record<string, { content: string; created_at: string }> = {};
+      for (const m of recent || []) {
+        if (!lastByChannel[m.channel_id]) lastByChannel[m.channel_id] = m;
+      }
+      return list.map((c) => ({ ...c, last: lastByChannel[c.id] as { content: string; created_at: string } | undefined }));
     },
   });
 
@@ -97,8 +114,17 @@ function ChatPage() {
                 {c.is_broadcast ? <Radio className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium">{c.name}</span>
-                <span className={cn("block truncate text-xs", activeChannel === c.id ? "text-primary-foreground/70" : "text-muted-foreground")}>{c.is_broadcast ? "Broadcast" : "Group chat"}</span>
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className="truncate font-medium">{c.name}</span>
+                  {c.last && (
+                    <span className={cn("shrink-0 text-[11px]", activeChannel === c.id ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                      {previewTime(c.last.created_at)}
+                    </span>
+                  )}
+                </span>
+                <span className={cn("block truncate text-xs", activeChannel === c.id ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                  {c.last ? c.last.content : c.is_broadcast ? "Broadcast" : "Group chat"}
+                </span>
               </span>
             </button>
           ))}
@@ -115,7 +141,7 @@ function ChatPage() {
           </span>
           <p className="truncate font-semibold">{channels?.find((c) => c.id === activeChannel)?.name || "Select a channel"}</p>
         </div>
-        <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4">
+        <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto bg-muted/20 p-4">
           {messages?.length === 0 && <p className="text-center text-sm text-muted-foreground">No messages yet — say hi 👋</p>}
           {messages?.map((m) => {
             const mine = m.sender_id === user?.id;
