@@ -217,6 +217,7 @@ export function SupportBubble() {
       )}
 
       <button
+        data-hide-on-keyboard
         onClick={() => setOpen((o) => !o)}
         aria-label="Support"
         className="fixed bottom-20 right-4 z-50 flex h-14 w-14 lg:bottom-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:shadow-xl sm:right-6"
