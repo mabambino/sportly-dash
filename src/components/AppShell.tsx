@@ -231,13 +231,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Mobile header */}
       <header className="sticky top-0 z-40 grid h-14 grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-border bg-background px-4 lg:hidden">
-        <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="flex items-center">
-          <UserBubble size="h-9 w-9" fallbackClass="bg-primary/10 text-sm font-semibold text-primary" />
+        <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="grid h-9 w-9 place-items-center rounded-full text-foreground hover:bg-muted">
+          <Menu className="h-5 w-5" />
         </button>
-        <p className="truncate text-center font-display text-lg font-semibold">{pageTitle}</p>
-        <div className="flex items-center gap-1 justify-self-end">
-          <ThemeToggle />
-          <Badge variant="outline" className="font-mono text-xs">{club.team_code}</Badge>
+        <Link to="/app/dashboard" className="flex items-center justify-center" aria-label="Dashboard">
+          <img src={faviconUrl} alt="Syncletics" className="h-7 w-7 dark:invert" />
+        </Link>
+        <div className="justify-self-end">
+          <NotificationsPopover />
         </div>
       </header>
 
