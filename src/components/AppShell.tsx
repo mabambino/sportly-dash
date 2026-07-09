@@ -323,7 +323,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {moreOpen && (
         <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMoreOpen(false)} />
       )}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav data-hide-on-keyboard className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
         {moreOpen && (
           <div className="absolute inset-x-0 bottom-full space-y-0.5 rounded-t-2xl border-t border-border bg-background p-2 shadow-lg">
             <div className="flex items-center gap-3 rounded-lg px-3 py-2">
