@@ -287,7 +287,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {mobileOpen && <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
-        <main className="min-h-screen flex-1 lg:ml-0">
+        <main className="min-h-screen min-w-0 flex-1 overflow-x-hidden lg:ml-0">
           {/* Desktop top bar */}
           <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b border-border bg-background/80 px-6 backdrop-blur lg:flex xl:px-8">
             <GlobalSearch />
