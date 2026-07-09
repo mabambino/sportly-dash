@@ -30,6 +30,9 @@ export async function initNative() {
   try {
     const { Keyboard } = await import("@capacitor/keyboard");
     await Keyboard.setAccessoryBarVisible({ isVisible: false });
+    // Flag keyboard state so CSS can hide the tab bar / floating buttons while typing.
+    void Keyboard.addListener("keyboardWillShow", () => document.documentElement.classList.add("kb-open"));
+    void Keyboard.addListener("keyboardWillHide", () => document.documentElement.classList.remove("kb-open"));
   } catch {
     /* plugin not installed */
   }
