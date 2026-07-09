@@ -7,6 +7,9 @@ import { Capacitor } from "@capacitor/core";
 export async function initNative() {
   if (!Capacitor.isNativePlatform()) return;
 
+  // Let CSS target the native shell (system font, Apple type sizes, safe areas).
+  document.documentElement.classList.add("native");
+
   // Status bar: match the app theme and react to dark-mode toggles.
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
