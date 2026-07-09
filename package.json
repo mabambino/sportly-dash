@@ -13,7 +13,10 @@
   },
   "dependencies": {
     "@capacitor/core": "^7.0.0",
+    "@capacitor/haptics": "^7.0.0",
     "@capacitor/ios": "^7.0.0",
+    "@capacitor/keyboard": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/space-grotesk": "^5.2.10",
     "@hookform/resolvers": "^5.2.2",
