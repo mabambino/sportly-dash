@@ -70,7 +70,7 @@ export function SupportBubble() {
   return (
     <>
       {open && (
-        <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm rounded-2xl border bg-background shadow-2xl sm:right-6 animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-40 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm lg:bottom-24 rounded-2xl border bg-background shadow-2xl sm:right-6 animate-in fade-in slide-in-from-bottom-2">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div>
               <h3 className="text-sm font-semibold">
@@ -219,7 +219,7 @@ export function SupportBubble() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Support"
-        className="fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:shadow-xl sm:bottom-6 sm:right-6"
+        className="fixed bottom-20 right-4 z-50 flex h-14 w-14 lg:bottom-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:shadow-xl sm:right-6"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </button>
