@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   ArrowUpRight, Users, DollarSign, TrendingUp,
   UserPlus, Upload, GripVertical, Check, Bell, CalendarDays, Play, Pause, Square, Save, Eye, EyeOff,
-  Zap, CreditCard, CalendarPlus, Megaphone,
+  Zap, CreditCard, CalendarPlus, Megaphone, ChevronUp, ChevronDown,
 } from "lucide-react";
 import {
   ResponsiveContainer, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid,
@@ -161,6 +161,25 @@ function Dashboard() {
     // older deployments without dashboard_prefs still retain the arrangement.
     localStorage.setItem(`syncletics-dashboard-order:${profile.id}`, JSON.stringify(next));
 
+    const { error } = await supabase
+      .from("profiles")
+      .update({ dashboard_prefs: { ...prefs, order: next } } as any)
+      .eq("id", profile.id);
+    if (error) {
+      return;
+    }
+    await refresh();
+  };
+
+  // Touch-friendly reordering for mobile, where HTML5 drag-and-drop does not fire.
+  const moveCardBy = async (index: number, delta: number) => {
+    const target = index + delta;
+    if (target < 0 || target >= cardOrder.length || !profile?.id) return;
+    const next = [...cardOrder];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    setCardOrder(next);
+    localStorage.setItem("syncletics-dashboard-order:" + profile.id, JSON.stringify(next));
     const { error } = await supabase
       .from("profiles")
       .update({ dashboard_prefs: { ...prefs, order: next } } as any)
@@ -354,6 +373,10 @@ function Dashboard() {
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={() => void moveCard(index)}
                 onDragEnd={() => setDragIndex(null)}
+                onMoveUp={() => void moveCardBy(index, -1)}
+                onMoveDown={() => void moveCardBy(index, 1)}
+                canMoveUp={index > 0}
+                canMoveDown={index < cardOrder.length - 1}
               >
                 {content}
               </DashboardWidget>
@@ -366,7 +389,7 @@ function Dashboard() {
 }
 
 function DashboardWidget({
-  children, className, rearranging, dragging, onDragStart, onDragOver, onDrop, onDragEnd,
+  children, className, rearranging, dragging, onDragStart, onDragOver, onDrop, onDragEnd, onMoveUp, onMoveDown, canMoveUp, canMoveDown,
 }: {
   children: ReactNode;
   className?: string;
@@ -376,6 +399,10 @@ function DashboardWidget({
   onDragOver?: (event: DragEvent<HTMLDivElement>) => void;
   onDrop?: () => void;
   onDragEnd?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }) {
   return (
     <div
@@ -386,7 +413,17 @@ function DashboardWidget({
       onDragEnd={onDragEnd}
       className={`${className ?? ""} relative h-full transition ${rearranging ? "cursor-grab select-none rounded-xl ring-2 ring-primary active:cursor-grabbing" : ""} ${dragging ? "scale-[0.98] opacity-50" : ""}`}
     >
-      {rearranging && <span className="absolute right-3 top-3 z-20 grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground shadow"><GripVertical className="h-4 w-4" /></span>}
+      {rearranging && <span className="absolute right-3 top-3 z-20 hidden h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground shadow lg:grid"><GripVertical className="h-4 w-4" /></span>}
+      {rearranging && (
+        <div className="absolute right-3 top-3 z-20 flex gap-1.5 lg:hidden">
+          <button type="button" onClick={onMoveUp} disabled={!canMoveUp} className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground shadow disabled:opacity-40" aria-label="Move up">
+            <ChevronUp className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={onMoveDown} disabled={!canMoveDown} className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground shadow disabled:opacity-40" aria-label="Move down">
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       <div className={`h-full ${rearranging ? "pointer-events-none" : ""}`}>{children}</div>
     </div>
   );
