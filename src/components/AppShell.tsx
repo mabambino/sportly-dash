@@ -15,8 +15,9 @@ import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
-  Sun, Moon, Languages, MoreHorizontal,
+  Sun, Moon, Languages, Menu,
 } from "lucide-react";
+import faviconUrl from "@/assets/favicon.svg";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
 import logoSyncleticsWhite from "@/assets/logo-syncletics-white.svg";
 import { useState } from "react";
