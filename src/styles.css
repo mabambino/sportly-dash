@@ -148,3 +148,34 @@
   .shadow-card { box-shadow: var(--shadow-card); }
   .text-gradient { background: var(--gradient-hero); -webkit-background-clip: text; background-clip: text; color: transparent; }
 }
+
+/* ——— Native app feel (iOS shell) ——— */
+html,
+body {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Subtle pressed state on touch devices (no hover there) */
+@media (hover: none) {
+  button:active,
+  a:active,
+  [role="button"]:active {
+    opacity: 0.85;
+    transform: scale(0.98);
+    transition: transform 80ms ease, opacity 80ms ease;
+  }
+}
