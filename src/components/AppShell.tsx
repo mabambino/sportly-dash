@@ -26,6 +26,7 @@ import { EnrollQRDialog } from "@/components/EnrollQRDialog";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { MessagesPopover, AnnouncementsPopover, NotificationsPopover, AlertsPopover } from "@/components/HeaderQuickViews";
 import { useAvatar } from "@/lib/user-settings";
+import { hapticTick } from "@/lib/native";
 
 
 type NavItem = { to: string; labelKey: string; icon: typeof Users };
@@ -384,7 +385,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={item.to}
                 to={item.to}
-                onClick={() => setMoreOpen(false)}
+                onClick={() => { setMoreOpen(false); void hapticTick(); }}
                 className={cn(
                   "flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
@@ -397,7 +398,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
           <button
             type="button"
-            onClick={() => setMoreOpen(!moreOpen)}
+            onClick={() => { setMoreOpen(!moreOpen); void hapticTick(); }}
             className={cn(
               "flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
               moreOpen || pathname === "/app/profile" || pathname === "/app/settings" || moreTabs.some((i) => pathname === i.to)
