@@ -231,7 +231,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile header */}
-      <header className="sticky top-0 z-40 grid h-14 grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-border bg-background px-4 lg:hidden">
+      <header className="sticky top-0 z-40 grid h-[calc(3.5rem+env(safe-area-inset-top))] grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-border bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-lg lg:hidden">
         <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="grid h-9 w-9 place-items-center rounded-full text-foreground hover:bg-muted">
           <Menu className="h-5 w-5" />
         </button>
@@ -247,7 +247,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar p-4 transition-transform lg:static lg:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar p-4 pt-[calc(1rem+env(safe-area-inset-top))] transition-transform lg:static lg:translate-x-0 lg:pt-4",
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
