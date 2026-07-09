@@ -131,6 +131,20 @@ function AuthPage() {
 
   const isSignup = tab === "signup";
 
+  // While the saved session is being restored (or a signed-in user is about
+  // to be forwarded), show a branded splash instead of flashing the login form.
+  if (view === "form" && (loading || user)) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background">
+        <div className="flex flex-col items-center gap-5">
+          <img src={logoSyncletics} alt="Syncletics" className="h-10 w-auto dark:hidden" />
+          <img src={logoSyncleticsWhite} alt="Syncletics" className="hidden h-10 w-auto dark:block" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-label="Loading" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background lg:p-6">
       <div className="mx-auto grid min-h-screen overflow-hidden rounded-none bg-background shadow-elegant lg:min-h-[calc(100vh-3rem)] lg:grid-cols-2 lg:rounded-2xl">
