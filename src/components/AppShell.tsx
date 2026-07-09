@@ -212,7 +212,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                    active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"
+                    active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent",
+                    // Announcements live in the header bell on mobile.
+                    item.to === "/app/announcements" && "hidden lg:flex"
                   )}
                 >
                   <item.icon className="h-4 w-4" /> {t(item.labelKey)}
