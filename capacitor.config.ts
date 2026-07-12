@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   appName: "Syncletics",
   webDir: "www",
   server: {
-    url: "https://sportly-dash.lovable.app",
+    url: "https://app.syncletics.com",
     cleartext: false,
   },
   ios: {
