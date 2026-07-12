@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "syncletics",
+  "name": "sportly-dash",
   "compatibility_date": "2026-06-24",
   "compatibility_flags": ["nodejs_compat"],
   // Lovable builds this app with Nitro targeting Cloudflare, which outputs to .output/
