@@ -590,14 +590,6 @@ export type Database = {
     }
     Functions: {
       generate_team_code: { Args: never; Returns: string }
-      is_club_member: {
-        Args: { _club_id: string; _user_id: string }
-        Returns: boolean
-      }
-      is_club_staff: {
-        Args: { _club_id: string; _user_id: string }
-        Returns: boolean
-      }
     }
     Enums: {
       app_role: "club_owner" | "trainer" | "student" | "parent"
