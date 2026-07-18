@@ -231,8 +231,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile header */}
-      <header className="sticky top-0 z-40 grid h-[calc(3.5rem+env(safe-area-inset-top))] grid-cols-[auto_1fr_auto] items-center gap-2 border-b border-border bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-lg lg:hidden">
-        <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="grid h-9 w-9 place-items-center rounded-full text-foreground hover:bg-muted">
+      <header className="sticky top-0 z-40 grid h-[calc(3.5rem+env(safe-area-inset-top))] grid-cols-[auto_1fr_auto] items-center gap-2 bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-lg lg:hidden">
+        <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-muted">
           <Menu className="h-5 w-5" />
         </button>
         <Link to="/app/dashboard" className="flex items-center justify-center" aria-label="Dashboard">
@@ -378,7 +378,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
           </div>
         )}
-        <div className="grid grid-cols-5">
+        <div className="flex items-center justify-between gap-1 px-1">
           {bottomTabs.map((item) => {
             const active = pathname === item.to;
             return (
@@ -387,29 +387,37 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={item.to}
                 onClick={() => { setMoreOpen(false); void hapticTick(); }}
                 className={cn(
-                  "mx-0.5 my-1.5 flex flex-col items-center gap-0.5 rounded-full py-1.5 text-[10px] font-medium transition-colors",
-                  active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
+                  "my-1.5 flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all",
+                  active
+                    ? "bg-foreground px-4 py-2.5 text-background shadow-sm"
+                    : "h-11 w-11 shrink-0 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
+                aria-label={t(item.labelKey)}
               >
-                <item.icon className="h-5 w-5" />
-                <span className="max-w-full truncate px-1">{t(item.labelKey)}</span>
+                <item.icon className="h-5 w-5 shrink-0" />
+                {active && <span className="max-w-24 truncate">{t(item.labelKey)}</span>}
               </Link>
             );
           })}
-          <button
-            type="button"
-            onClick={() => { setMoreOpen(!moreOpen); void hapticTick(); }}
-            className={cn(
-              "mx-0.5 my-1.5 flex flex-col items-center gap-0.5 rounded-full py-1.5 text-[10px] font-medium transition-colors",
-              moreOpen || pathname === "/app/profile" || pathname === "/app/settings" || moreTabs.some((i) => pathname === i.to)
-                ? "bg-secondary text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            aria-label="Account"
-          >
-            <UserBubble size="h-5 w-5" fallbackClass="bg-primary/10 text-[9px] font-semibold text-primary" />
-            <span>Account</span>
-          </button>
+          {(() => {
+            const accountActive = moreOpen || pathname === "/app/profile" || pathname === "/app/settings" || moreTabs.some((i) => pathname === i.to);
+            return (
+              <button
+                type="button"
+                onClick={() => { setMoreOpen(!moreOpen); void hapticTick(); }}
+                className={cn(
+                  "my-1.5 flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all",
+                  accountActive
+                    ? "bg-foreground px-4 py-2 text-background shadow-sm"
+                    : "h-11 w-11 shrink-0 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                )}
+                aria-label="Account"
+              >
+                <UserBubble size="h-6 w-6" fallbackClass={cn("text-[10px] font-semibold", accountActive ? "bg-background/25 text-background" : "bg-primary/10 text-primary")} />
+                {accountActive && <span>Account</span>}
+              </button>
+            );
+          })()}
         </div>
       </nav>
       <EnrollQRDialog
