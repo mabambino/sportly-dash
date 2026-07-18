@@ -270,7 +270,7 @@ function Dashboard() {
             { to: "/app/announcements", label: "Announcement", icon: Megaphone },
           ] as const).map((qa) => (
             <Link key={qa.label} to={qa.to} className="flex w-36 shrink-0 flex-col items-center gap-3 rounded-2xl border border-border bg-card py-5 transition hover:border-primary/40">
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/15 text-primary"><qa.icon className="h-5 w-5" /></span>
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-accent text-accent-foreground"><qa.icon className="h-5 w-5" /></span>
               <span className="text-sm font-medium">{qa.label}</span>
             </Link>
           ))}
@@ -473,33 +473,31 @@ function StatCard({
 }
 
 function AttendanceProgressCard({ present, total, rate }: { present: number; total: number; rate: number }) {
-  const chartData = [{ name: "rate", value: rate, fill: "var(--color-primary)" }];
+  const chartData = [{ name: "rate", value: rate, fill: "var(--color-chart-3)" }];
   return (
     <Card className="h-full p-6">
       <p className="text-lg font-semibold">Attendance Progress</p>
-      <div className="mt-4 flex items-center justify-center">
-        <div className="relative h-40 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadialBarChart
-              innerRadius="75%"
-              outerRadius="100%"
-              data={chartData}
-              startAngle={180}
-              endAngle={0}
-              cy="90%"
-            >
-              <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-              <RadialBar dataKey="value" cornerRadius={20} background={{ fill: "var(--color-muted)" }} />
-            </RadialBarChart>
-          </ResponsiveContainer>
-          <div className="pointer-events-none absolute inset-x-0 bottom-2 text-center">
-            <p className="text-3xl font-bold">{rate}%</p>
-            <p className="text-xs text-muted-foreground">Present rate</p>
-          </div>
+      <div className="relative mx-auto mt-6 h-36 w-full max-w-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadialBarChart
+            innerRadius="72%"
+            outerRadius="100%"
+            data={chartData}
+            startAngle={180}
+            endAngle={0}
+            cy="100%"
+          >
+            <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+            <RadialBar dataKey="value" cornerRadius={20} background={{ fill: "var(--color-muted)" }} />
+          </RadialBarChart>
+        </ResponsiveContainer>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 text-center">
+          <p className="text-4xl font-bold leading-none tabular-nums">{rate}%</p>
+          <p className="mt-1 text-xs text-muted-foreground">Present rate</p>
         </div>
       </div>
-      <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" />Present ({present})</span>
+      <div className="mt-5 flex items-center justify-center gap-6 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-chart-3" />Present ({present})</span>
         <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-muted-foreground/40" />Total ({total})</span>
       </div>
     </Card>
@@ -626,8 +624,9 @@ function TimeTrackerCard() {
   return (
     <Card className="flex h-full flex-col border-transparent bg-primary p-6 text-primary-foreground">
       <p className="text-lg font-semibold">Time Tracker</p>
-      <p className="my-5 text-center font-mono text-4xl font-bold tracking-tight tabular-nums">
-        {hh}:{mm}:{ss}<span className="text-2xl opacity-70">.{cs}</span>
+      <p className="my-6 flex items-baseline justify-center text-5xl font-bold tracking-tight tabular-nums">
+        <span>{hh}:{mm}:{ss}</span>
+        <span className="ml-1 text-2xl font-semibold opacity-70">.{cs}</span>
       </p>
 
       <div className="flex items-center justify-center gap-3">
@@ -665,7 +664,7 @@ function TimeTrackerCard() {
           {entries.slice(0, 3).map((e) => (
             <div key={e.id} className="flex items-center justify-between text-sm">
               <span className="truncate">{e.memberName}</span>
-              <span className="font-mono tabular-nums opacity-90">{formatDuration(e.ms)}</span>
+              <span className="tabular-nums opacity-90">{formatDuration(e.ms)}</span>
             </div>
           ))}
         </div>
@@ -677,7 +676,7 @@ function TimeTrackerCard() {
             <DialogTitle>Add time to a member</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-foreground">
-            <div className="rounded-lg bg-muted p-3 text-center font-mono text-2xl font-bold tabular-nums">
+            <div className="rounded-2xl bg-muted p-3 text-center text-2xl font-bold tabular-nums">
               {formatDuration(ms)}
             </div>
             <div className="space-y-1.5">
