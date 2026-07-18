@@ -102,36 +102,35 @@
   --card-foreground: #DEDEDE;
   --popover: #14181C;
   --popover-foreground: #DEDEDE;
-  --primary: #A0D8D5;
+  --primary: #7C7CFA;
   --primary-foreground: #0C0F12;
-  --primary-glow: #64908D;
+  --primary-glow: #A0D8D5;
   --secondary: #1C2226;
   --secondary-foreground: #DEDEDE;
   --muted: #1C2226;
   --muted-foreground: #9FB6B4;
-  --accent: #1E2A2A;
-  --accent-foreground: #DEDEDE;
+  --accent: #1C2E2C;
+  --accent-foreground: #A0D8D5;
   --destructive: oklch(0.7 0.19 22);
   --destructive-foreground: #0C0F12;
   --border: #232B2E;
   --input: #5E706E;
   --ring: #A0D8D5;
-  --chart-1: #A0D8D5;
-  --chart-2: #7C7CFA;
+  --chart-1: #7C7CFA;
+  --chart-2: #A0D8D5;
   --chart-3: #64908D;
   --chart-4: #DEDEDE;
   --chart-5: #476A67;
   --sidebar: #101418;
   --sidebar-foreground: #DEDEDE;
-  --sidebar-primary: #A0D8D5;
+  --sidebar-primary: #7C7CFA;
   --sidebar-primary-foreground: #0C0F12;
   --sidebar-accent: #1C2226;
   --sidebar-accent-foreground: #DEDEDE;
   --sidebar-border: #232B2E;
   --sidebar-ring: #A0D8D5;
-  /* In dark mode the primary flips to light aqua, so the hero gradient must be
-     light too - text on it is --primary-foreground (near-black ink). */
-  --gradient-hero: linear-gradient(135deg, #A0D8D5 0%, #7FB8B4 55%, #64908D 100%);
+  /* Dark-mode hero: light blue into turquoise; text on it is ink. */
+  --gradient-hero: linear-gradient(135deg, #7C7CFA 0%, #8EB9E9 55%, #A0D8D5 100%);
   --gradient-subtle: linear-gradient(180deg, #14181C 0%, #0C0F12 100%);
 }
 
