@@ -1,5 +1,6 @@
-import { useEffect, type ReactNode } from "react";
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, type ReactNode } from "react";
+import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
 import { useI18n, LANGUAGES, type LangCode } from "@/lib/i18n";
@@ -15,7 +16,7 @@ import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
-  Sun, Moon, Languages, Menu,
+  Sun, Moon, Languages, Menu, RefreshCw,
 } from "lucide-react";
 import faviconUrl from "@/assets/favicon.svg";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
@@ -111,6 +112,99 @@ const bottomTabs: NavItem[] = [
 const moreTabs: NavItem[] = [
   { to: "/app/billing", labelKey: "nav.billingRevenue", icon: CreditCard },
 ];
+
+
+/**
+ * App-style pull-to-refresh: dragging down from the top of the page refetches
+ * data (react-query caches + route loaders) instead of reloading the webview.
+ * Touch-only; ignores pulls that start inside dialogs or nested scrollers.
+ */
+const PTR_THRESHOLD = 72;
+
+function PullToRefresh() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [pull, setPull] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const startY = useRef<number | null>(null);
+  const pullRef = useRef(0);
+  const busyRef = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("ontouchstart" in window)) return;
+
+    const setPullBoth = (v: number) => { pullRef.current = v; setPull(v); };
+
+    const onStart = (e: TouchEvent) => {
+      if (busyRef.current || window.scrollY > 0) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[role="dialog"], [data-radix-scroll-area-viewport], textarea, [data-no-ptr]')) return;
+      startY.current = e.touches[0].clientY;
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (startY.current === null || busyRef.current) return;
+      const delta = e.touches[0].clientY - startY.current;
+      if (delta <= 0 || window.scrollY > 0) { setPullBoth(0); return; }
+      // Resistance curve so the indicator trails the finger like UIKit.
+      if (e.cancelable) e.preventDefault();
+      const next = Math.min(delta * 0.45, PTR_THRESHOLD * 1.6);
+      if (pullRef.current < PTR_THRESHOLD && next >= PTR_THRESHOLD) void hapticTick();
+      setPullBoth(next);
+    };
+
+    const onEnd = () => {
+      if (startY.current === null) return;
+      startY.current = null;
+      if (pullRef.current >= PTR_THRESHOLD && !busyRef.current) {
+        busyRef.current = true;
+        setRefreshing(true);
+        setPullBoth(PTR_THRESHOLD * 0.85);
+        void Promise.allSettled([
+          queryClient.invalidateQueries(),
+          router.invalidate(),
+        ]).then(() => {
+          setTimeout(() => {
+            setRefreshing(false);
+            setPullBoth(0);
+            busyRef.current = false;
+          }, 350);
+        });
+      } else {
+        setPullBoth(0);
+      }
+    };
+
+    document.addEventListener("touchstart", onStart, { passive: true });
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", onEnd, { passive: true });
+    document.addEventListener("touchcancel", onEnd, { passive: true });
+    return () => {
+      document.removeEventListener("touchstart", onStart);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onEnd);
+      document.removeEventListener("touchcancel", onEnd);
+    };
+  }, [router, queryClient]);
+
+  const visible = pull > 4 || refreshing;
+  const progress = Math.min(pull / PTR_THRESHOLD, 1);
+
+  return (
+    <div
+      aria-hidden={!refreshing}
+      className="pointer-events-none fixed inset-x-0 top-[env(safe-area-inset-top)] z-[60] flex justify-center lg:hidden"
+      style={{ transform: `translateY(${visible ? pull * 0.6 + 8 : -48}px)`, transition: startY.current === null ? "transform 300ms cubic-bezier(0.16, 1, 0.3, 1)" : "none" }}
+    >
+      <div className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card shadow-card">
+        <RefreshCw
+          className={cn("h-4 w-4 text-muted-foreground", refreshing && "animate-spin")}
+          style={refreshing ? undefined : { transform: `rotate(${progress * 270}deg)`, opacity: 0.35 + progress * 0.65 }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading, membership, club, isStaff, profile, signOut } = useAuth();
@@ -230,6 +324,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      <PullToRefresh />
       {/* Mobile header */}
       <header className="sticky top-0 z-40 grid h-[calc(3.5rem+env(safe-area-inset-top))] grid-cols-[auto_1fr_auto] items-center gap-2 bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-lg lg:hidden">
         <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-muted">
