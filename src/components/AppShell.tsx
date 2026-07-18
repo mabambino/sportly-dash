@@ -212,7 +212,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to={item.to}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
                     active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent",
                     // Announcements live in the header bell on mobile.
                     item.to === "/app/announcements" && "hidden lg:flex"
@@ -258,7 +258,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button
             type="button"
             onClick={() => setQrOpen(true)}
-            className="group mb-6 w-full rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-3 text-left transition-colors hover:bg-sidebar-accent hover:border-primary/40"
+            className="group mb-6 w-full rounded-2xl border border-sidebar-border bg-sidebar-accent/40 p-3 text-left transition-colors hover:bg-sidebar-accent hover:border-primary/40"
             title="Show enrollment QR codes"
           >
             <p className="truncate text-xs uppercase tracking-wider text-muted-foreground">{club.sport}</p>
@@ -315,7 +315,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </Link>
           </header>
-          <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 lg:px-8 lg:py-10">{children}</div>
+          <div className="mx-auto max-w-7xl px-4 pb-32 pt-6 lg:px-8 lg:py-10">{children}</div>
         </main>
 
       </div>
@@ -323,9 +323,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       {moreOpen && (
         <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMoreOpen(false)} />
       )}
-      <nav data-hide-on-keyboard className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav data-hide-on-keyboard className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 rounded-full border border-border bg-card/95 px-1.5 shadow-elegant backdrop-blur-lg lg:hidden">
         {moreOpen && (
-          <div className="absolute inset-x-0 bottom-full space-y-0.5 rounded-t-2xl border-t border-border bg-background p-2 shadow-lg">
+          <div className="absolute inset-x-0 bottom-[calc(100%+0.5rem)] space-y-0.5 rounded-3xl border border-border bg-card p-2 shadow-elegant">
             <div className="flex items-center gap-3 rounded-lg px-3 py-2">
               <UserBubble size="h-9 w-9" fallbackClass="bg-primary/10 text-sm font-semibold text-primary" />
               <div className="min-w-0 flex-1">
@@ -337,7 +337,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               to="/app/profile"
               onClick={() => setMoreOpen(false)}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition-colors",
                 pathname === "/app/profile" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
               )}
             >
@@ -347,7 +347,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               to="/app/settings"
               onClick={() => setMoreOpen(false)}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition-colors",
                 pathname === "/app/settings" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
               )}
             >
@@ -361,7 +361,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to={item.to}
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium transition-colors",
                     active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
                   )}
                 >
@@ -372,7 +372,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => { setMoreOpen(false); signOut(); }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              className="flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
             >
               <LogOut className="h-4 w-4" /> {t("common.signOut")}
             </button>
@@ -387,8 +387,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={item.to}
                 onClick={() => { setMoreOpen(false); void hapticTick(); }}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  "mx-0.5 my-1.5 flex flex-col items-center gap-0.5 rounded-full py-1.5 text-[10px] font-medium transition-colors",
+                  active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -400,9 +400,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => { setMoreOpen(!moreOpen); void hapticTick(); }}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+              "mx-0.5 my-1.5 flex flex-col items-center gap-0.5 rounded-full py-1.5 text-[10px] font-medium transition-colors",
               moreOpen || pathname === "/app/profile" || pathname === "/app/settings" || moreTabs.some((i) => pathname === i.to)
-                ? "text-primary"
+                ? "bg-secondary text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
             aria-label="Account"
