@@ -82,7 +82,7 @@ export function EnrollQRDialog({ open, onOpenChange, clubId, clubName, teamCode 
         <DialogHeader>
           <DialogTitle>Enroll with a QR code</DialogTitle>
           <DialogDescription>
-            Share these codes with students and parents. Scanning opens the join flow with the team and group preselected.
+            Share these codes with athletes and parents. Scanning opens the join flow with the team and group preselected.
           </DialogDescription>
         </DialogHeader>
 

@@ -16,7 +16,7 @@ import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Kanban, Layers,
   GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
-  Sun, Moon, Languages, Menu, RefreshCw,
+  Sun, Moon, Languages, Menu, RefreshCw, X,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
 import logoSyncleticsWhite from "@/assets/logo-syncletics-white.svg";
@@ -27,6 +27,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { MessagesPopover, AnnouncementsPopover, NotificationsPopover, AlertsPopover } from "@/components/HeaderQuickViews";
 import { useAvatar } from "@/lib/user-settings";
 import { hapticTick } from "@/lib/native";
+import { ShakeFeedback } from "@/components/ShakeFeedback";
 
 
 type NavItem = { to: string; labelKey: string; icon: typeof Users };
@@ -193,7 +194,7 @@ function PullToRefresh() {
     <div
       aria-hidden={!refreshing}
       className="pointer-events-none fixed inset-x-0 top-[env(safe-area-inset-top)] z-[60] flex justify-center lg:hidden"
-      style={{ transform: `translateY(${visible ? pull * 0.6 + 8 : -48}px)`, transition: startY.current === null ? "transform 300ms cubic-bezier(0.16, 1, 0.3, 1)" : "none" }}
+      style={{ transform: `translateY(${visible ? pull * 0.6 + 8 : -160}px)`, opacity: visible ? 1 : 0, transition: startY.current === null ? "transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease" : "none" }}
     >
       <div className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card shadow-card">
         <RefreshCw
@@ -305,13 +306,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to={item.to}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-full px-4 py-2.5 text-base font-medium transition-colors lg:px-3 lg:py-1.5 lg:text-sm",
                     active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent",
                     // Announcements live in the header bell on mobile.
                     item.to === "/app/announcements" && "hidden lg:flex"
                   )}
                 >
-                  <item.icon className="h-4 w-4" /> {t(item.labelKey)}
+                  <item.icon className="h-5 w-5 lg:h-4 lg:w-4" /> {t(item.labelKey)}
                 </Link>
               );
             })}
@@ -324,6 +325,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <PullToRefresh />
+      <ShakeFeedback />
       {/* Mobile header */}
       <header className="sticky top-0 z-40 flex h-[calc(4rem+env(safe-area-inset-top))] items-center gap-3 bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-lg lg:hidden">
         <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary text-foreground transition hover:bg-muted">
@@ -342,14 +344,24 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar p-4 pt-[calc(1rem+env(safe-area-inset-top))] transition-transform lg:static lg:translate-x-0 lg:pt-4",
+            "fixed inset-0 z-50 flex w-full flex-col overflow-y-auto bg-sidebar p-6 pt-[calc(1.25rem+env(safe-area-inset-top))] transition-transform lg:static lg:inset-auto lg:w-64 lg:border-r lg:border-sidebar-border lg:p-4 lg:pt-4 lg:translate-x-0",
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <Link to="/app/dashboard" className="mb-6 flex items-center gap-2 px-2">
-            <img src={logoSyncletics} alt="Syncletics" className="h-7 w-auto dark:hidden" />
-            <img src={logoSyncleticsWhite} alt="Syncletics" className="hidden h-7 w-auto dark:block" />
-          </Link>
+          <div className="mb-6 flex items-center justify-between">
+            <Link to="/app/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 lg:px-2">
+              <img src={logoSyncletics} alt="Syncletics" className="h-7 w-auto dark:hidden" />
+              <img src={logoSyncleticsWhite} alt="Syncletics" className="hidden h-7 w-auto dark:block" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
+              className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground lg:hidden"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
           <button
             type="button"
             onClick={() => setQrOpen(true)}
@@ -383,7 +395,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        {mobileOpen && <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
         <main className="min-h-screen min-w-0 flex-1 overflow-x-hidden lg:ml-0">
           {/* Desktop top bar */}
@@ -460,7 +471,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
                   )}
                 >
-                  <item.icon className="h-4 w-4" /> {t(item.labelKey)}
+                  <item.icon className="h-5 w-5 lg:h-4 lg:w-4" /> {t(item.labelKey)}
                 </Link>
               );
             })}

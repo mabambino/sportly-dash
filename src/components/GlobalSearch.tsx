@@ -16,7 +16,7 @@ type SearchResult = {
 };
 
 const FEATURE_RESULTS: SearchResult[] = [
-  { id: "members", title: "Members", subtitle: "Users, students, trainers and admins", to: "/app/members", icon: Users, keywords: "people users students coaches trainers admins roles" },
+  { id: "members", title: "Members", subtitle: "Users, athletes, trainers and admins", to: "/app/members", icon: Users, keywords: "people users students athletes coaches trainers admins roles" },
   { id: "revenue", title: "Revenue", subtitle: "Income, paid and overdue payments", to: "/app/revenue", icon: TrendingUp, keywords: "money income finance payments billing invoices" },
   { id: "pipeline", title: "Pipeline", subtitle: "Members and upcoming sessions", to: "/app/pipeline", icon: Kanban, keywords: "pipeline funnel members sessions" },
   { id: "leads", title: "Leads", subtitle: "Trials, prospects and conversions", to: "/app/leads", icon: UserCog, keywords: "pipeline prospects trial converted lost" },

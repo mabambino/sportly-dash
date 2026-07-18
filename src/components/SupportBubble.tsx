@@ -25,6 +25,14 @@ export function SupportBubble() {
   const [featureDetails, setFeatureDetails] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // The floating launcher is desktop-only; on mobile the panel opens from
+  // Settings ("Contact support") or the shake-to-report dialog via this event.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("open-support", onOpen);
+    return () => window.removeEventListener("open-support", onOpen);
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, mode]);
@@ -220,7 +228,7 @@ export function SupportBubble() {
         data-hide-on-keyboard
         onClick={() => setOpen((o) => !o)}
         aria-label="Support"
-        className="fixed bottom-20 right-4 z-50 flex h-14 w-14 lg:bottom-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:shadow-xl sm:right-6"
+        className="fixed bottom-6 right-6 z-50 hidden h-14 w-14 lg:flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:shadow-xl sm:right-6"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </button>

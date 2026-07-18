@@ -18,7 +18,7 @@ export function DemoSeedButton() {
     setBusy(true);
     try {
       const res = await seed({ data: { clubId: club.id } });
-      toast.success(`Loaded ${res.students} students, ${res.trainers} trainers, ${res.sessions} sessions`);
+      toast.success(`Loaded ${res.students} athletes, ${res.trainers} trainers, ${res.sessions} sessions`);
       qc.invalidateQueries();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
