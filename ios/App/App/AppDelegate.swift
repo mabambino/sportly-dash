@@ -1,6 +1,16 @@
 import UIKit
 import Capacitor
 
+/// Bridge controller with native iOS navigation gestures enabled:
+/// edge-swipe from the left goes back through the app's history,
+/// exactly like a native navigation stack.
+class MainViewController: CAPBridgeViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        webView?.allowsBackForwardNavigationGestures = true
+    }
+}
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
