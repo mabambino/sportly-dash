@@ -102,8 +102,8 @@
   --card-foreground: #DEDEDE;
   --popover: #14181C;
   --popover-foreground: #DEDEDE;
-  --primary: #7C7CFA;
-  --primary-foreground: #0C0F12;
+  --primary: #0B0BF5;
+  --primary-foreground: #FFFFFF;
   --primary-glow: #A0D8D5;
   --secondary: #1C2226;
   --secondary-foreground: #DEDEDE;
@@ -116,21 +116,21 @@
   --border: #232B2E;
   --input: #5E706E;
   --ring: #A0D8D5;
-  --chart-1: #7C7CFA;
-  --chart-2: #A0D8D5;
+  --chart-1: #A0D8D5;
+  --chart-2: #DEDEDE;
   --chart-3: #64908D;
-  --chart-4: #DEDEDE;
+  --chart-4: #0B0BF5;
   --chart-5: #476A67;
   --sidebar: #101418;
   --sidebar-foreground: #DEDEDE;
-  --sidebar-primary: #7C7CFA;
-  --sidebar-primary-foreground: #0C0F12;
+  --sidebar-primary: #0B0BF5;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #1C2226;
   --sidebar-accent-foreground: #DEDEDE;
   --sidebar-border: #232B2E;
   --sidebar-ring: #A0D8D5;
-  /* Dark-mode hero: light blue into turquoise; text on it is ink. */
-  --gradient-hero: linear-gradient(135deg, #7C7CFA 0%, #8EB9E9 55%, #A0D8D5 100%);
+  /* Hero gradient stays navy-to-blue in dark mode too (white text on it). */
+  --gradient-hero: linear-gradient(135deg, #050585 0%, #0808B8 55%, #0B0BF5 100%);
   --gradient-subtle: linear-gradient(180deg, #14181C 0%, #0C0F12 100%);
 }
 
