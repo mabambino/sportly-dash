@@ -10,6 +10,9 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // iOS-style page transitions (View Transitions API). Browsers without
+    // support (or reduced-motion users) simply get an instant swap.
+    defaultViewTransition: true,
   });
 
   return router;
