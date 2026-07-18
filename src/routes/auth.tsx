@@ -65,15 +65,28 @@ function AuthPage() {
   const onSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         data: { display_name: name || email.split("@")[0], signup_role: signupRole },
         emailRedirectTo: `${window.location.origin}/onboarding`,
       },
     });
-    if (error) toast.error(error.message);
-    else toast.success("Welcome! Setting up your account…");
+    if (error) {
+      toast.error(error.message);
+    } else if (data.user && !data.session) {
+      // No session means email confirmation is pending. Supabase also returns an
+      // obfuscated "success" with zero identities when the address is already
+      // registered - surface that as a login hint instead of silence.
+      if (data.user.identities && data.user.identities.length === 0) {
+        toast.error("An account with this email already exists. Try logging in instead.");
+        setTab("login");
+      } else {
+        toast.success("Almost there! We sent you a confirmation email - click the link in your inbox to finish creating your account.", { duration: 10000 });
+      }
+    } else {
+      toast.success("Welcome! Setting up your account…");
+    }
     setBusy(false);
   };
 
