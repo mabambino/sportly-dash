@@ -270,7 +270,7 @@ function AddMemberDialog({ open, onOpenChange, clubId, groups, onShowQr, onDone 
                 <Select value={role} onValueChange={(v) => setRole(v as any)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="student">Athlete</SelectItem>
                     <SelectItem value="trainer">Trainer</SelectItem>
                     <SelectItem value="parent">Parent</SelectItem>
                   </SelectContent>

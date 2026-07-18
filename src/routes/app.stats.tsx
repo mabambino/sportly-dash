@@ -135,7 +135,7 @@ function StatsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-3xl font-semibold">Stats</h1>
-          <p className="text-sm text-muted-foreground">Club attendance analytics and per-student performance.</p>
+          <p className="text-sm text-muted-foreground">Club attendance analytics and per-athlete performance.</p>
         </div>
         {selectedStudent && (
           <Dialog open={open} onOpenChange={setOpen}>
@@ -147,7 +147,7 @@ function StatsPage() {
 
       {/* Club overview */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <OverviewCard icon={Users} label="Students" value={students?.length ?? 0} />
+        <OverviewCard icon={Users} label="Athletes" value={students?.length ?? 0} />
         <OverviewCard icon={CalendarCheck} label="Attendance rate" value={`${overallRate}%`} />
         <OverviewCard icon={Activity} label="Sessions this month" value={monthSessions ?? 0} />
         <OverviewCard
@@ -199,9 +199,9 @@ function StatsPage() {
 
       {/* Per-student metrics */}
       <Card className="p-4">
-        <Label>Student</Label>
+        <Label>Athlete</Label>
         <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-          <SelectTrigger className="mt-2"><SelectValue placeholder="Choose a student…" /></SelectTrigger>
+          <SelectTrigger className="mt-2"><SelectValue placeholder="Choose an athlete…" /></SelectTrigger>
           <SelectContent>{students?.map((s) => <SelectItem key={s.id} value={s.id}>{s.display_name}</SelectItem>)}</SelectContent>
         </Select>
       </Card>
@@ -237,7 +237,7 @@ function StatsPage() {
                 </Card>
               );
             })}
-            {metrics.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground md:col-span-2">No stats recorded yet for this student.</Card>}
+            {metrics.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground md:col-span-2">No stats recorded yet for this athlete.</Card>}
           </div>
         </>
       )}

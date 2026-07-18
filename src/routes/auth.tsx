@@ -24,7 +24,7 @@ type SignupRole = "student" | "parent" | "club_owner";
 type View = "form" | "forgot" | "reset";
 
 const ROLES: { value: SignupRole; label: string; icon: typeof Users }[] = [
-  { value: "student", label: "Student", icon: GraduationCap },
+  { value: "student", label: "Athlete", icon: GraduationCap },
   { value: "parent", label: "Parent", icon: HeartHandshake },
   { value: "club_owner", label: "Club owner", icon: Building2 },
 ];

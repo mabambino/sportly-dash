@@ -76,7 +76,7 @@ function AttendancePage() {
       <div className="space-y-6">
         <div>
           <h1 className="font-display text-3xl font-semibold">Attendance</h1>
-          <p className="text-sm text-muted-foreground">Mark students with a tick (present), cross (absent) or clock (late).</p>
+          <p className="text-sm text-muted-foreground">Mark athletes with a tick (present), cross (absent) or clock (late).</p>
         </div>
 
         <Card className="p-4">
@@ -98,7 +98,7 @@ function AttendancePage() {
             </p>
             <Card className="overflow-hidden p-0">
               <div className="divide-y divide-border">
-                {students?.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">No students yet.</p>}
+                {students?.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">No athletes yet.</p>}
                 {students?.map((s) => {
                   const r = records?.find((x) => x.student_id === s.id);
                   return (

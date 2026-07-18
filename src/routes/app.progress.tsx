@@ -116,7 +116,7 @@ function ProgressPage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold">Progress</h1>
-          <p className="text-sm text-muted-foreground">Student skill development and milestones</p>
+          <p className="text-sm text-muted-foreground">Athlete skill development and milestones</p>
         </div>
         {isStaff && (
           <Dialog open={open} onOpenChange={setOpen}>
@@ -133,9 +133,9 @@ function ProgressPage() {
 
       {hasNotes && (
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={Users} label="Students tracked" value={stats.tracked} />
+          <StatCard icon={Users} label="Athletes tracked" value={stats.tracked} />
           <StatCard icon={FileText} label="Notes this week" value={stats.notesThisWeek} />
-          <StatCard icon={TrendingUp} label="Avg skill level" value={stats.avgSkill} hint="latest rating / student" />
+          <StatCard icon={TrendingUp} label="Avg skill level" value={stats.avgSkill} hint="latest rating / athlete" />
           <StatCard icon={Trophy} label="Milestones this month" value={stats.milestonesThisMonth} />
         </div>
       )}
@@ -143,9 +143,9 @@ function ProgressPage() {
       {students && students.length > 0 && hasNotes && (
         <Card className="p-4">
           <Select value={filterStudent} onValueChange={setFilterStudent}>
-            <SelectTrigger className="w-52"><SelectValue placeholder="All students" /></SelectTrigger>
+            <SelectTrigger className="w-52"><SelectValue placeholder="All athletes" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All students</SelectItem>
+              <SelectItem value="all">All athletes</SelectItem>
               {students.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.display_name}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -195,8 +195,8 @@ function ProgressPage() {
           </div>
           {noStudents ? (
             <>
-              <p className="mt-4 font-medium">No students yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">Add students to your club before logging progress.</p>
+              <p className="mt-4 font-medium">No athletes yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">Add athletes to your club before logging progress.</p>
               {isStaff && (
                 <Button asChild variant="outline" className="mt-4">
                   <Link to="/app/members">Go to Members</Link>
@@ -207,7 +207,7 @@ function ProgressPage() {
             <>
               <p className="mt-4 font-medium">No progress notes yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {isStaff ? "Log a student's skill development to start building their history." : "Your coach hasn't added any notes yet."}
+                {isStaff ? "Log an athlete's skill development to start building their history." : "Your coach hasn't added any notes yet."}
               </p>
               {isStaff && (
                 <Button onClick={() => setOpen(true)} className="mt-4 bg-gradient-hero">
@@ -219,7 +219,7 @@ function ProgressPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {logs?.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground">No notes for this student yet.</Card>}
+          {logs?.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground">No notes for this athlete yet.</Card>}
           {logs?.map((log: any) => (
             <Card key={log.id} className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -275,9 +275,9 @@ function AddNoteDialog({ clubId, trainerId, students, onDone }: { clubId: string
       <DialogHeader><DialogTitle>Add progress note</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <div>
-          <Label>Student *</Label>
+          <Label>Athlete *</Label>
           <Select value={studentId} onValueChange={setStudentId}>
-            <SelectTrigger><SelectValue placeholder="Select student…" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select athlete…" /></SelectTrigger>
             <SelectContent>
               {students.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.display_name}</SelectItem>)}
             </SelectContent>

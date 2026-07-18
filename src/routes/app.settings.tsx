@@ -42,10 +42,10 @@ export const Route = createFileRoute("/app/settings")({
 // anything on this page, regardless of which tab it lives in.
 const TAB_INDEX: { value: string; label: string; keywords: string[] }[] = [
   { value: "club", label: "Club", keywords: ["club name", "sport", "description", "monthly fee", "price"] },
-  { value: "team", label: "Team", keywords: ["roles", "permissions", "members", "trainer", "student", "parent", "remove member", "staff", "promote"] },
+  { value: "team", label: "Team", keywords: ["roles", "permissions", "members", "trainer", "student", "athlete", "parent", "remove member", "staff", "promote"] },
   { value: "billing", label: "Billing", keywords: ["payment", "platform fee", "stripe", "invoices", "checkout", "revenue"] },
   { value: "dashboard", label: "Dashboard", keywords: ["layout", "cards", "tiles", "order", "rearrange", "grid", "widgets", "drag"] },
-  { value: "account", label: "Account", keywords: ["password", "display name", "email", "security", "credentials", "personal details", "profile", "profile picture", "avatar", "photo", "privacy", "hide", "eye"] },
+  { value: "account", label: "Account", keywords: ["password", "display name", "email", "security", "support", "help", "contact", "feedback", "bug", "credentials", "personal details", "profile", "profile picture", "avatar", "photo", "privacy", "hide", "eye"] },
   { value: "appearance", label: "Appearance", keywords: ["theme", "dark mode", "light mode", "dark", "light", "system", "colors", "display"] },
   { value: "language", label: "Language", keywords: ["translation", "locale", "english", "macedonian", "albanian", "german", "french", "spanish", "multilanguage"] },
 ];
@@ -162,6 +162,13 @@ function SettingsPage() {
 
           <TabsContent value="account" className="mt-6">
             <AccountSettings />
+            <Card className="mt-6 p-6">
+              <p className="text-lg font-semibold">Support</p>
+              <p className="mt-1 text-sm text-muted-foreground">Questions, bugs or ideas — reach the team directly. Tip: on your phone you can also shake the device to report a bug.</p>
+              <Button className="mt-4" variant="outline" onClick={() => window.dispatchEvent(new CustomEvent("open-support"))}>
+                Contact support
+              </Button>
+            </Card>
           </TabsContent>
 
           <TabsContent value="appearance" className="mt-6">
@@ -297,7 +304,7 @@ function TeamSettings() {
                       <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="trainer">Trainer</SelectItem>
-                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="student">Athlete</SelectItem>
                         <SelectItem value="parent">Parent</SelectItem>
                       </SelectContent>
                     </Select>

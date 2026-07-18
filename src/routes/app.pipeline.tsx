@@ -42,11 +42,11 @@ function PipelinePage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-3xl font-semibold">Pipeline</h1>
-        <p className="text-sm text-muted-foreground">Overview of students, sessions, and staff</p>
+        <p className="text-sm text-muted-foreground">Overview of athletes, sessions, and staff</p>
       </div>
       <div className="grid gap-5 lg:grid-cols-3">
-        <PipelineColumn icon={Users} title="Students" count={students.length} color="blue">
-          {students.length === 0 && <EmptyState message="No students registered yet." />}
+        <PipelineColumn icon={Users} title="Athletes" count={students.length} color="blue">
+          {students.length === 0 && <EmptyState message="No athletes registered yet." />}
           {students.map((m) => (<MemberCard key={m.id} name={m.profile?.display_name || "Unknown"} email={m.profile?.email || ""} role={m.role} joinedAt={m.joined_at} />))}
         </PipelineColumn>
         <PipelineColumn icon={Clock} title="Time Slots" count={slots?.length ?? 0} color="violet">

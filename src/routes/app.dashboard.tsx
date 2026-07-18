@@ -193,7 +193,7 @@ function Dashboard() {
     "Total Members": {
       label: "Total Members",
       value: members.length,
-      sub: `${students.length} students enrolled`,
+      sub: `${students.length} athletes enrolled`,
       to: "/app/members",
     },
     "Attendance Rate": {

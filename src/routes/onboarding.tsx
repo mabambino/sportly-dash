@@ -161,7 +161,7 @@ function Onboarding() {
                 <div>
                   <Label>I am a…</Label>
                   <div className="mt-2 grid grid-cols-2 gap-2">
-                    <Button type="button" variant={joinRole === "student" ? "default" : "outline"} onClick={() => setJoinRole("student")}>Student</Button>
+                    <Button type="button" variant={joinRole === "student" ? "default" : "outline"} onClick={() => setJoinRole("student")}>Athlete</Button>
                     <Button type="button" variant={joinRole === "parent" ? "default" : "outline"} onClick={() => setJoinRole("parent")}>Parent</Button>
                   </div>
                 </div>
