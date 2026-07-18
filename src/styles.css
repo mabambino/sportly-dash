@@ -52,7 +52,7 @@
 
 :root {
   --radius: 1.25rem;
-  --background: #EDEDED;
+  --background: #F4F4F4;
   --foreground: #0C0F12;
   --card: #FFFFFF;
   --card-foreground: #0C0F12;
@@ -73,26 +73,26 @@
   --success-foreground: #FFFFFF;
   --warning: oklch(0.78 0.16 75);
   --warning-foreground: #0C0F12;
-  --border: #0C0F12;
-  --input: #0C0F12;
+  --border: #DDDDDD;
+  --input: #949494;
   --ring: #0B0BF5;
   --chart-1: #050585;
   --chart-2: #0B0BF5;
   --chart-3: #64908D;
   --chart-4: #A0D8D5;
   --chart-5: #0C0F12;
-  --sidebar: #E7E7E7;
+  --sidebar: #F1F1F1;
   --sidebar-foreground: #0C0F12;
   --sidebar-primary: #050585;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #DEDEDE;
   --sidebar-accent-foreground: #0C0F12;
-  --sidebar-border: #0C0F12;
+  --sidebar-border: #DDDDDD;
   --sidebar-ring: #0B0BF5;
   --gradient-hero: linear-gradient(135deg, #050585 0%, #0808B8 55%, #0B0BF5 100%);
-  --gradient-subtle: linear-gradient(180deg, #EDEDED 0%, #E6E6E6 100%);
+  --gradient-subtle: linear-gradient(180deg, #F4F4F4 0%, #ECECEC 100%);
   --shadow-elegant: 0 10px 40px -12px color-mix(in oklab, var(--primary) 30%, transparent);
-  --shadow-card: 0 1px 2px 0 rgb(12 15 18 / 0.06);
+  --shadow-card: 0 8px 24px -10px rgb(12 15 18 / 0.10), 0 1px 2px 0 rgb(12 15 18 / 0.04);
 }
 
 .dark {
@@ -113,7 +113,7 @@
   --accent-foreground: #DEDEDE;
   --destructive: oklch(0.7 0.19 22);
   --destructive-foreground: #0C0F12;
-  --border: #3B4C4A;
+  --border: #232B2E;
   --input: #5E706E;
   --ring: #A0D8D5;
   --chart-1: #A0D8D5;
@@ -127,7 +127,7 @@
   --sidebar-primary-foreground: #0C0F12;
   --sidebar-accent: #1C2226;
   --sidebar-accent-foreground: #DEDEDE;
-  --sidebar-border: #3B4C4A;
+  --sidebar-border: #232B2E;
   --sidebar-ring: #A0D8D5;
   /* In dark mode the primary flips to light aqua, so the hero gradient must be
      light too - text on it is --primary-foreground (near-black ink). */
