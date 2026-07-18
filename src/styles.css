@@ -46,88 +46,93 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Space Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 :root {
-  --radius: 0.9rem;
-  --background: oklch(0.965 0.002 230);
-  --foreground: oklch(0.2 0.02 195);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.02 195);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.02 195);
-  --primary: #0B2626;
-  --primary-foreground: oklch(0.99 0 0);
-  --primary-glow: #1F4D4D;
-  --secondary: oklch(0.955 0.002 230);
-  --secondary-foreground: oklch(0.22 0.03 195);
-  --muted: oklch(0.95 0.002 230);
-  --muted-foreground: oklch(0.5 0.015 195);
-  --accent: #A0D9D9;
-  --accent-foreground: oklch(0.2 0.03 195);
-  --destructive: oklch(0.62 0.22 27);
-  --destructive-foreground: oklch(0.99 0 0);
-  --success: oklch(0.65 0.16 155);
-  --success-foreground: oklch(0.99 0 0);
+  --radius: 1.25rem;
+  --background: #EDEDED;
+  --foreground: #0C0F12;
+  --card: #FFFFFF;
+  --card-foreground: #0C0F12;
+  --popover: #FFFFFF;
+  --popover-foreground: #0C0F12;
+  --primary: #050585;
+  --primary-foreground: #FFFFFF;
+  --primary-glow: #0B0BF5;
+  --secondary: #DEDEDE;
+  --secondary-foreground: #0C0F12;
+  --muted: #E4E4E4;
+  --muted-foreground: #476A67;
+  --accent: #A0D8D5;
+  --accent-foreground: #0C0F12;
+  --destructive: oklch(0.55 0.21 27);
+  --destructive-foreground: #FFFFFF;
+  --success: oklch(0.52 0.14 155);
+  --success-foreground: #FFFFFF;
   --warning: oklch(0.78 0.16 75);
-  --warning-foreground: oklch(0.2 0.04 265);
-  --border: oklch(0.925 0.003 230);
-  --input: oklch(0.925 0.003 230);
-  --ring: oklch(0.6 0.04 195);
-  --chart-1: #0B2626;
-  --chart-2: #A0D9D9;
-  --chart-3: oklch(0.3 0.03 195);
-  --chart-4: oklch(0.65 0.16 155);
-  --chart-5: oklch(0.78 0.16 75);
-  --sidebar: oklch(0.975 0.002 230);
-  --sidebar-foreground: oklch(0.2 0.03 195);
-  --sidebar-primary: oklch(0.3 0.03 195);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.94 0.003 230);
-  --sidebar-accent-foreground: oklch(0.2 0.03 195);
-  --sidebar-border: oklch(0.925 0.003 230);
-  --sidebar-ring: oklch(0.6 0.04 195);
-  --gradient-hero: linear-gradient(135deg, #0B2626 0%, #163E3E 60%, #1F4D4D 100%);
-  --gradient-subtle: linear-gradient(180deg, oklch(0.965 0.002 230) 0%, oklch(0.965 0.002 230) 100%);
-  --shadow-elegant: 0 10px 40px -12px color-mix(in oklab, var(--primary) 25%, transparent);
-  --shadow-card: 0 1px 2px 0 oklch(0.13 0.01 230 / 0.05);
+  --warning-foreground: #0C0F12;
+  --border: #0C0F12;
+  --input: #0C0F12;
+  --ring: #0B0BF5;
+  --chart-1: #050585;
+  --chart-2: #0B0BF5;
+  --chart-3: #64908D;
+  --chart-4: #A0D8D5;
+  --chart-5: #0C0F12;
+  --sidebar: #E7E7E7;
+  --sidebar-foreground: #0C0F12;
+  --sidebar-primary: #050585;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #DEDEDE;
+  --sidebar-accent-foreground: #0C0F12;
+  --sidebar-border: #0C0F12;
+  --sidebar-ring: #0B0BF5;
+  --gradient-hero: linear-gradient(135deg, #050585 0%, #0808B8 55%, #0B0BF5 100%);
+  --gradient-subtle: linear-gradient(180deg, #EDEDED 0%, #E6E6E6 100%);
+  --shadow-elegant: 0 10px 40px -12px color-mix(in oklab, var(--primary) 30%, transparent);
+  --shadow-card: 0 1px 2px 0 rgb(12 15 18 / 0.06);
 }
 
 .dark {
-  --background: oklch(0.195 0.005 20);
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.22 0.005 20);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.22 0.005 20);
-  --popover-foreground: oklch(0.98 0 0);
-  --primary: #A0D9D9;
-  --primary-foreground: #0B2626;
-  --secondary: oklch(0.25 0.005 20);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.25 0.005 20);
-  --muted-foreground: oklch(0.7 0.02 260);
-  --accent: oklch(0.28 0.005 20);
-  --accent-foreground: oklch(0.98 0 0);
+  --background: #0C0F12;
+  --foreground: #DEDEDE;
+  --card: #14181C;
+  --card-foreground: #DEDEDE;
+  --popover: #14181C;
+  --popover-foreground: #DEDEDE;
+  --primary: #A0D8D5;
+  --primary-foreground: #0C0F12;
+  --primary-glow: #64908D;
+  --secondary: #1C2226;
+  --secondary-foreground: #DEDEDE;
+  --muted: #1C2226;
+  --muted-foreground: #9FB6B4;
+  --accent: #1E2A2A;
+  --accent-foreground: #DEDEDE;
   --destructive: oklch(0.7 0.19 22);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: #A0D9D9;
-  --sidebar: oklch(0.18 0.005 20);
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: #A0D9D9;
-  --sidebar-primary-foreground: #0B2626;
-  --sidebar-accent: oklch(0.25 0.005 20);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: #A0D9D9;
-  /* In dark mode the primary/hero color flips to light teal, so the gradient
-     used on buttons must be light too — otherwise dark-teal buttons disappear
-     against the dark background. Text on these buttons is --primary-foreground
-     (dark), which stays legible on this lighter gradient. */
-  --gradient-hero: linear-gradient(135deg, #A0D9D9 0%, #7EC8C8 55%, #5BB0B0 100%);
-  --gradient-subtle: linear-gradient(180deg, oklch(0.22 0.005 20) 0%, oklch(0.195 0.005 20) 100%);
+  --destructive-foreground: #0C0F12;
+  --border: #3B4C4A;
+  --input: #5E706E;
+  --ring: #A0D8D5;
+  --chart-1: #A0D8D5;
+  --chart-2: #7C7CFA;
+  --chart-3: #64908D;
+  --chart-4: #DEDEDE;
+  --chart-5: #476A67;
+  --sidebar: #101418;
+  --sidebar-foreground: #DEDEDE;
+  --sidebar-primary: #A0D8D5;
+  --sidebar-primary-foreground: #0C0F12;
+  --sidebar-accent: #1C2226;
+  --sidebar-accent-foreground: #DEDEDE;
+  --sidebar-border: #3B4C4A;
+  --sidebar-ring: #A0D8D5;
+  /* In dark mode the primary flips to light aqua, so the hero gradient must be
+     light too - text on it is --primary-foreground (near-black ink). */
+  --gradient-hero: linear-gradient(135deg, #A0D8D5 0%, #7FB8B4 55%, #64908D 100%);
+  --gradient-subtle: linear-gradient(180deg, #14181C 0%, #0C0F12 100%);
 }
 
 @layer base {
