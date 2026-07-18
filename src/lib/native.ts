@@ -10,6 +10,17 @@ export async function initNative() {
   // Let CSS target the native shell (system font, Apple type sizes, safe areas).
   document.documentElement.classList.add("native");
 
+  // Splash screen: the shell shows the branded splash while the app boots;
+  // fade it out once the web app has rendered its first frame.
+  try {
+    const { SplashScreen } = await import("@capacitor/splash-screen");
+    requestAnimationFrame(() => {
+      void SplashScreen.hide({ fadeOutDuration: 300 });
+    });
+  } catch {
+    /* plugin not installed */
+  }
+
   // Status bar: match the app theme and react to dark-mode toggles.
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
