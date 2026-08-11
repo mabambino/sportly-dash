@@ -102,6 +102,14 @@ const memberSections: NavSection[] = [
   },
 ];
 
+// Shown under the user's name in the mobile home header.
+const ROLE_LABELS: Record<string, string> = {
+  club_owner: "Club owner",
+  trainer: "Trainer",
+  student: "Athlete",
+  parent: "Parent",
+};
+
 const bottomTabs: NavItem[] = [
   { to: "/app/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
   { to: "/app/schedule", labelKey: "nav.calendar", icon: Calendar },
@@ -331,7 +339,21 @@ export function AppShell({ children }: { children: ReactNode }) {
         <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open menu" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary text-foreground transition hover:bg-muted">
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="min-w-0 flex-1 truncate font-display text-2xl font-bold tracking-tight">{pageTitle}</h1>
+        {pathname === "/app/dashboard" ? (
+          // Home leads with who you are and which club you are in, rather than
+          // repeating the word "Dashboard" above your own dashboard.
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-display text-lg font-bold leading-tight tracking-tight">
+              {profile?.display_name ?? "Welcome"}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              {ROLE_LABELS[membership?.role ?? ""] ?? "Member"}
+              {club?.name ? ` · ${club.name}` : ""}
+            </p>
+          </div>
+        ) : (
+          <h1 className="min-w-0 flex-1 truncate font-display text-2xl font-bold tracking-tight">{pageTitle}</h1>
+        )}
         <div className="flex shrink-0 items-center gap-2">
           <AlertsPopover />
           <Link to="/app/profile" aria-label="Profile" className="shrink-0">
