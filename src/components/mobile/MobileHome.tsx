@@ -1,8 +1,9 @@
 // Mobile home screen.
 //
-// This is the reference implementation of the mobile layout: a week strip, the
-// next session, a courses rail and a trainer list. Other mobile screens should
-// follow its structure and reuse the primitives in ./primitives.
+// Reference implementation of the mobile layout: a week strip, the next
+// session, money widgets, a stopwatch, a courses rail, everything happening on
+// the selected day, and the trainer list. Other mobile screens should follow
+// its structure and reuse the primitives in ./primitives.
 //
 // Everything below is driven by real club data. Where the source layout showed
 // invented figures (a 5.0 star rating), this shows something the club actually
@@ -10,20 +11,16 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  addDays,
-  format,
-  isSameDay,
-  isToday,
-  startOfWeek,
-} from "date-fns";
-import { CalendarDays, Clock, MapPin, Users } from "lucide-react";
+import { addDays, format, isSameDay, isToday, startOfMonth, startOfWeek, startOfYear } from "date-fns";
+import { CalendarDays, Clock, CreditCard, Megaphone, Users, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useAvatar } from "@/lib/user-settings";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SensitiveValue } from "@/components/SensitiveValue";
 import { DayStrip } from "@/components/mobile/DayStrip";
+import { StopwatchCard } from "@/components/mobile/StopwatchCard";
 import { ActionRow, Chip, EmptyLine, Rail, SectionHeader } from "@/components/mobile/primitives";
 import { cn } from "@/lib/utils";
 
@@ -38,24 +35,35 @@ type Slot = {
   group_id: string | null;
 };
 
-type Course = {
-  id: string;
-  name: string;
-  color: string | null;
-  price_cents: number | null;
-};
-
+type Course = { id: string; name: string; color: string | null; price_cents: number | null };
 type Person = { id: string; display_name: string; avatar_url: string | null };
+type Announcement = { id: string; title: string; body: string | null; created_at: string };
+type Payment = {
+  id: string;
+  amount_cents: number;
+  status: string;
+  period_month: string;
+  member_id: string;
+};
+type Lead = { id: string; name: string; trial_date: string | null; status: string };
+
+/** One thing happening on a given day, whatever its source table. */
+type DayEvent = {
+  key: string;
+  kind: "session" | "announcement" | "invoice" | "trial";
+  at: Date;
+  title: string;
+  detail?: string;
+};
 
 const WEEK_STARTS_ON = 1;
 
+const money = (cents: number) => `$${Math.round(cents / 100).toLocaleString()}`;
+
 export function MobileHome() {
-  const { club, isStaff } = useAuth();
+  const { club, isStaff, user } = useAuth();
   const [selected, setSelected] = useState<Date>(() => new Date());
 
-  // The strip only ever shows one week, so fetch exactly that window and derive
-  // the per-day dots and per-trainer chips from it on the client. One request
-  // instead of one per day tapped.
   const weekStart = useMemo(
     () => startOfWeek(selected, { weekStartsOn: WEEK_STARTS_ON }),
     [selected],
@@ -67,35 +75,57 @@ export function MobileHome() {
     queryKey: ["mobile-home", club?.id, weekKey],
     queryFn: async () => {
       const weekEnd = addDays(weekStart, 7);
-      const [slotsRes, coursesRes, staffRes, memberRes, nextRes] = await Promise.all([
-        supabase
-          .from("time_slots")
-          .select("id, title, starts_at, ends_at, location, capacity, trainer_id, group_id")
-          .eq("club_id", club!.id)
-          .gte("starts_at", weekStart.toISOString())
-          .lt("starts_at", weekEnd.toISOString())
-          .order("starts_at"),
-        supabase
-          .from("course_groups")
-          .select("id, name, color, price_cents")
-          .eq("club_id", club!.id)
-          .order("name"),
-        supabase
-          .from("memberships")
-          .select("user_id, role")
-          .eq("club_id", club!.id)
-          .in("role", ["club_owner", "trainer"]),
-        supabase.from("memberships").select("group_id, role").eq("club_id", club!.id),
-        // The next session may fall outside the visible week, so it needs its
-        // own query rather than being read off the week above.
-        supabase
-          .from("time_slots")
-          .select("id, title, starts_at, ends_at, location, capacity, trainer_id, group_id")
-          .eq("club_id", club!.id)
-          .gte("starts_at", new Date().toISOString())
-          .order("starts_at")
-          .limit(1),
-      ]);
+      const sb = supabase as any;
+      const [slotsRes, coursesRes, staffRes, memberRes, nextRes, annRes, payRes, leadRes] =
+        await Promise.all([
+          supabase
+            .from("time_slots")
+            .select("id, title, starts_at, ends_at, location, capacity, trainer_id, group_id")
+            .eq("club_id", club!.id)
+            .gte("starts_at", weekStart.toISOString())
+            .lt("starts_at", weekEnd.toISOString())
+            .order("starts_at"),
+          supabase
+            .from("course_groups")
+            .select("id, name, color, price_cents")
+            .eq("club_id", club!.id)
+            .order("name"),
+          supabase
+            .from("memberships")
+            .select("user_id, role")
+            .eq("club_id", club!.id)
+            .in("role", ["club_owner", "trainer"]),
+          supabase.from("memberships").select("group_id, role").eq("club_id", club!.id),
+          // The next session may fall outside the visible week, so it needs its
+          // own query rather than being read off the week above.
+          supabase
+            .from("time_slots")
+            .select("id, title, starts_at, ends_at, location, capacity, trainer_id, group_id")
+            .eq("club_id", club!.id)
+            .gte("starts_at", new Date().toISOString())
+            .order("starts_at")
+            .limit(1),
+          supabase
+            .from("announcements")
+            .select("id, title, body, created_at")
+            .eq("club_id", club!.id)
+            .gte("created_at", weekStart.toISOString())
+            .lt("created_at", weekEnd.toISOString())
+            .order("created_at", { ascending: false }),
+          // RLS scopes this for us: staff see the whole club, a member sees
+          // only their own invoices. Same query, different rows.
+          supabase
+            .from("payments")
+            .select("id, amount_cents, status, period_month, member_id")
+            .eq("club_id", club!.id)
+            .gte("period_month", format(startOfYear(new Date()), "yyyy-MM-dd")),
+          // Leads are staff-only at the policy level; members get an empty set.
+          sb
+            .from("leads")
+            .select("id, name, trial_date, status")
+            .eq("club_id", club!.id)
+            .not("trial_date", "is", null),
+        ]);
 
       const staffIds = (staffRes.data || []).map((m) => m.user_id);
       const profilesRes = staffIds.length
@@ -108,26 +138,91 @@ export function MobileHome() {
         trainers: (profilesRes.data || []) as Person[],
         memberships: memberRes.data || [],
         next: ((nextRes.data || [])[0] as Slot | undefined) ?? null,
+        announcements: (annRes.data || []) as Announcement[],
+        payments: (payRes.data || []) as Payment[],
+        leads: ((leadRes?.data || []) as Lead[]) ?? [],
       };
     },
   });
 
-  const slots = data?.slots ?? [];
+  // Memoised: a fresh [] on every render would invalidate every useMemo below.
+  const slots = useMemo(() => data?.slots ?? [], [data?.slots]);
+
+  // Everything happening in the visible week, normalised to one shape so the
+  // day view and the strip's dots can both read from a single list.
+  const weekEvents = useMemo<DayEvent[]>(() => {
+    const out: DayEvent[] = [];
+    for (const s of slots) {
+      out.push({
+        key: `s-${s.id}`,
+        kind: "session",
+        at: new Date(s.starts_at),
+        title: s.title,
+        detail: s.location ?? undefined,
+      });
+    }
+    for (const a of data?.announcements ?? []) {
+      out.push({
+        key: `a-${a.id}`,
+        kind: "announcement",
+        at: new Date(a.created_at),
+        title: a.title,
+        detail: a.body ?? undefined,
+      });
+    }
+    for (const p of data?.payments ?? []) {
+      // period_month is a DATE — the period an invoice covers, so it lands on
+      // the day that period starts.
+      out.push({
+        key: `p-${p.id}`,
+        kind: "invoice",
+        at: new Date(p.period_month),
+        title: `${money(p.amount_cents)} invoice`,
+        detail: p.status,
+      });
+    }
+    for (const l of data?.leads ?? []) {
+      if (!l.trial_date) continue;
+      out.push({
+        key: `l-${l.id}`,
+        kind: "trial",
+        at: new Date(l.trial_date),
+        title: `Trial — ${l.name}`,
+        detail: l.status,
+      });
+    }
+    return out.sort((a, b) => a.at.getTime() - b.at.getTime());
+  }, [slots, data?.announcements, data?.payments, data?.leads]);
+
+  const dayEvents = useMemo(
+    () => weekEvents.filter((e) => isSameDay(e.at, selected)),
+    [weekEvents, selected],
+  );
+  const markedDates = useMemo(() => weekEvents.map((e) => e.at), [weekEvents]);
   const daySlots = useMemo(
     () => slots.filter((s) => isSameDay(new Date(s.starts_at), selected)),
     [slots, selected],
   );
-  const markedDates = useMemo(() => slots.map((s) => new Date(s.starts_at)), [slots]);
 
   const membersPerGroup = useMemo(() => {
     const counts = new Map<string, number>();
     for (const m of data?.memberships ?? []) {
-      if (m.role !== "student") continue;
-      if (!m.group_id) continue;
+      if (m.role !== "student" || !m.group_id) continue;
       counts.set(m.group_id, (counts.get(m.group_id) ?? 0) + 1);
     }
     return counts;
   }, [data?.memberships]);
+
+  // Money. Staff see the club's position; a member sees their own, because RLS
+  // already limited the rows to theirs.
+  const monthKey = format(startOfMonth(new Date()), "yyyy-MM");
+  const payments = data?.payments ?? [];
+  const scoped = isStaff ? payments : payments.filter((p) => p.member_id === user?.id);
+  const collectedThisMonth = scoped
+    .filter((p) => p.status === "paid" && String(p.period_month).slice(0, 7) === monthKey)
+    .reduce((sum, p) => sum + p.amount_cents, 0);
+  const outstanding = scoped.filter((p) => p.status !== "paid");
+  const outstandingTotal = outstanding.reduce((sum, p) => sum + p.amount_cents, 0);
 
   return (
     <div className="space-y-7 pb-2">
@@ -175,6 +270,43 @@ export function MobileHome() {
         )}
       </section>
 
+      {/* Money */}
+      <section>
+        <SectionHeader
+          title={isStaff ? "Revenue" : "Billing"}
+          to={isStaff ? "/app/revenue" : "/app/billing"}
+        />
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-24 rounded-[--radius]" />
+            <Skeleton className="h-24 rounded-[--radius]" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <StatTile
+              label={isStaff ? "Collected this month" : "Paid this month"}
+              value={money(collectedThisMonth)}
+              sensitive
+            />
+            <StatTile
+              label="Outstanding"
+              value={money(outstandingTotal)}
+              sub={`${outstanding.length} ${outstanding.length === 1 ? "invoice" : "invoices"}`}
+              tone={outstandingTotal > 0 ? "warn" : undefined}
+              sensitive
+            />
+          </div>
+        )}
+      </section>
+
+      {/* Stopwatch — a coaching tool, so staff only. */}
+      {isStaff && (
+        <section>
+          <SectionHeader title="Time tracker" />
+          <StopwatchCard />
+        </section>
+      )}
+
       {/* Courses */}
       <section>
         <SectionHeader title="Courses" to="/app/courses" />
@@ -199,17 +331,20 @@ export function MobileHome() {
         )}
       </section>
 
-      {/* Sessions on the selected day */}
+      {/* Everything on the selected day */}
       <section>
-        <SectionHeader title={isToday(selected) ? "Today's sessions" : "Sessions"} to="/app/schedule" />
+        <SectionHeader
+          title={isToday(selected) ? "Today" : format(selected, "EEEE d MMM")}
+          to="/app/schedule"
+        />
         {isLoading ? (
           <Skeleton className="h-20 w-full rounded-[--radius]" />
-        ) : daySlots.length === 0 ? (
-          <EmptyLine>Nothing scheduled for {format(selected, "EEEE d MMM")}.</EmptyLine>
+        ) : dayEvents.length === 0 ? (
+          <EmptyLine>Nothing on {format(selected, "EEEE d MMM")}.</EmptyLine>
         ) : (
           <div className="space-y-2">
-            {daySlots.map((slot) => (
-              <SessionRow key={slot.id} slot={slot} />
+            {dayEvents.map((event) => (
+              <EventRow key={event.key} event={event} />
             ))}
           </div>
         )}
@@ -239,6 +374,73 @@ export function MobileHome() {
   );
 }
 
+function StatTile({
+  label,
+  value,
+  sub,
+  tone,
+  sensitive,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "warn";
+  sensitive?: boolean;
+}) {
+  return (
+    <div className="flex flex-col justify-between rounded-[--radius] bg-card p-4 shadow-sm">
+      <p className="text-xs leading-tight text-muted-foreground">{label}</p>
+      <p
+        className={cn(
+          "mt-3 font-display text-2xl font-semibold",
+          tone === "warn" && "text-destructive",
+        )}
+      >
+        {sensitive ? <SensitiveValue mask="$ ••••">{value}</SensitiveValue> : value}
+      </p>
+      {sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{sub}</p>}
+    </div>
+  );
+}
+
+const EVENT_STYLES: Record<
+  DayEvent["kind"],
+  { icon: typeof Clock; label: string; to: string }
+> = {
+  session: { icon: Clock, label: "Session", to: "/app/schedule" },
+  announcement: { icon: Megaphone, label: "Announcement", to: "/app/announcements" },
+  invoice: { icon: CreditCard, label: "Invoice", to: "/app/billing" },
+  trial: { icon: UserPlus, label: "Trial", to: "/app/leads" },
+};
+
+function EventRow({ event }: { event: DayEvent }) {
+  const style = EVENT_STYLES[event.kind];
+  const Icon = style.icon;
+  return (
+    <Link
+      to={style.to}
+      className="flex items-center gap-3 rounded-[--radius] bg-card p-3 shadow-sm transition-colors hover:bg-secondary"
+    >
+      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-secondary">
+        {event.kind === "session" ? (
+          <span className="text-xs font-semibold tabular-nums">{format(event.at, "HH:mm")}</span>
+        ) : (
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{event.title}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+          <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] uppercase tracking-wide">
+            {style.label}
+          </span>
+          {event.detail && <span className="truncate">{event.detail}</span>}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 function CourseCard({ course, memberCount }: { course: Course; memberCount: number }) {
   // Courses carry their own colour in the database. Use it as a soft wash so
   // the rail stays recognisable per course without importing a new palette.
@@ -265,37 +467,6 @@ function CourseCard({ course, memberCount }: { course: Course; memberCount: numb
         <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
           <Users className="h-3 w-3" />
           {memberCount} {memberCount === 1 ? "athlete" : "athletes"}
-        </p>
-      </div>
-    </Link>
-  );
-}
-
-function SessionRow({ slot }: { slot: Slot }) {
-  return (
-    <Link
-      to="/app/schedule"
-      className="flex items-center gap-3 rounded-[--radius] bg-card p-3 shadow-sm transition-colors hover:bg-secondary"
-    >
-      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-secondary">
-        <span className="text-xs font-semibold tabular-nums">
-          {format(new Date(slot.starts_at), "HH:mm")}
-        </span>
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{slot.title}</p>
-        <p className="mt-0.5 flex items-center gap-2 truncate text-xs text-muted-foreground">
-          {slot.location && (
-            <span className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" /> {slot.location}
-            </span>
-          )}
-          {slot.ends_at && (
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {format(new Date(slot.starts_at), "HH:mm")}–{format(new Date(slot.ends_at), "HH:mm")}
-            </span>
-          )}
         </p>
       </div>
     </Link>
