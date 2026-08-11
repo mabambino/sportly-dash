@@ -51,90 +51,112 @@
 }
 
 :root {
+  /* Corner radius. 20px is the base; the -sm/-md/-lg/-xl scale above derives
+     from it, giving a 16-24px range across the app. */
   --radius: 1.25rem;
-  --background: #F4F4F4;
-  --foreground: #0C0F12;
+
+  /* Brand: a single blue family sampled from the Syncletics key art.
+     #5396F1 is the artwork's most saturated blue and #A7CEFB its dominant
+     tone; both are kept for glow and accents. Anything carrying text is
+     deepened to #1F5FD8 so white labels clear WCAG AA (5.70:1) - the raw
+     artwork blue only manages 3.00:1. */
+  --background: #DCE9FC;
+  --foreground: #0C1220;
   --card: #FFFFFF;
-  --card-foreground: #0C0F12;
+  --card-foreground: #0C1220;
   --popover: #FFFFFF;
-  --popover-foreground: #0C0F12;
-  --primary: #050585;
+  --popover-foreground: #0C1220;
+  --primary: #1F5FD8;
   --primary-foreground: #FFFFFF;
-  --primary-glow: #0B0BF5;
-  --secondary: #DEDEDE;
-  --secondary-foreground: #0C0F12;
-  --muted: #E4E4E4;
-  --muted-foreground: #476A67;
-  --accent: #A0D8D5;
-  --accent-foreground: #0C0F12;
+  --primary-glow: #5396F1;
+  --secondary: #C9DDF9;
+  --secondary-foreground: #12356E;
+  --muted: #CBDDF8;
+  --muted-foreground: #3F5378;
+  --accent: #A7CEFB;
+  --accent-foreground: #12356E;
   --destructive: oklch(0.55 0.21 27);
   --destructive-foreground: #FFFFFF;
   --success: oklch(0.52 0.14 155);
   --success-foreground: #FFFFFF;
   --warning: oklch(0.78 0.16 75);
-  --warning-foreground: #0C0F12;
-  --border: #DDDDDD;
-  --input: #949494;
-  --ring: #0B0BF5;
-  --chart-1: #050585;
-  --chart-2: #0B0BF5;
-  --chart-3: #64908D;
-  --chart-4: #A0D8D5;
-  --chart-5: #0C0F12;
-  --sidebar: #F1F1F1;
-  --sidebar-foreground: #0C0F12;
-  --sidebar-primary: #050585;
+  --warning-foreground: #0C1220;
+  --border: #BFD6F5;
+  --input: #8FB2E4;
+  --ring: #5396F1;
+  /* Charts step through the one blue ramp rather than mixing hues. */
+  --chart-1: #0F3D9E;
+  --chart-2: #1F5FD8;
+  --chart-3: #5396F1;
+  --chart-4: #A7CEFB;
+  --chart-5: #12356E;
+  --sidebar: #EAF1FD;
+  --sidebar-foreground: #0C1220;
+  --sidebar-primary: #1F5FD8;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #DEDEDE;
-  --sidebar-accent-foreground: #0C0F12;
-  --sidebar-border: #DDDDDD;
-  --sidebar-ring: #0B0BF5;
-  --gradient-hero: linear-gradient(135deg, #050585 0%, #0808B8 55%, #0B0BF5 100%);
-  --gradient-subtle: linear-gradient(180deg, #F4F4F4 0%, #ECECEC 100%);
-  --shadow-elegant: 0 10px 40px -12px color-mix(in oklab, var(--primary) 30%, transparent);
-  --shadow-card: 0 8px 24px -10px rgb(12 15 18 / 0.10), 0 1px 2px 0 rgb(12 15 18 / 0.04);
+  --sidebar-accent: #C9DDF9;
+  --sidebar-accent-foreground: #12356E;
+  --sidebar-border: #BFD6F5;
+  --sidebar-ring: #5396F1;
+  --gradient-hero: linear-gradient(135deg, #0F3D9E 0%, #1F5FD8 55%, #5396F1 100%);
+  --gradient-subtle: linear-gradient(180deg, #DCE9FC 0%, #CFE1FA 100%);
+  --shadow-elegant: 0 10px 40px -12px color-mix(in oklab, var(--primary) 32%, transparent);
+  --shadow-card: 0 8px 24px -10px rgb(15 61 158 / 0.14), 0 1px 2px 0 rgb(15 61 158 / 0.05);
 }
 
 .dark {
-  --background: #0C0F12;
-  --foreground: #DEDEDE;
-  --card: #14181C;
-  --card-foreground: #DEDEDE;
-  --popover: #14181C;
-  --popover-foreground: #DEDEDE;
-  --primary: #0B0BF5;
-  --primary-foreground: #FFFFFF;
-  --primary-glow: #A0D8D5;
-  --secondary: #1C2226;
-  --secondary-foreground: #DEDEDE;
-  --muted: #1C2226;
-  --muted-foreground: #9FB6B4;
-  --accent: #1C2E2C;
-  --accent-foreground: #A0D8D5;
+  /* Dark mode is the right-hand half of the key art: near-black navy with the
+     blue reading as light rather than pigment. */
+  --background: #030A1A;
+  --foreground: #DCE7F7;
+  --card: #0A1428;
+  --card-foreground: #DCE7F7;
+  --popover: #0A1428;
+  --popover-foreground: #DCE7F7;
+  --primary: #5B8CE8;
+  --primary-foreground: #030A1A;
+  --primary-glow: #A7CEFB;
+  --secondary: #0F1B33;
+  --secondary-foreground: #DCE7F7;
+  --muted: #0F1B33;
+  --muted-foreground: #8FA6C8;
+  --accent: #1A2E52;
+  --accent-foreground: #A7CEFB;
   --destructive: oklch(0.7 0.19 22);
-  --destructive-foreground: #0C0F12;
-  --border: #232B2E;
-  --input: #5E706E;
-  --ring: #A0D8D5;
-  --chart-1: #A0D8D5;
-  --chart-2: #DEDEDE;
-  --chart-3: #64908D;
-  --chart-4: #0B0BF5;
-  --chart-5: #476A67;
-  --sidebar: #101418;
-  --sidebar-foreground: #DEDEDE;
-  --sidebar-primary: #0B0BF5;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1C2226;
-  --sidebar-accent-foreground: #DEDEDE;
-  --sidebar-border: #232B2E;
-  --sidebar-ring: #A0D8D5;
-  /* Hero gradient stays navy-to-blue in dark mode too (white text on it). */
-  --gradient-hero: linear-gradient(135deg, #050585 0%, #0808B8 55%, #0B0BF5 100%);
-  --gradient-subtle: linear-gradient(180deg, #14181C 0%, #0C0F12 100%);
+  --destructive-foreground: #030A1A;
+  --border: #16243F;
+  --input: #2A3E63;
+  --ring: #5B8CE8;
+  --chart-1: #5B8CE8;
+  --chart-2: #A7CEFB;
+  --chart-3: #3E6FCB;
+  --chart-4: #2A4E96;
+  --chart-5: #1A2E52;
+  --sidebar: #06101F;
+  --sidebar-foreground: #DCE7F7;
+  --sidebar-primary: #5B8CE8;
+  --sidebar-primary-foreground: #030A1A;
+  --sidebar-accent: #0F1B33;
+  --sidebar-accent-foreground: #DCE7F7;
+  --sidebar-border: #16243F;
+  --sidebar-ring: #5B8CE8;
+  --gradient-hero: linear-gradient(135deg, #0F3D9E 0%, #2A4E96 55%, #5B8CE8 100%);
+  --gradient-subtle: linear-gradient(180deg, #0A1428 0%, #030A1A 100%);
+  --shadow-card: 0 8px 24px -10px rgb(0 0 0 / 0.55), 0 1px 2px 0 rgb(0 0 0 / 0.4);
 }
 
 @layer base {
+  /* One global honouring of the OS "reduce motion" setting. Without this the
+     tw-animate-css keyframes used across dialogs, popovers and route changes
+     keep running for people who have explicitly asked them not to. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
   * { border-color: var(--color-border); }
   html, body { font-family: var(--font-sans); }
   body {
