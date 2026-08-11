@@ -63,11 +63,36 @@ correctly calls safe to expose. The problem is structural: the file is **tracked
 next person to add `SUPABASE_SERVICE_ROLE_KEY` — the key `client.server.ts` reads, which
 bypasses RLS entirely — commits it without noticing.
 
-**Fixed:** untracked `.env`, added `.env`/`.env.*` to `.gitignore`, added `.env.example`
-with the keys and empty values.
+**Attempted, then reverted — read this before trying again.** `.env` was untracked,
+`.gitignore` updated and `.env.example` added. That took production down.
 
-> Applying the patch removes the file from tracking going forward. It stays in history;
-> rewriting that is your call, and the currently committed values don't warrant it.
+Vite inlines `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` **at build time**,
+reading them from `.env` in the repo root. The Cloudflare Worker had no build variables
+and no runtime variables configured, so the committed `.env` *was* the deployment's entire
+configuration. Removing it shipped a bundle with no Supabase config: the client threw
+`Missing Supabase environment variable(s)` on load and the whole app was down — not just
+login. `.env` was restored in `16e27e9`.
+
+`.gitignore` and `.env.example` were kept. Note the consequence: `.env` is now listed in
+`.gitignore` *and* tracked, so git will not pick up local edits to it. That is deliberate,
+but it is a sharp edge — if you change `.env` locally and the deploy does not reflect it,
+this is why.
+
+**To finish this properly:**
+
+1. Six build variables are already set on the Worker (`SUPABASE_URL`, `SUPABASE_PROJECT_ID`,
+   `SUPABASE_PUBLISHABLE_KEY` and the three `VITE_`-prefixed equivalents), under
+   Settings → Build → Variables and secrets.
+2. Add the three non-`VITE_` names as **runtime** variables too (Settings → Variables and
+   secrets, the section at the top — still empty). `auth-middleware.ts` and
+   `client.server.ts` read them from `process.env` at request time, and build variables are
+   not available then.
+3. Only once a deploy has succeeded and the app verified working should `.env` be deleted
+   again. Delete it on its own, and check the app immediately afterwards.
+
+The values in question are the project URL and the publishable anon key, both designed to be
+public. The reason to move them is not that they are secret — it is that a tracked `.env` is
+how a `SUPABASE_SERVICE_ROLE_KEY` eventually gets committed by accident.
 
 ### 5. Unauthenticated public write through the service-role client
 `src/lib/embed.functions.ts:41–63`
@@ -207,6 +232,11 @@ The code is on `main`. These are not done.
 4. **Consider gating `getEmbedStats`** on a per-club "embed enabled" flag. It returns member
    counts and upcoming session locations for any club UUID, without auth. Defensible for a widget
    you chose to publish, less so as the default for every club.
-5. **`.env` remains in git history.** The committed values are the publishable anon key and
+5. **`SUPABASE_SERVICE_ROLE_KEY` is not set anywhere** — not in `.env`, not in the Cloudflare
+   build or runtime variables. `client.server.ts` throws without it, which means every code
+   path touching `supabaseAdmin` (staff "Add member", demo seeding, both embed endpoints) has
+   been failing in production independently of anything in this audit. Worth confirming
+   against your own expectations of what works today.
+6. **`.env` remains in git history.** The committed values are the publishable anon key and
    project URL, which are designed to be public, so this is optional — but if you ever want a
    clean history, that is a separate rewrite.
