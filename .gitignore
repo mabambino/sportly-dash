@@ -30,3 +30,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files — never commit these. Today .env holds only the Supabase
+# URL and the publishable (anon) key, which are safe to expose, but a tracked
+# .env is how a SUPABASE_SERVICE_ROLE_KEY ends up in git history. Keep an
+# .env.example with placeholder values instead.
+.env
+.env.*
+!.env.example
