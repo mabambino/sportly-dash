@@ -99,7 +99,7 @@ export function ActionRow({
   disabled?: boolean;
 }) {
   const classes = cn(
-    "flex w-full items-center justify-between gap-3 rounded-[--radius] px-4 py-3.5 text-left transition-colors",
+    "flex w-full items-center justify-between gap-3 rounded-(--radius) px-4 py-3.5 text-left transition-colors",
     primary
       ? "bg-foreground text-background hover:opacity-90"
       : "bg-card text-foreground shadow-sm hover:bg-secondary",
@@ -135,7 +135,7 @@ export function ActionRow({
 /** Empty-state line that keeps a section's height stable while data loads. */
 export function EmptyLine({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-[--radius] bg-card px-4 py-6 text-center text-sm text-muted-foreground">
+    <p className="rounded-(--radius) bg-card px-4 py-6 text-center text-sm text-muted-foreground">
       {children}
     </p>
   );

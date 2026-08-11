@@ -167,7 +167,7 @@ export function StopwatchCard() {
 
   return (
     <>
-      <div className="rounded-[--radius] bg-card p-4 shadow-sm">
+      <div className="rounded-(--radius) bg-card p-4 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Stopwatch</p>
           {entries.length > 0 && (

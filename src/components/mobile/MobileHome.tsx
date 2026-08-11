@@ -252,7 +252,7 @@ export function MobileHome() {
       {/* Next session */}
       <section>
         {isLoading ? (
-          <Skeleton className="h-[60px] w-full rounded-[--radius]" />
+          <Skeleton className="h-[60px] w-full rounded-(--radius)" />
         ) : data?.next ? (
           <ActionRow to="/app/schedule" primary>
             <p className="text-sm font-semibold">
@@ -278,8 +278,8 @@ export function MobileHome() {
         />
         {isLoading ? (
           <div className="grid grid-cols-2 gap-3">
-            <Skeleton className="h-24 rounded-[--radius]" />
-            <Skeleton className="h-24 rounded-[--radius]" />
+            <Skeleton className="h-24 rounded-(--radius)" />
+            <Skeleton className="h-24 rounded-(--radius)" />
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -313,7 +313,7 @@ export function MobileHome() {
         {isLoading ? (
           <Rail>
             {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-28 w-36 shrink-0 rounded-[--radius]" />
+              <Skeleton key={i} className="h-28 w-36 shrink-0 rounded-(--radius)" />
             ))}
           </Rail>
         ) : (data?.courses.length ?? 0) === 0 ? (
@@ -338,7 +338,7 @@ export function MobileHome() {
           to="/app/schedule"
         />
         {isLoading ? (
-          <Skeleton className="h-20 w-full rounded-[--radius]" />
+          <Skeleton className="h-20 w-full rounded-(--radius)" />
         ) : dayEvents.length === 0 ? (
           <EmptyLine>Nothing on {format(selected, "EEEE d MMM")}.</EmptyLine>
         ) : (
@@ -354,7 +354,7 @@ export function MobileHome() {
       <section>
         <SectionHeader title="Trainers" to={isStaff ? "/app/members" : undefined} />
         {isLoading ? (
-          <Skeleton className="h-24 w-full rounded-[--radius]" />
+          <Skeleton className="h-24 w-full rounded-(--radius)" />
         ) : (data?.trainers.length ?? 0) === 0 ? (
           <EmptyLine>No trainers in this club yet.</EmptyLine>
         ) : (
@@ -388,7 +388,7 @@ function StatTile({
   sensitive?: boolean;
 }) {
   return (
-    <div className="flex flex-col justify-between rounded-[--radius] bg-card p-4 shadow-sm">
+    <div className="flex flex-col justify-between rounded-(--radius) bg-card p-4 shadow-sm">
       <p className="text-xs leading-tight text-muted-foreground">{label}</p>
       <p
         className={cn(
@@ -419,7 +419,7 @@ function EventRow({ event }: { event: DayEvent }) {
   return (
     <Link
       to={style.to}
-      className="flex items-center gap-3 rounded-[--radius] bg-card p-3 shadow-sm transition-colors hover:bg-secondary"
+      className="flex items-center gap-3 rounded-(--radius) bg-card p-3 shadow-sm transition-colors hover:bg-secondary"
     >
       <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-secondary">
         {event.kind === "session" ? (
@@ -448,7 +448,7 @@ function CourseCard({ course, memberCount }: { course: Course; memberCount: numb
   return (
     <Link
       to="/app/courses"
-      className="relative flex h-28 w-36 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-[--radius] bg-card p-3 shadow-sm transition-transform active:scale-[0.98]"
+      className="relative flex h-28 w-36 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-(--radius) bg-card p-3 shadow-sm transition-transform active:scale-[0.98]"
     >
       {tint && (
         <span
@@ -491,7 +491,7 @@ function TrainerCard({
     .toUpperCase();
 
   return (
-    <div className="rounded-[--radius] bg-card p-3 shadow-sm">
+    <div className="rounded-(--radius) bg-card p-3 shadow-sm">
       <div className="flex items-center gap-3">
         <Avatar className="h-11 w-11 shrink-0">
           {avatar && <AvatarImage src={avatar} alt="" />}
