@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { randomPassword, randomToken } from "@/lib/random";
 
 const FIRST_NAMES = ["Alex","Sam","Jordan","Taylor","Morgan","Casey","Riley","Quinn","Avery","Skyler","Drew","Reese"];
 const LAST_NAMES = ["Lee","Garcia","Smith","Patel","Nguyen","Brown","Davis","Lopez","Khan","Kim","Walker","Reed"];
@@ -10,6 +11,13 @@ export const seedDemoData = createServerFn({ method: "POST" })
   .inputValidator((d: { clubId: string }) => z.object({ clubId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+
+    // Seeding mints real, e-mail-confirmed auth users. That is fine in a
+    // sandbox and unacceptable in production, so it is off by default there
+    // and must be opted into explicitly.
+    if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") {
+      throw new Error("Demo data seeding is disabled in production");
+    }
 
     // verify caller owns club
     const { data: club } = await supabase.from("clubs").select("*").eq("id", data.clubId).maybeSingle();
@@ -22,10 +30,12 @@ export const seedDemoData = createServerFn({ method: "POST" })
     const students: { id: string; name: string }[] = [];
 
     for (let i = 0; i < 2; i++) {
-      const email = `trainer${i + 1}.${Date.now()}@demo.clubhaus.app`;
+      // .invalid is reserved by RFC 2606 and can never resolve, so demo
+      // accounts cannot receive mail or collide with a real address.
+      const email = `trainer${i + 1}.${randomToken()}@demo.syncletics.invalid`;
       const { data: u } = await supabaseAdmin.auth.admin.createUser({
-        email, password: "demopass123", email_confirm: true,
-        user_metadata: { display_name: `Coach ${FIRST_NAMES[i]}` },
+        email, password: randomPassword(), email_confirm: true,
+        user_metadata: { display_name: `Coach ${FIRST_NAMES[i]}`, demo: true },
       });
       if (u.user) {
         trainers.push(u.user.id);
@@ -36,10 +46,10 @@ export const seedDemoData = createServerFn({ method: "POST" })
     for (let i = 0; i < 10; i++) {
       const fn = FIRST_NAMES[i % FIRST_NAMES.length];
       const ln = LAST_NAMES[i % LAST_NAMES.length];
-      const email = `student${i + 1}.${Date.now()}@demo.clubhaus.app`;
+      const email = `student${i + 1}.${randomToken()}@demo.syncletics.invalid`;
       const { data: u } = await supabaseAdmin.auth.admin.createUser({
-        email, password: "demopass123", email_confirm: true,
-        user_metadata: { display_name: `${fn} ${ln}` },
+        email, password: randomPassword(), email_confirm: true,
+        user_metadata: { display_name: `${fn} ${ln}`, demo: true },
       });
       if (u.user) {
         students.push({ id: u.user.id, name: `${fn} ${ln}` });
@@ -55,7 +65,12 @@ export const seedDemoData = createServerFn({ method: "POST" })
       start.setDate(now.getDate() + day);
       start.setHours(17, 0, 0, 0);
       const end = new Date(start); end.setHours(18, 30);
-      const trainer = trainers[day % trainers.length] ?? trainers[0];
+      // day runs from -3, and JS % keeps the sign, so day % len can be
+      // negative and index out of the array.
+      const trainer =
+        trainers.length > 0
+          ? trainers[((day % trainers.length) + trainers.length) % trainers.length]
+          : undefined;
       const { data: s } = await supabaseAdmin.from("time_slots").insert({
         club_id: data.clubId,
         title: day < 0 ? "Skills Training" : day === 0 ? "Today's Session" : "Practice",

@@ -52,7 +52,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const load = async (uid: string) => {
     const [{ data: prof }, { data: mems }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
-      supabase.from("memberships").select("*").eq("user_id", uid).limit(1),
+      // Deterministic: without an ORDER BY, a user who belongs to more than
+      // one club would land in an arbitrary club that could change between
+      // page loads. Oldest membership wins until club switching exists.
+      supabase
+        .from("memberships")
+        .select("*")
+        .eq("user_id", uid)
+        .order("joined_at", { ascending: true })
+        .order("id", { ascending: true })
+        .limit(1),
     ]);
     setProfile(prof as Profile | null);
     const m = (mems?.[0] as Membership | undefined) ?? null;

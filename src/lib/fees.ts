@@ -13,10 +13,18 @@ export const DEFAULT_FEE: FeeConfig = {
   feeFixedCents: 30,
 };
 
-/** Compute the fee (in cents) charged on a payment of `amountCents`. */
+/**
+ * Compute the fee (in cents) charged on a payment of `amountCents`.
+ *
+ * Guards two cases the naive formula gets wrong:
+ *  - a zero, negative or non-finite amount must not attract the fixed fee
+ *    (a $0 invoice was being charged $0.30, and net revenue went negative);
+ *  - the fee can never exceed the amount collected.
+ */
 export function computeFeeCents(amountCents: number, cfg: FeeConfig): number {
+  if (!Number.isFinite(amountCents) || amountCents <= 0) return 0;
   const pct = Math.round((amountCents * (cfg.feePercentBps ?? 0)) / 10000);
-  return pct + (cfg.feeFixedCents ?? 0);
+  return Math.min(amountCents, pct + (cfg.feeFixedCents ?? 0));
 }
 
 /** Amount the club nets after the fee is deducted. */

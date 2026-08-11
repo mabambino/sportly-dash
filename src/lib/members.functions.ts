@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { randomPassword } from "@/lib/random";
 
 const AddMemberInput = z.object({
   clubId: z.string().uuid(),
@@ -45,10 +46,14 @@ export const addMember = createServerFn({ method: "POST" })
 
     let targetUserId = existing?.id ?? null;
     let tempPassword: string | null = null;
+    // Only accounts we create in this request may be rolled back on failure —
+    // never an account that already existed.
+    let createdUserId: string | null = null;
 
     if (!targetUserId) {
-      tempPassword =
-        Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
+      // Cryptographically secure: this password is a real credential for the
+      // new account until the member changes it.
+      tempPassword = randomPassword();
       const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
         email,
         password: tempPassword,
@@ -57,7 +62,17 @@ export const addMember = createServerFn({ method: "POST" })
       });
       if (error || !created.user) throw new Error(error?.message || "Could not create the account");
       targetUserId = created.user.id;
+      createdUserId = created.user.id;
     }
+
+    // If anything below fails we must not leave a half-provisioned account
+    // behind: an orphaned auth user blocks the admin from retrying, because
+    // the e-mail is then taken but has no membership.
+    const rollback = async () => {
+      if (createdUserId) {
+        await supabaseAdmin.auth.admin.deleteUser(createdUserId).catch(() => {});
+      }
+    };
 
     const { data: already } = await supabaseAdmin
       .from("memberships")
@@ -65,7 +80,10 @@ export const addMember = createServerFn({ method: "POST" })
       .eq("club_id", data.clubId)
       .eq("user_id", targetUserId)
       .maybeSingle();
-    if (already) throw new Error("This person is already a member of the club");
+    if (already) {
+      await rollback();
+      throw new Error("This person is already a member of the club");
+    }
 
     const { error: memErr } = await supabaseAdmin.from("memberships").insert({
       club_id: data.clubId,
@@ -73,7 +91,10 @@ export const addMember = createServerFn({ method: "POST" })
       role: data.role,
       group_id: data.groupId ?? null,
     });
-    if (memErr) throw new Error(memErr.message);
+    if (memErr) {
+      await rollback();
+      throw new Error(memErr.message);
+    }
 
     return {
       ok: true,
