@@ -23,7 +23,7 @@ import {
 } from "recharts";
 import { format, subDays, endOfDay, startOfMonth, startOfYear } from "date-fns";
 import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobileState } from "@/hooks/use-mobile";
 import { MobileHome } from "@/components/mobile/MobileHome";
 
 export const Route = createFileRoute("/app/dashboard")({
@@ -63,7 +63,7 @@ const WIDGET_SIZES: Record<string, string> = {
 
 function Dashboard() {
   const { club, isStaff, profile, refresh } = useAuth();
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobileState();
   const { hideAll, toggle: togglePrivacy } = usePrivacy();
   const [isRearranging, setIsRearranging] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -226,6 +226,19 @@ function Dashboard() {
 
   if (error) {
     return <Card className="p-8 text-center text-sm text-destructive">Could not load the dashboard: {(error as Error).message}</Card>;
+  }
+
+  // Until the breakpoint is known we render neither layout. Defaulting to the
+  // desktop grid here meant a phone painted the full widget dashboard for a
+  // frame and then snapped to the mobile one — the flash this replaces.
+  if (isMobile === undefined) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-16 w-full rounded-(--radius)" />
+        <Skeleton className="h-28 w-full rounded-(--radius)" />
+        <Skeleton className="h-40 w-full rounded-(--radius)" />
+      </div>
+    );
   }
 
   // On phones every role gets the mobile home layout. The widget grid below is
