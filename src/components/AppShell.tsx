@@ -15,7 +15,7 @@ import {
 import {
   LayoutDashboard, Users, Calendar, ClipboardCheck, MessagesSquare,
   CreditCard, Megaphone, Bell, LogOut, BarChart3, User as UserIcon, Kanban, Layers,
-  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode,
+  GraduationCap, TrendingUp, UserPlus, Upload, LineChart, Settings, QrCode, MoreHorizontal,
   Sun, Moon, Languages, Menu, RefreshCw, X,
 } from "lucide-react";
 import logoSyncletics from "@/assets/logo-syncletics.svg";
@@ -443,7 +443,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </Link>
           </header>
-          <div className="mx-auto max-w-7xl px-4 pb-32 pt-6 lg:px-8 lg:py-10">{children}</div>
+          {/* Keyed on the route so each navigation replays a short fade-and-rise
+              instead of the new screen appearing hard. Opacity and transform
+              only, so it composites on the GPU and cannot reflow mid-animation.
+              Users who ask for reduced motion get the content immediately. */}
+          <div
+            key={pathname}
+            className="mx-auto max-w-7xl px-4 pb-32 pt-6 duration-300 ease-out animate-in fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none lg:px-8 lg:py-10"
+          >
+            {children}
+          </div>
         </main>
 
       </div>
@@ -518,7 +527,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   // Icons only: every tab keeps the same width so the bar never
                   // reflows as you move between them. The label lives in
                   // aria-label so screen readers still announce the destination.
-                  "my-1.5 flex h-11 min-w-0 flex-1 items-center justify-center rounded-full transition-colors",
+                  "my-1.5 flex h-11 min-w-0 flex-1 items-center justify-center rounded-full",
+                  "transition-[background-color,color,transform] duration-200 ease-out active:scale-95",
+                  "motion-reduce:transition-none motion-reduce:active:scale-100",
                   active
                     ? "bg-foreground text-background shadow-sm"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -537,7 +548,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => { setMoreOpen(!moreOpen); void hapticTick(); }}
                 className={cn(
-                  "my-1.5 flex h-11 min-w-0 flex-1 items-center justify-center rounded-full transition-colors",
+                  "my-1.5 flex h-11 min-w-0 flex-1 items-center justify-center rounded-full",
+                  "transition-[background-color,color,transform] duration-200 ease-out active:scale-95",
+                  "motion-reduce:transition-none motion-reduce:active:scale-100",
                   accountActive
                     ? "bg-foreground text-background shadow-sm"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -545,7 +558,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 aria-label="Account"
                 aria-expanded={moreOpen}
               >
-                <UserBubble size="h-6 w-6" fallbackClass={cn("text-[10px] font-semibold", accountActive ? "bg-background/25 text-background" : "bg-primary/10 text-primary")} />
+                <MoreHorizontal className="h-5 w-5 shrink-0" />
               </button>
             );
           })()}
