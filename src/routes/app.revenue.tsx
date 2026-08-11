@@ -13,7 +13,7 @@ import { DollarSign, TrendingUp, AlertCircle, Landmark } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { format, startOfMonth, subMonths } from "date-fns";
 import { toast } from "sonner";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { describeFee, computeFeeCents, DEFAULT_FEE } from "@/lib/fees";
 
 export const Route = createFileRoute("/app/revenue")({
@@ -35,28 +35,65 @@ const TAX_PRESETS = [
   { code: "custom", label: "Custom rate…", rate: 0 },
 ];
 
+/**
+ * Tax settings live on the club row (clubs.tax_country / tax_rate_bps, added
+ * in 20260703120000_improvements.sql), not in localStorage.
+ *
+ * They used to be stored per browser, which meant every staff member saw a
+ * different tax rate for the same club and the setting vanished when the
+ * cache was cleared — for a figure that feeds reported revenue. The old
+ * localStorage value is still read once as a fallback so nobody's existing
+ * setting disappears before it has been written back to the club.
+ */
 function useTaxSettings(clubId: string | undefined) {
-  const key = clubId ? `syncletics-tax-${clubId}` : null;
-  const [country, setCountry] = useState("none");
-  const [rate, setRate] = useState(0);
+  const qc = useQueryClient();
+  const legacyKey = clubId ? `syncletics-tax-${clubId}` : null;
 
-  useEffect(() => {
-    if (!key) return;
+  const { data: saved } = useQuery({
+    enabled: !!clubId,
+    queryKey: ["club-tax", clubId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clubs")
+        .select("tax_country, tax_rate_bps")
+        .eq("id", clubId!)
+        .maybeSingle();
+      // Columns missing => migration not applied yet; fall back below.
+      if (error) return null;
+      return data as { tax_country: string | null; tax_rate_bps: number | null } | null;
+    },
+  });
+
+  const legacy = useMemo(() => {
+    if (!legacyKey || typeof window === "undefined") return null;
     try {
-      const saved = JSON.parse(localStorage.getItem(key) || "null");
-      if (saved) {
-        setCountry(saved.country ?? "none");
-        setRate(Number(saved.rate) || 0);
-      }
+      const raw = localStorage.getItem(legacyKey);
+      return raw ? (JSON.parse(raw) as { country?: string; rate?: number }) : null;
     } catch {
-      /* ignore */
+      return null;
     }
-  }, [key]);
+  }, [legacyKey]);
 
-  const update = (nextCountry: string, nextRate: number) => {
-    setCountry(nextCountry);
-    setRate(nextRate);
-    if (key) localStorage.setItem(key, JSON.stringify({ country: nextCountry, rate: nextRate }));
+  const country = saved?.tax_country ?? legacy?.country ?? "none";
+  const rate =
+    saved?.tax_rate_bps != null ? saved.tax_rate_bps / 100 : Number(legacy?.rate) || 0;
+
+  const update = async (nextCountry: string, nextRate: number) => {
+    if (!clubId) return;
+    const safeRate = Number.isFinite(nextRate) ? Math.min(Math.max(nextRate, 0), 60) : 0;
+    const bps = Math.round(safeRate * 100);
+
+    qc.setQueryData(["club-tax", clubId], { tax_country: nextCountry, tax_rate_bps: bps });
+
+    const { error } = await supabase
+      .from("clubs")
+      .update({ tax_country: nextCountry, tax_rate_bps: bps } as never)
+      .eq("id", clubId);
+
+    if (error) {
+      toast.error(`Couldn't save tax settings: ${error.message}`);
+    }
+    qc.invalidateQueries({ queryKey: ["club-tax", clubId] });
   };
 
   return { country, rate, update };

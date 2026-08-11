@@ -155,8 +155,8 @@ function Onboarding() {
                 )}
                 <div>
                   <Label>Team code</Label>
-                  <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="ABCD23" required className="font-mono uppercase tracking-widest" maxLength={6} />
-                  <p className="mt-1 text-xs text-muted-foreground">Ask your club for the 6-character code.</p>
+                  <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="ABCD2345" required className="font-mono uppercase tracking-widest" maxLength={8} />
+                  <p className="mt-1 text-xs text-muted-foreground">Ask your club for the join code (6-8 characters).</p>
                 </div>
                 <div>
                   <Label>I am a…</Label>

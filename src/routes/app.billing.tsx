@@ -48,13 +48,19 @@ function BillingPage() {
     toast.loading("Processing payment…", { id: "pay" });
     const { error } = await (supabase.rpc as any)("pay_invoice", { _payment_id: id });
     if (error) {
-      // Fallback for databases where the migration hasn't run yet.
-      const { error: legacyError } = await supabase
-        .from("payments")
-        .update({ status: "paid", paid_at: new Date().toISOString() })
-        .eq("id", id)
-        .eq("member_id", user!.id);
-      if (legacyError) { toast.error(legacyError.message, { id: "pay" }); return; }
+      // No client-side fallback. Writing the payment row straight from the
+      // browser is exactly what the staff-only UPDATE policy exists to stop,
+      // and the old fallback also fired on legitimate rejections such as
+      // "Invoice already paid" — turning a refusal into a second charge.
+      const detail = `${error.message ?? ""} ${(error as { code?: string }).code ?? ""}`;
+      const migrationMissing = /pay_invoice|PGRST202|does not exist/i.test(detail);
+      toast.error(
+        migrationMissing
+          ? "Payments aren't enabled yet — the club still needs to apply the latest database migration."
+          : error.message,
+        { id: "pay" },
+      );
+      return;
     }
     toast.success("Payment successful (demo checkout)", { id: "pay" });
     qc.invalidateQueries({ queryKey: ["payments"] });
