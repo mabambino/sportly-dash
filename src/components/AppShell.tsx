@@ -515,15 +515,18 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={item.to}
                 onClick={() => { setMoreOpen(false); void hapticTick(); }}
                 className={cn(
-                  "my-1.5 flex min-w-0 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-all",
+                  // Icons only: every tab keeps the same width so the bar never
+                  // reflows as you move between them. The label lives in
+                  // aria-label so screen readers still announce the destination.
+                  "my-1.5 flex h-11 min-w-0 flex-1 items-center justify-center rounded-full transition-colors",
                   active
-                    ? "flex-[1.8] bg-foreground px-3 py-2.5 text-background shadow-sm"
-                    : "h-11 flex-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
                 aria-label={t(item.labelKey)}
+                aria-current={active ? "page" : undefined}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
-                {active && <span className="min-w-0 truncate">{t(item.labelKey)}</span>}
               </Link>
             );
           })}
@@ -534,15 +537,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => { setMoreOpen(!moreOpen); void hapticTick(); }}
                 className={cn(
-                  "my-1.5 flex min-w-0 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-all",
+                  "my-1.5 flex h-11 min-w-0 flex-1 items-center justify-center rounded-full transition-colors",
                   accountActive
-                    ? "flex-[1.8] bg-foreground px-3 py-2 text-background shadow-sm"
-                    : "h-11 flex-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
                 aria-label="Account"
+                aria-expanded={moreOpen}
               >
                 <UserBubble size="h-6 w-6" fallbackClass={cn("text-[10px] font-semibold", accountActive ? "bg-background/25 text-background" : "bg-primary/10 text-primary")} />
-                {accountActive && <span className="min-w-0 truncate">Account</span>}
               </button>
             );
           })()}
