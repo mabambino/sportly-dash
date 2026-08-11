@@ -23,6 +23,8 @@ import {
 } from "recharts";
 import { format, subDays, endOfDay, startOfMonth, startOfYear } from "date-fns";
 import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileHome } from "@/components/mobile/MobileHome";
 
 export const Route = createFileRoute("/app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Syncletics" }] }),
@@ -61,6 +63,7 @@ const WIDGET_SIZES: Record<string, string> = {
 
 function Dashboard() {
   const { club, isStaff, profile, refresh } = useAuth();
+  const isMobile = useIsMobile();
   const { hideAll, toggle: togglePrivacy } = usePrivacy();
   const [isRearranging, setIsRearranging] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -224,6 +227,11 @@ function Dashboard() {
   if (error) {
     return <Card className="p-8 text-center text-sm text-destructive">Could not load the dashboard: {(error as Error).message}</Card>;
   }
+
+  // On phones every role gets the mobile home layout. The widget grid below is
+  // a pointer-and-keyboard surface — drag-to-rearrange, multi-series charts —
+  // and does not survive being squeezed into a 390px column.
+  if (isMobile) return <MobileHome />;
 
   if (!isStaff) return <MemberHome data={data} profile={profile} />;
 
